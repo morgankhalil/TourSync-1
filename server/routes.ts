@@ -1,0 +1,484 @@
+import type { Express, Request, Response } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage";
+import { z } from "zod";
+import { insertBandSchema, insertTourSchema, insertTourDateSchema, insertVenueSchema, insertVenueAvailabilitySchema } from "@shared/schema";
+import { fromZodError } from "zod-validation-error";
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  // Band routes
+  app.get("/api/bands", async (_req, res) => {
+    try {
+      const bands = await storage.getBands();
+      res.json(bands);
+    } catch (error) {
+      console.error("Error fetching bands:", error);
+      res.status(500).json({ message: "Error fetching bands" });
+    }
+  });
+
+  app.get("/api/bands/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const band = await storage.getBand(id);
+      
+      if (!band) {
+        return res.status(404).json({ message: "Band not found" });
+      }
+      
+      res.json(band);
+    } catch (error) {
+      console.error("Error fetching band:", error);
+      res.status(500).json({ message: "Error fetching band" });
+    }
+  });
+
+  app.post("/api/bands", async (req, res) => {
+    try {
+      const validatedData = insertBandSchema.parse(req.body);
+      const band = await storage.createBand(validatedData);
+      res.status(201).json(band);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      
+      console.error("Error creating band:", error);
+      res.status(500).json({ message: "Error creating band" });
+    }
+  });
+
+  app.put("/api/bands/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertBandSchema.partial().parse(req.body);
+      const updatedBand = await storage.updateBand(id, validatedData);
+      
+      if (!updatedBand) {
+        return res.status(404).json({ message: "Band not found" });
+      }
+      
+      res.json(updatedBand);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      
+      console.error("Error updating band:", error);
+      res.status(500).json({ message: "Error updating band" });
+    }
+  });
+
+  app.delete("/api/bands/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteBand(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Band not found" });
+      }
+      
+      res.status(204).end();
+    } catch (error) {
+      console.error("Error deleting band:", error);
+      res.status(500).json({ message: "Error deleting band" });
+    }
+  });
+
+  // Venue routes
+  app.get("/api/venues", async (req, res) => {
+    try {
+      // Check if location-based search parameters are provided
+      if (req.query.lat && req.query.lng && req.query.radius) {
+        const lat = parseFloat(req.query.lat as string);
+        const lng = parseFloat(req.query.lng as string);
+        const radius = parseFloat(req.query.radius as string);
+        
+        const venues = await storage.getVenuesByLocation(lat, lng, radius);
+        return res.json(venues);
+      }
+      
+      const venues = await storage.getVenues();
+      res.json(venues);
+    } catch (error) {
+      console.error("Error fetching venues:", error);
+      res.status(500).json({ message: "Error fetching venues" });
+    }
+  });
+
+  app.get("/api/venues/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const venue = await storage.getVenue(id);
+      
+      if (!venue) {
+        return res.status(404).json({ message: "Venue not found" });
+      }
+      
+      res.json(venue);
+    } catch (error) {
+      console.error("Error fetching venue:", error);
+      res.status(500).json({ message: "Error fetching venue" });
+    }
+  });
+
+  app.post("/api/venues", async (req, res) => {
+    try {
+      const validatedData = insertVenueSchema.parse(req.body);
+      const venue = await storage.createVenue(validatedData);
+      res.status(201).json(venue);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      
+      console.error("Error creating venue:", error);
+      res.status(500).json({ message: "Error creating venue" });
+    }
+  });
+
+  app.put("/api/venues/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertVenueSchema.partial().parse(req.body);
+      const updatedVenue = await storage.updateVenue(id, validatedData);
+      
+      if (!updatedVenue) {
+        return res.status(404).json({ message: "Venue not found" });
+      }
+      
+      res.json(updatedVenue);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      
+      console.error("Error updating venue:", error);
+      res.status(500).json({ message: "Error updating venue" });
+    }
+  });
+
+  app.delete("/api/venues/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteVenue(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Venue not found" });
+      }
+      
+      res.status(204).end();
+    } catch (error) {
+      console.error("Error deleting venue:", error);
+      res.status(500).json({ message: "Error deleting venue" });
+    }
+  });
+
+  // Tour routes
+  app.get("/api/tours", async (req, res) => {
+    try {
+      const bandId = req.query.bandId ? parseInt(req.query.bandId as string) : undefined;
+      const tours = await storage.getTours(bandId);
+      res.json(tours);
+    } catch (error) {
+      console.error("Error fetching tours:", error);
+      res.status(500).json({ message: "Error fetching tours" });
+    }
+  });
+
+  app.get("/api/tours/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const tour = await storage.getTour(id);
+      
+      if (!tour) {
+        return res.status(404).json({ message: "Tour not found" });
+      }
+      
+      res.json(tour);
+    } catch (error) {
+      console.error("Error fetching tour:", error);
+      res.status(500).json({ message: "Error fetching tour" });
+    }
+  });
+
+  app.post("/api/tours", async (req, res) => {
+    try {
+      const validatedData = insertTourSchema.parse(req.body);
+      const tour = await storage.createTour(validatedData);
+      res.status(201).json(tour);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      
+      console.error("Error creating tour:", error);
+      res.status(500).json({ message: "Error creating tour" });
+    }
+  });
+
+  app.put("/api/tours/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertTourSchema.partial().parse(req.body);
+      const updatedTour = await storage.updateTour(id, validatedData);
+      
+      if (!updatedTour) {
+        return res.status(404).json({ message: "Tour not found" });
+      }
+      
+      res.json(updatedTour);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      
+      console.error("Error updating tour:", error);
+      res.status(500).json({ message: "Error updating tour" });
+    }
+  });
+
+  app.delete("/api/tours/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteTour(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Tour not found" });
+      }
+      
+      res.status(204).end();
+    } catch (error) {
+      console.error("Error deleting tour:", error);
+      res.status(500).json({ message: "Error deleting tour" });
+    }
+  });
+
+  // Tour date routes
+  app.get("/api/tours/:tourId/dates", async (req, res) => {
+    try {
+      const tourId = parseInt(req.params.tourId);
+      const tourDates = await storage.getTourDates(tourId);
+      res.json(tourDates);
+    } catch (error) {
+      console.error("Error fetching tour dates:", error);
+      res.status(500).json({ message: "Error fetching tour dates" });
+    }
+  });
+
+  app.get("/api/tour-dates/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const tourDate = await storage.getTourDate(id);
+      
+      if (!tourDate) {
+        return res.status(404).json({ message: "Tour date not found" });
+      }
+      
+      res.json(tourDate);
+    } catch (error) {
+      console.error("Error fetching tour date:", error);
+      res.status(500).json({ message: "Error fetching tour date" });
+    }
+  });
+
+  app.post("/api/tour-dates", async (req, res) => {
+    try {
+      const validatedData = insertTourDateSchema.parse(req.body);
+      const tourDate = await storage.createTourDate(validatedData);
+      res.status(201).json(tourDate);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      
+      console.error("Error creating tour date:", error);
+      res.status(500).json({ message: "Error creating tour date" });
+    }
+  });
+
+  app.put("/api/tour-dates/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertTourDateSchema.partial().parse(req.body);
+      const updatedTourDate = await storage.updateTourDate(id, validatedData);
+      
+      if (!updatedTourDate) {
+        return res.status(404).json({ message: "Tour date not found" });
+      }
+      
+      res.json(updatedTourDate);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      
+      console.error("Error updating tour date:", error);
+      res.status(500).json({ message: "Error updating tour date" });
+    }
+  });
+
+  app.delete("/api/tour-dates/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteTourDate(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Tour date not found" });
+      }
+      
+      res.status(204).end();
+    } catch (error) {
+      console.error("Error deleting tour date:", error);
+      res.status(500).json({ message: "Error deleting tour date" });
+    }
+  });
+
+  // Venue availability routes
+  app.get("/api/venues/:venueId/availability", async (req, res) => {
+    try {
+      const venueId = parseInt(req.params.venueId);
+      const availabilities = await storage.getVenueAvailability(venueId);
+      res.json(availabilities);
+    } catch (error) {
+      console.error("Error fetching venue availability:", error);
+      res.status(500).json({ message: "Error fetching venue availability" });
+    }
+  });
+
+  app.post("/api/venue-availability", async (req, res) => {
+    try {
+      const validatedData = insertVenueAvailabilitySchema.parse(req.body);
+      const availability = await storage.createVenueAvailability(validatedData);
+      res.status(201).json(availability);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      
+      console.error("Error creating venue availability:", error);
+      res.status(500).json({ message: "Error creating venue availability" });
+    }
+  });
+
+  app.put("/api/venue-availability/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertVenueAvailabilitySchema.partial().parse(req.body);
+      const updatedAvailability = await storage.updateVenueAvailability(id, validatedData);
+      
+      if (!updatedAvailability) {
+        return res.status(404).json({ message: "Venue availability not found" });
+      }
+      
+      res.json(updatedAvailability);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      
+      console.error("Error updating venue availability:", error);
+      res.status(500).json({ message: "Error updating venue availability" });
+    }
+  });
+
+  app.delete("/api/venue-availability/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteVenueAvailability(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Venue availability not found" });
+      }
+      
+      res.status(204).end();
+    } catch (error) {
+      console.error("Error deleting venue availability:", error);
+      res.status(500).json({ message: "Error deleting venue availability" });
+    }
+  });
+
+  // Specialized routes
+  app.get("/api/tours/:id/stats", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const stats = await storage.getTourStats(id);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching tour stats:", error);
+      res.status(500).json({ message: "Error fetching tour stats" });
+    }
+  });
+
+  app.post("/api/venues/find-along-route", async (req, res) => {
+    try {
+      const schema = z.object({
+        waypoints: z.array(z.object({
+          lat: z.number(),
+          lng: z.number()
+        })),
+        radius: z.number().default(50)
+      });
+      
+      const { waypoints, radius } = schema.parse(req.body);
+      const venues = await storage.findVenuesAlongRoute(waypoints, radius);
+      res.json(venues);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      
+      console.error("Error finding venues along route:", error);
+      res.status(500).json({ message: "Error finding venues along route" });
+    }
+  });
+
+  app.post("/api/venues/find-between-dates", async (req, res) => {
+    try {
+      const schema = z.object({
+        startDate: z.string().transform(val => new Date(val)),
+        endDate: z.string().transform(val => new Date(val)),
+        startLat: z.number(),
+        startLng: z.number(),
+        endLat: z.number(),
+        endLng: z.number(),
+        radius: z.number().default(100)
+      });
+      
+      const { startDate, endDate, startLat, startLng, endLat, endLng, radius } = schema.parse(req.body);
+      const venues = await storage.findAvailableVenuesBetweenDates(
+        startDate,
+        endDate,
+        startLat,
+        startLng,
+        endLat,
+        endLng,
+        radius
+      );
+      
+      res.json(venues);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      
+      console.error("Error finding venues between dates:", error);
+      res.status(500).json({ message: "Error finding venues between dates" });
+    }
+  });
+
+  const httpServer = createServer(app);
+  return httpServer;
+}
