@@ -35,9 +35,8 @@ const MapView = () => {
   // Load Google Maps API
   useEffect(() => {
     if (!window.google) {
-      // Only for demo purposes - in a real app we would use an API key
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBg-jzOEIXtBLpUEm1lfPyEObDVL5xDJK4&libraries=places&callback=initMap`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places&callback=initMap`;
       script.async = true;
       window.initMap = () => {
         if (mapRef.current) {

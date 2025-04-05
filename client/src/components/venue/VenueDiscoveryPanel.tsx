@@ -11,7 +11,7 @@ import { format } from "date-fns";
 interface VenueDiscoveryPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  date?: Date;
+  date?: Date | string;
   fromCity?: string;
   toCity?: string;
   onVenueSelect: (venue: Venue) => void;
