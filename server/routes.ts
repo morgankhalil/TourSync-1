@@ -663,6 +663,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Venue availability page endpoint
+  app.get("/venue-availability", (_req, res) => {
+    res.sendFile("index.html", { root: "./client" });
+  });
+
   // Google Maps API key endpoint
   app.get("/api/maps/api-key", (req, res) => {
     try {
