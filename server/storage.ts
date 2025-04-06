@@ -328,17 +328,48 @@ export class MemStorage implements IStorage {
   }
 
   private initializeSampleData() {
-    // Create a sample band
-    const band: InsertBand = {
-      name: "The Sonic Waves",
-      description: "An indie rock band from Seattle",
-      contactEmail: "contact@sonicwaves.com",
-      contactPhone: "206-555-1234",
-      genre: "Indie Rock",
-      social: { twitter: "@sonicwaves", instagram: "@thesonicwaves" }
-    };
-    const createdBand = { ...band, id: this.bandIdCounter++ };
-    this.bandsData.set(createdBand.id, createdBand);
+    // Create sample bands
+    const bands: InsertBand[] = [
+      {
+        name: "The Sonic Waves",
+        description: "An indie rock band from Seattle",
+        contactEmail: "contact@sonicwaves.com",
+        contactPhone: "206-555-1234",
+        genre: "Indie Rock",
+        social: { twitter: "@sonicwaves", instagram: "@thesonicwaves" }
+      },
+      {
+        name: "Midnight Ramble",
+        description: "Blues-rock quartet from Austin, TX",
+        contactEmail: "bookings@midnightramble.com",
+        contactPhone: "512-555-9876",
+        genre: "Blues Rock",
+        social: { instagram: "@midnightramble", website: "www.midnightramble.com" }
+      },
+      {
+        name: "Electronic Dreams",
+        description: "Synth-pop duo from Portland",
+        contactEmail: "info@electronicdreams.com",
+        contactPhone: "503-555-4321",
+        genre: "Electronic, Synth-pop",
+        social: { twitter: "@electronicdreams", instagram: "@electronic_dreams" }
+      },
+      {
+        name: "Velvet Thunder",
+        description: "Hard rock band with blues influences",
+        contactEmail: "thunder@velvetthunder.com",
+        contactPhone: "323-555-7890",
+        genre: "Hard Rock",
+        social: { facebook: "velvetthunderofficial", instagram: "@velvet_thunder" }
+      }
+    ];
+    
+    const createdBands: Band[] = [];
+    bands.forEach(band => {
+      const createdBand = { ...band, id: this.bandIdCounter++ };
+      this.bandsData.set(createdBand.id, createdBand);
+      createdBands.push(createdBand);
+    });
 
     // Create sample venues
     const venues: InsertVenue[] = [
@@ -477,30 +508,83 @@ export class MemStorage implements IStorage {
       this.venuesData.set(createdVenue.id, createdVenue);
     });
 
-    // Create sample tour
+    // Create sample tours for each band
     const today = new Date();
-    const tourStartDate = new Date(today);
-    tourStartDate.setDate(tourStartDate.getDate() - 5);
-    const tourEndDate = new Date(today);
-    tourEndDate.setDate(tourEndDate.getDate() + 45);
+    
+    // Tour 1: The Sonic Waves - East Coast to Midwest
+    const tour1StartDate = new Date(today);
+    tour1StartDate.setDate(tour1StartDate.getDate() - 5);
+    const tour1EndDate = new Date(today);
+    tour1EndDate.setDate(tour1EndDate.getDate() + 45);
 
-    const tour: InsertTour = {
+    const tour1: InsertTour = {
       name: "Summer Vibes Tour",
-      startDate: tourStartDate,
-      endDate: tourEndDate,
-      bandId: createdBand.id,
+      startDate: tour1StartDate,
+      endDate: tour1EndDate,
+      bandId: createdBands[0].id,
       notes: "Our first major tour of the year",
       isActive: true
     };
-    const createdTour = { ...tour, id: this.tourIdCounter++ };
-    this.toursData.set(createdTour.id, createdTour);
+    const createdTour1 = { ...tour1, id: this.tourIdCounter++ };
+    this.toursData.set(createdTour1.id, createdTour1);
 
-    // Create sample tour dates
-    const tourDates: InsertTourDate[] = [
+    // Tour 2: Midnight Ramble - Southern Route
+    const tour2StartDate = new Date(today);
+    tour2StartDate.setDate(tour2StartDate.getDate() - 15);
+    const tour2EndDate = new Date(today);
+    tour2EndDate.setDate(tour2EndDate.getDate() + 30);
+
+    const tour2: InsertTour = {
+      name: "Blues Highway Tour",
+      startDate: tour2StartDate,
+      endDate: tour2EndDate,
+      bandId: createdBands[1].id,
+      notes: "Following the blues trail north",
+      isActive: true
+    };
+    const createdTour2 = { ...tour2, id: this.tourIdCounter++ };
+    this.toursData.set(createdTour2.id, createdTour2);
+
+    // Tour 3: Electronic Dreams - West Coast to Midwest
+    const tour3StartDate = new Date(today);
+    tour3StartDate.setDate(tour3StartDate.getDate() - 2);
+    const tour3EndDate = new Date(today);
+    tour3EndDate.setDate(tour3EndDate.getDate() + 60);
+
+    const tour3: InsertTour = {
+      name: "Digital Horizons Tour",
+      startDate: tour3StartDate,
+      endDate: tour3EndDate,
+      bandId: createdBands[2].id,
+      notes: "Our biggest production yet",
+      isActive: true
+    };
+    const createdTour3 = { ...tour3, id: this.tourIdCounter++ };
+    this.toursData.set(createdTour3.id, createdTour3);
+
+    // Tour 4: Velvet Thunder - Midwest Focus
+    const tour4StartDate = new Date(today);
+    tour4StartDate.setDate(tour4StartDate.getDate() + 10);
+    const tour4EndDate = new Date(today);
+    tour4EndDate.setDate(tour4EndDate.getDate() + 35);
+
+    const tour4: InsertTour = {
+      name: "Thunder Road Tour",
+      startDate: tour4StartDate,
+      endDate: tour4EndDate,
+      bandId: createdBands[3].id,
+      notes: "Hitting all the rock venues in the midwest",
+      isActive: true
+    };
+    const createdTour4 = { ...tour4, id: this.tourIdCounter++ };
+    this.toursData.set(createdTour4.id, createdTour4);
+
+    // Create tour dates for Tour 1 (Sonic Waves)
+    const tour1Dates: InsertTourDate[] = [
       {
-        tourId: createdTour.id,
+        tourId: createdTour1.id,
         venueId: 1,
-        date: new Date(tourStartDate.getTime() + 15 * 24 * 60 * 60 * 1000),
+        date: new Date(tour1StartDate.getTime() + 15 * 24 * 60 * 60 * 1000),
         city: "New York",
         state: "NY",
         status: "confirmed",
@@ -508,9 +592,9 @@ export class MemStorage implements IStorage {
         isOpenDate: false
       },
       {
-        tourId: createdTour.id,
+        tourId: createdTour1.id,
         venueId: 2,
-        date: new Date(tourStartDate.getTime() + 18 * 24 * 60 * 60 * 1000),
+        date: new Date(tour1StartDate.getTime() + 18 * 24 * 60 * 60 * 1000),
         city: "Boston",
         state: "MA",
         status: "confirmed",
@@ -518,9 +602,9 @@ export class MemStorage implements IStorage {
         isOpenDate: false
       },
       {
-        tourId: createdTour.id,
+        tourId: createdTour1.id,
         venueId: 3,
-        date: new Date(tourStartDate.getTime() + 23 * 24 * 60 * 60 * 1000),
+        date: new Date(tour1StartDate.getTime() + 23 * 24 * 60 * 60 * 1000),
         city: "Cleveland",
         state: "OH",
         status: "pending",
@@ -528,9 +612,9 @@ export class MemStorage implements IStorage {
         isOpenDate: false
       },
       {
-        tourId: createdTour.id,
+        tourId: createdTour1.id,
         venueId: 4,
-        date: new Date(tourStartDate.getTime() + 28 * 24 * 60 * 60 * 1000),
+        date: new Date(tour1StartDate.getTime() + 28 * 24 * 60 * 60 * 1000),
         city: "Chicago",
         state: "IL",
         status: "confirmed",
@@ -538,9 +622,9 @@ export class MemStorage implements IStorage {
         isOpenDate: false
       },
       {
-        tourId: createdTour.id,
+        tourId: createdTour1.id,
         venueId: undefined,
-        date: new Date(tourStartDate.getTime() + 31 * 24 * 60 * 60 * 1000),
+        date: new Date(tour1StartDate.getTime() + 31 * 24 * 60 * 60 * 1000),
         city: "",
         state: "",
         status: "open",
@@ -550,7 +634,129 @@ export class MemStorage implements IStorage {
       }
     ];
 
-    tourDates.forEach(tourDate => {
+    // Create tour dates for Tour 2 (Midnight Ramble)
+    const tour2Dates: InsertTourDate[] = [
+      {
+        tourId: createdTour2.id,
+        venueId: 4,
+        date: new Date(tour2StartDate.getTime() + 20 * 24 * 60 * 60 * 1000),
+        city: "Chicago",
+        state: "IL",
+        status: "confirmed",
+        venueName: "Empty Bottle",
+        isOpenDate: false
+      },
+      {
+        tourId: createdTour2.id,
+        venueId: 5,
+        date: new Date(tour2StartDate.getTime() + 23 * 24 * 60 * 60 * 1000),
+        city: "Milwaukee",
+        state: "WI",
+        status: "confirmed",
+        venueName: "The Garage",
+        isOpenDate: false
+      },
+      {
+        tourId: createdTour2.id,
+        venueId: 7,
+        date: new Date(tour2StartDate.getTime() + 25 * 24 * 60 * 60 * 1000),
+        city: "Madison",
+        state: "WI",
+        status: "pending",
+        venueName: "The Frequency",
+        isOpenDate: false
+      },
+      {
+        tourId: createdTour2.id,
+        venueId: undefined,
+        date: new Date(tour2StartDate.getTime() + 27 * 24 * 60 * 60 * 1000),
+        city: "",
+        state: "",
+        status: "open",
+        venueName: undefined,
+        isOpenDate: true,
+        notes: "Seeking venue in western Wisconsin"
+      }
+    ];
+
+    // Create tour dates for Tour 3 (Electronic Dreams)
+    const tour3Dates: InsertTourDate[] = [
+      {
+        tourId: createdTour3.id,
+        venueId: 5,
+        date: new Date(tour3StartDate.getTime() + 10 * 24 * 60 * 60 * 1000),
+        city: "Milwaukee",
+        state: "WI",
+        status: "confirmed",
+        venueName: "The Garage",
+        isOpenDate: false
+      },
+      {
+        tourId: createdTour3.id,
+        venueId: 6,
+        date: new Date(tour3StartDate.getTime() + 12 * 24 * 60 * 60 * 1000),
+        city: "Milwaukee",
+        state: "WI",
+        status: "pending",
+        venueName: "Cactus Club",
+        isOpenDate: false
+      },
+      {
+        tourId: createdTour3.id,
+        venueId: 4,
+        date: new Date(tour3StartDate.getTime() + 15 * 24 * 60 * 60 * 1000),
+        city: "Chicago",
+        state: "IL",
+        status: "confirmed",
+        venueName: "Empty Bottle",
+        isOpenDate: false
+      }
+    ];
+
+    // Create tour dates for Tour 4 (Velvet Thunder)
+    const tour4Dates: InsertTourDate[] = [
+      {
+        tourId: createdTour4.id,
+        venueId: 8,
+        date: new Date(tour4StartDate.getTime() + 5 * 24 * 60 * 60 * 1000),
+        city: "Rockford",
+        state: "IL",
+        status: "confirmed",
+        venueName: "The Hideout",
+        isOpenDate: false
+      },
+      {
+        tourId: createdTour4.id,
+        venueId: 6,
+        date: new Date(tour4StartDate.getTime() + 7 * 24 * 60 * 60 * 1000),
+        city: "Milwaukee",
+        state: "WI",
+        status: "confirmed",
+        venueName: "Cactus Club",
+        isOpenDate: false
+      },
+      {
+        tourId: createdTour4.id,
+        venueId: 7,
+        date: new Date(tour4StartDate.getTime() + 9 * 24 * 60 * 60 * 1000),
+        city: "Madison",
+        state: "WI",
+        status: "pending",
+        venueName: "The Frequency",
+        isOpenDate: false
+      }
+    ];
+
+    // Combine all tour dates
+    const allTourDates = [
+      ...tour1Dates,
+      ...tour2Dates,
+      ...tour3Dates,
+      ...tour4Dates
+    ];
+
+    // Save all tour dates
+    allTourDates.forEach(tourDate => {
       const createdTourDate = { ...tourDate, id: this.tourDateIdCounter++ };
       this.tourDatesData.set(createdTourDate.id, createdTourDate);
     });
@@ -576,7 +782,7 @@ export class MemStorage implements IStorage {
     });
 
     // Explicitly make venues available for the "open date"
-    const openDateTourDate = tourDates[4];
+    const openDateTourDate = tour1Dates[4];
     const openDate = openDateTourDate.date;
     
     // Make Milwaukee venues available on the open date

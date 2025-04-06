@@ -201,19 +201,45 @@ const BandMapView = () => {
           
           pathCoordinates.push(coords);
           
+          // Get status-specific border color
+          let borderColor = '#ECB22E'; // Yellow for pending
+          if (td.status === 'confirmed') {
+            borderColor = '#2EB67D'; // Green for confirmed
+          } else if (td.status === 'open') {
+            borderColor = '#E01E5A'; // Red for open dates
+          }
+          
+          // Create base64 encoded profile image for the band 
+          // We'll use their initials with the tour color as background
+          const initials = band.name
+            .split(' ')
+            .map(word => word[0])
+            .join('')
+            .substring(0, 2)
+            .toUpperCase();
+            
           const marker = new window.google.maps.Marker({
             position: coords,
             map,
             title: `${band.name} - ${td.city}, ${td.state} (${new Date(td.date).toLocaleDateString()})`,
             icon: {
               url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${tourColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="10" r="8"/>
-                  <path d="M12 18l-6 6"/>
-                  <path d="M18 24l-6-6"/>
+                <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 42 42">
+                  <!-- Main circle with tour color -->
+                  <circle cx="21" cy="21" r="17" fill="${tourColor}" />
+                  
+                  <!-- Text for initials -->
+                  <text x="21" y="26" font-family="Arial" font-size="12" font-weight="bold" text-anchor="middle" fill="white">${initials}</text>
+                  
+                  <!-- Status border -->
+                  <circle cx="21" cy="21" r="19" fill="none" stroke="${borderColor}" stroke-width="4" />
+                  
+                  <!-- Pointer at bottom -->
+                  <path d="M21 38 L17 44 L25 44 Z" fill="${borderColor}" />
                 </svg>
               `)}`,
-              scaledSize: new window.google.maps.Size(30, 30)
+              scaledSize: new window.google.maps.Size(42, 48),
+              anchor: new window.google.maps.Point(21, 44) // Anchor at the bottom pointer tip
             }
           });
           
