@@ -742,13 +742,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Touring bands endpoint now comes from dedicated module
   // Previously defined at this location
 
-  // Google Maps API key endpoint
-  app.get("/api/maps/api-key", (_req, res) => {
-    // In a real application, this would be stored in environment variables
-    // For demonstration purposes, we're returning a placeholder
-    // The user would need to add their own API key
-    res.json({ apiKey: process.env.GOOGLE_MAPS_API_KEY || "" });
-  });
+  // Maps API key endpoint is now handled in config routes
 
   const httpServer = createServer(app);
   return httpServer;
