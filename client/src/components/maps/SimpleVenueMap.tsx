@@ -69,20 +69,15 @@ const SimpleVenueMap = ({ venue }: SimpleVenueMapProps) => {
   const mapUrl = `https://www.google.com/maps/embed/v1/place?key=${mapsApiData.apiKey}&q=${searchParam}&zoom=14`;
 
   return (
-    <div className="h-full w-full flex flex-col">
-      <div className="relative flex-grow">
-        <iframe 
-          className="absolute inset-0 w-full h-full border-0 rounded-md"
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          src={mapUrl}
-          title={`Map of ${venue.name}`}
-          allowFullScreen>
-        </iframe>
-      </div>
-      <div className="text-center text-sm text-muted-foreground mt-2 bg-muted p-2 rounded-md">
-        <strong>{venue.name}</strong> - {fullAddress}
-      </div>
+    <div className="h-full w-full relative">
+      <iframe 
+        className="absolute inset-0 w-full h-full border-0 rounded-md"
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+        src={mapUrl}
+        title={`Map of ${venue.name}`}
+        allowFullScreen>
+      </iframe>
     </div>
   );
 };

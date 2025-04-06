@@ -68,15 +68,6 @@ export default function VenueProfile() {
       <div className="flex justify-between items-start mb-6">
         <div>
           <h1 className="text-3xl font-bold">{venue.name}</h1>
-          <p className="text-muted-foreground flex items-center mt-1">
-            <MapPin className="h-4 w-4 mr-1" />
-            <span className="address-display">
-              {venue.address ? venue.address + ', ' : ''}
-              {venue.city ? venue.city + ', ' : ''}
-              {venue.state || ''} 
-              {venue.zipCode || ''}
-            </span>
-          </p>
         </div>
         <Button onClick={() => setLocation("/venues")}>Back to Venues</Button>
       </div>
@@ -174,7 +165,7 @@ export default function VenueProfile() {
                 <CardHeader>
                   <CardTitle>Location</CardTitle>
                 </CardHeader>
-                <CardContent className="h-[420px]">
+                <CardContent className="h-[400px]">
                   <SimpleVenueMap venue={venue} />
                 </CardContent>
               </Card>
