@@ -76,7 +76,7 @@ export default function OpportunityDiscovery() {
   
   const mapRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
-  const bandsMapRef = useRef<Map<number, any>>(new Map());
+  const bandsMapRef = useRef<globalThis.Map<number, any>>(new globalThis.Map());
   const infoWindowRef = useRef<any>(null);
   
   // Fetch API key for Google Maps
