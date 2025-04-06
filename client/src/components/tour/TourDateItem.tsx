@@ -66,7 +66,7 @@ const TourDateItem = ({ tourDate, isSelected, onClick }: TourDateItemProps) => {
           </div>
           <div className="text-right">
             <p className="font-medium text-gray-500">{formattedDate}</p>
-            <p className="text-xs text-primary">Find Venues</p>
+            <p className="text-xs" style={{ color: "#4A154B" }}>Find Venues</p>
           </div>
         </div>
       </div>
@@ -90,7 +90,7 @@ const TourDateItem = ({ tourDate, isSelected, onClick }: TourDateItemProps) => {
         </div>
         <div className="text-right">
           <p className="font-medium">{formattedDate}</p>
-          <p className={`text-sm ${statusStyles.text} font-medium`}>
+          <p className="text-sm font-medium" style={{ color: statusStyles.color }}>
             {tourDate.status ? tourDate.status.charAt(0).toUpperCase() + tourDate.status.slice(1) : 'Unknown'}
           </p>
         </div>
