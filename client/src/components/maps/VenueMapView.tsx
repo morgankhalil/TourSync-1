@@ -133,8 +133,8 @@ const VenueMapView = ({ venue, onTourClick }: VenueMapViewProps) => {
     if (!map || !tours.length) return;
 
     // Clear existing markers
-    const markers = document.querySelectorAll('.gm-style img[src*="data:image/svg"]');
-    markers.forEach(marker => marker.remove());
+    const existingMarkers = document.querySelectorAll('.gm-style img[src*="data:image/svg"]');
+    existingMarkers.forEach(marker => marker.remove());
 
     // Filter tours by selected date if provided
     const selectedDateStr = selectedDate?.toISOString().split('T')[0];
