@@ -1,10 +1,51 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Info } from "lucide-react";
 import { useTours } from "@/hooks/useTours";
 import { useQuery } from "@tanstack/react-query";
 import TourDateItem from "./TourDateItem";
 import { TourDate } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
+// SVG Marker component for the legend
+const StatusMarker = ({ color, isDashed = false }: { color: string, isDashed?: boolean }) => (
+  <svg width="16" height="16" viewBox="0 0 24 24" className="inline-block mr-2">
+    <circle 
+      cx="12" 
+      cy="10" 
+      r="8" 
+      fill="none" 
+      stroke={color} 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+      strokeDasharray={isDashed ? "4" : "0"}
+    />
+    <path d="M12 18l-6 6" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M18 24l-6-6" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+// Status legend component
+const StatusLegend = () => (
+  <div className="p-3 bg-white rounded-md shadow-md text-sm">
+    <h4 className="font-medium mb-2">Marker Legend</h4>
+    <div className="space-y-2">
+      <div className="flex items-center">
+        <StatusMarker color="#2EB67D" />
+        <span>Confirmed</span>
+      </div>
+      <div className="flex items-center">
+        <StatusMarker color="#ECB22E" />
+        <span>Pending</span>
+      </div>
+      <div className="flex items-center">
+        <StatusMarker color="#4A154B" isDashed={true} />
+        <span>Open Date (No Venue)</span>
+      </div>
+    </div>
+  </div>
+);
 
 const TourDatesList = () => {
   const { activeTour } = useTours();
@@ -26,7 +67,19 @@ const TourDatesList = () => {
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-inter font-semibold text-lg">Tour Dates</h2>
+        <div className="flex items-center">
+          <h2 className="font-inter font-semibold text-lg">Tour Dates</h2>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="ml-2 text-gray-400 hover:text-gray-600">
+                <Info size={16} />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent side="right" className="p-0 w-auto">
+              <StatusLegend />
+            </PopoverContent>
+          </Popover>
+        </div>
         <button className="text-primary hover:text-opacity-80 text-sm font-medium flex items-center">
           <Plus size={16} className="inline-block mr-1" />
           Add Stop
