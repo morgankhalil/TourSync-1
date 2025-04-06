@@ -173,18 +173,15 @@ const VenueMapView = ({ venue, onTourClick }: VenueMapViewProps) => {
               }
 
               // Add marker
-              const marker = new window.google.maps.Marker({
+              const markerView = new window.google.maps.marker.AdvancedMarkerElement({
                 position: { lat, lng },
                 map,
                 title: `${tour.name} - ${parseDateSafe(date.date).toLocaleDateString()}`,
-                icon: {
-                  path: window.google.maps.SymbolPath.CIRCLE,
-                  scale: 8,
-                  fillColor: markerColor,
-                  fillOpacity: 1,
-                  strokeWeight: 2,
-                  strokeColor: '#FFFFFF',
-                },
+                content: new window.google.maps.marker.PinElement({
+                  scale: 1,
+                  background: markerColor,
+                  borderColor: '#FFFFFF',
+                }),
               });
 
               // Add click handler
