@@ -30,9 +30,21 @@ const VenueMapView = ({ venue, onTourClick }: VenueMapViewProps) => {
   });
 
   const initializeMap = useCallback(() => {
-    if (!mapRef.current || !venue?.latitude || !venue?.longitude) {
-      console.error('Missing required map parameters');
-      setError('Unable to initialize map - missing coordinates');
+    if (!mapRef.current) {
+      console.error('Map reference not found');
+      setError('Unable to initialize map - container not ready');
+      return;
+    }
+
+    if (!venue) {
+      console.error('No venue data provided');
+      setError('Unable to initialize map - venue data missing');
+      return;
+    }
+
+    if (!venue.latitude || !venue.longitude) {
+      console.error('Venue coordinates missing:', venue);
+      setError('Unable to initialize map - venue coordinates missing');
       return;
     }
 
