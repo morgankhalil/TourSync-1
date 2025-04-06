@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import PastPerformancesManager from "@/components/venue/PastPerformancesManager";
-import { Loader2, MapPin, Users, Calendar, Info } from "lucide-react";
+import { Loader2, MapPin, Users, Info } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
 // Import VenueMapView as a fallback if VenueMap is unavailable
 import VenueMapView from "../components/maps/VenueMapView";
 
@@ -162,7 +163,11 @@ export default function VenueProfile() {
                   <VenueMapView 
                     venue={{
                       ...venue,
-                      capacity: venue.capacity === null ? undefined : venue.capacity
+                      capacity: venue.capacity === null ? undefined : venue.capacity,
+                      contactName: venue.contactName === null ? undefined : venue.contactName,
+                      contactEmail: venue.contactEmail === null ? undefined : venue.contactEmail,
+                      contactPhone: venue.contactPhone === null ? undefined : venue.contactPhone,
+                      description: venue.description === null ? undefined : venue.description
                     }}
                     onTourClick={() => {}}
                   />

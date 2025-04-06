@@ -35,8 +35,8 @@ function Router() {
       <Route path="/tour-dashboard" component={TourDashboard} />
       <Route path="/profile" component={Profile} />
       <Route path="/venues" component={VenueList} />
-      <Route path="/venues/:id" component={VenueView} />
-      <Route path="/venue-profile/:id" component={VenueProfile} />
+      <Route path="/venue-view/:id" component={VenueView} />
+      <Route path="/venues/:id" component={VenueProfile} />
       <Route path="/edit-venue" component={EditVenue} />
       <Route path="/venue-availability" component={VenueAvailability} />
       <Route path="/opportunities" component={OpportunityDiscovery} />
