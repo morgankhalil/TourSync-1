@@ -22,16 +22,28 @@ export function ArtistImporter() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const ws = new WebSocket(`${protocol}//${window.location.hostname}:8080`);
+    let ws: WebSocket;
+    let reconnectTimeout: NodeJS.Timeout;
 
-    ws.onopen = () => {
-      setSocket(ws);
-      toast({
-        title: 'Connected',
-        description: 'Real-time updates enabled',
-      });
-    };
+    const connect = () => {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      ws = new WebSocket(`${protocol}//${window.location.hostname}:8080`);
+
+      ws.onopen = () => {
+        setSocket(ws);
+        toast({
+          title: 'Connected',
+          description: 'Real-time updates enabled',
+        });
+        
+        // Resubscribe to artists after reconnection
+        subscribedArtists.forEach(artist => {
+          ws.send(JSON.stringify({
+            type: 'subscribe',
+            artistName: artist
+          }));
+        });
+      };
 
     ws.onmessage = (event) => {
       const update = JSON.parse(event.data);
@@ -47,10 +59,25 @@ export function ArtistImporter() {
       });
     };
 
-    return () => {
-      ws.close();
+    ws.onclose = () => {
+      setSocket(null);
+      toast({
+        title: 'Disconnected',
+        description: 'Attempting to reconnect...',
+        variant: 'destructive',
+      });
+      
+      // Attempt to reconnect after 3 seconds
+      reconnectTimeout = setTimeout(connect, 3000);
     };
-  }, []);
+
+    connect();
+
+    return () => {
+      clearTimeout(reconnectTimeout);
+      if (ws) ws.close();
+    };
+  }, [subscribedArtists]);
 
   const handleSubscribe = () => {
     if (!artistName.trim() || !socket) return;

@@ -15,7 +15,11 @@ export class BandsintownIntegration {
     }
 
     private initializeWebSocketServer() {
-        const wss = new WebSocketServer({ port: 8080 });
+        const wss = new WebSocketServer({ 
+            port: 8080,
+            host: '0.0.0.0',
+            clientTracking: true
+        });
 
         wss.on('connection', (ws) => {
             ws.on('message', (message) => {
