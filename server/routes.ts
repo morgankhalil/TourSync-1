@@ -178,11 +178,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Cache storage
+  const cache: Record<string, { timestamp: number; data: any }> = {};
+  const CACHE_DURATION = 60000; // 60 seconds
+
   // Tour routes
   app.get("/api/tours", async (req, res) => {
     try {
       const bandId = req.query.bandId ? parseInt(req.query.bandId as string) : undefined;
+      const cacheKey = `tours_${bandId || 'all'}`;
+
+      // Check cache
+      if (cache[cacheKey] && (Date.now() - cache[cacheKey].timestamp < CACHE_DURATION)) {
+        return res.json(cache[cacheKey].data);
+      }
+
       const tours = await storage.getTours(bandId);
+      
+      // Update cache
+      cache[cacheKey] = {
+        timestamp: Date.now(),
+        data: tours,
+      };
+      
       res.json(tours);
     } catch (error) {
       console.error("Error fetching tours:", error);
