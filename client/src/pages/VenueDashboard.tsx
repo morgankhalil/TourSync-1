@@ -47,23 +47,24 @@ const VenueDashboard = () => {
     }
   }, [isMobile, openSidebar]);
   
-  // Sort performances by date (most recent first)
-  const sortedPerformances = [...pastPerformances].sort((a, b) => {
-    return new Date(b.date).getTime() - new Date(a.date).getTime();
-  });
-  
-  // Get next upcoming performance
-  const upcomingPerformances = sortedPerformances.filter(
-    perf => new Date(perf.date) >= new Date()
-  );
-  
-  // Recent performances (within last 30 days)
-  const recentPerformances = sortedPerformances.filter(perf => {
+  const now = new Date();
+  const thirtyDaysAgo = new Date(now);
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  // Process performances in a single pass
+  const { upcoming, recent } = pastPerformances.reduce((acc, perf) => {
     const perfDate = new Date(perf.date);
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    return perfDate >= thirtyDaysAgo && perfDate <= new Date();
-  });
+    if (perfDate >= now) {
+      acc.upcoming.push(perf);
+    } else if (perfDate >= thirtyDaysAgo && perfDate <= now) {
+      acc.recent.push(perf);
+    }
+    return acc;
+  }, { upcoming: [], recent: [] });
+
+  // Sort only the arrays we need
+  const upcomingPerformances = upcoming.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const recentPerformances = recent.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
     <div className="flex flex-1 overflow-hidden">
