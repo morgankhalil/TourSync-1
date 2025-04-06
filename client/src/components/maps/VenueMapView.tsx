@@ -30,21 +30,34 @@ const VenueMapView = ({ venue, onTourClick }: VenueMapViewProps) => {
   });
 
   const initializeMap = useCallback(() => {
-    if (mapRef.current && venue?.latitude && venue?.longitude) {
-      const lat = parseFloat(venue.latitude);
-      const lng = parseFloat(venue.longitude);
+    if (!mapRef.current || !venue?.latitude || !venue?.longitude) {
+      console.error('Missing required map parameters');
+      setError('Unable to initialize map - missing coordinates');
+      return;
+    }
 
-      if (!isNaN(lat) && !isNaN(lng)) {
-        const newMap = new window.google.maps.Map(mapRef.current, {
-          center: { lat, lng },
-          zoom: 14,
-          mapTypeControl: false,
-          streetViewControl: false,
-          fullscreenControl: true,
-        });
-        setMap(newMap);
-        setIsLoading(false);
-      }
+    const lat = parseFloat(venue.latitude);
+    const lng = parseFloat(venue.longitude);
+
+    if (isNaN(lat) || isNaN(lng)) {
+      console.error('Invalid coordinates');
+      setError('Unable to initialize map - invalid coordinates');
+      return;
+    }
+
+    try {
+      const newMap = new window.google.maps.Map(mapRef.current, {
+        center: { lat, lng },
+        zoom: 14,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: true,
+      });
+      setMap(newMap);
+      setIsLoading(false);
+    } catch (err) {
+      console.error('Map initialization error:', err);
+      setError('Failed to initialize map');
     }
   }, [venue]);
 
@@ -61,7 +74,6 @@ const VenueMapView = ({ venue, onTourClick }: VenueMapViewProps) => {
       document.head.appendChild(script);
 
       return () => {
-        script.removeEventListener('load', handleScriptLoad);
         if (document.head.contains(script)) {
           document.head.removeChild(script);
         }
