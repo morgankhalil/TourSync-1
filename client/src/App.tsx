@@ -6,13 +6,12 @@ import NotFound from "./pages/not-found";
 import Home from "./pages/Home";
 import CreateTour from "./pages/CreateTour";
 import Profile from "./pages/Profile";
-import BandsPage from "./pages/BandsPage";
 import VenueView from "./pages/VenueView";
 import VenueList from "./pages/VenueList";
 import VenueDashboard from "./pages/VenueDashboard";
 import TourPlanningWizard from "./pages/TourPlanningWizard";
 import TourDashboard from "./pages/TourDashboard";
-import { OpportunityDiscovery } from "./pages/OpportunityDiscovery";
+import { ArtistDiscovery } from "./pages/ArtistDiscovery"; // Renamed component
 import { BandsintownImport } from "./pages/BandsintownImport";
 import Header from "./components/layout/Header";
 import MobileNavigation from "./components/layout/MobileNavigation";
@@ -32,9 +31,12 @@ function Router() {
       <Route path="/calendar" component={VenueAvailability} />
       <Route path="/calendar/manage" component={VenueAvailability} />
       
-      {/* Artist/opportunity discovery */}
-      <Route path="/opportunities" component={OpportunityDiscovery} />
-      <Route path="/bands" component={BandsPage} />
+      {/* Artist discovery - unified page */}
+      <Route path="/artist-discovery" component={ArtistDiscovery} />
+      
+      {/* Legacy routes - redirected to new unified page */}
+      <Route path="/opportunities" component={ArtistDiscovery} />
+      <Route path="/bands" component={ArtistDiscovery} />
       
       {/* Venue management */}
       <Route path="/venues" component={VenueList} />

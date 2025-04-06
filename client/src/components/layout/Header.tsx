@@ -46,17 +46,10 @@ const Header = () => {
             </span>
           </Link>
           
-          <Link href="/opportunities">
-            <span className={`font-inter font-medium cursor-pointer hover:underline flex items-center ${isActive("/opportunities") ? "underline" : ""}`}>
-              <Compass size={16} className="mr-1" />
-              Booking Opportunities
-            </span>
-          </Link>
-          
-          <Link href="/bands">
-            <span className={`font-inter font-medium cursor-pointer hover:underline flex items-center ${isActive("/bands") ? "underline" : ""}`}>
+          <Link href="/artist-discovery">
+            <span className={`font-inter font-medium cursor-pointer hover:underline flex items-center ${isActive("/artist-discovery") || isActive("/opportunities") || isActive("/bands") ? "underline" : ""}`}>
               <Music size={16} className="mr-1" />
-              Touring Artists
+              Artist Discovery
             </span>
           </Link>
           

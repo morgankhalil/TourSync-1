@@ -96,7 +96,7 @@ const VenueDashboard = () => {
                   <Button variant="outline">Venue Profile</Button>
                 </Link>
               )}
-              <Link href="/opportunities">
+              <Link href="/artist-discovery">
                 <Button>Find Bands</Button>
               </Link>
             </div>
@@ -344,7 +344,7 @@ const VenueDashboard = () => {
                         <p className="text-sm">
                           Find bands that match your venue's style and schedule. Get personalized recommendations based on your past performances.
                         </p>
-                        <Link href="/opportunities">
+                        <Link href="/artist-discovery">
                           <Button className="w-full">
                             <Music className="mr-2 h-4 w-4" />
                             Discover Touring Bands
@@ -412,7 +412,7 @@ const VenueDashboard = () => {
                             Manage Availability
                           </Button>
                         </Link>
-                        <Link href="/opportunities">
+                        <Link href="/artist-discovery">
                           <Button>
                             Find Bands for Selected Date
                           </Button>
@@ -497,7 +497,7 @@ const VenueDashboard = () => {
                               {availabilityList?.some(a => 
                                 isSameDay(new Date(a.date), selectedDate) && a.isAvailable
                               ) && (
-                                <Link href="/opportunities">
+                                <Link href="/artist-discovery">
                                   <Button className="w-full">
                                     Find Bands for This Date
                                   </Button>
@@ -691,7 +691,7 @@ const VenueDashboard = () => {
                       <p className="text-sm text-muted-foreground mb-4">
                         Our matching algorithm finds bands that would be perfect for your venue based on genre, audience size, and other factors.
                       </p>
-                      <Link href="/opportunities">
+                      <Link href="/artist-discovery">
                         <Button className="w-full">
                           <Music className="mr-2 h-4 w-4" />
                           Explore Band Opportunities

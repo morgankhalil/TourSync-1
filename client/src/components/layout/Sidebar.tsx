@@ -92,10 +92,10 @@ const Sidebar = () => {
               </span>
             </Link>
             
-            <Link href="/opportunities">
-              <span className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${isActive("/opportunities") ? "bg-primary text-white" : "text-gray-700 hover:bg-gray-100"}`}>
+            <Link href="/artist-discovery">
+              <span className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${isActive("/artist-discovery") || isActive("/opportunities") || isActive("/bands") ? "bg-primary text-white" : "text-gray-700 hover:bg-gray-100"}`}>
                 <Music className="mr-2 h-4 w-4" />
-                <span>Find Artists</span>
+                <span>Artist Discovery</span>
               </span>
             </Link>
             

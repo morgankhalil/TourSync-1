@@ -22,17 +22,10 @@ const MobileNavigation = () => {
         </span>
       </Link>
 
-      <Link href="/opportunities">
-        <span className={`p-2 flex flex-col items-center cursor-pointer ${isActive("/opportunities") ? "text-primary font-medium" : "text-foreground/60"}`}>
-          <Compass size={20} />
-          <span className="text-[0.7rem] mt-1">Opportunities</span>
-        </span>
-      </Link>
-
-      <Link href="/bands">
-        <span className={`p-2 flex flex-col items-center cursor-pointer ${isActive("/bands") ? "text-primary font-medium" : "text-foreground/60"}`}>
+      <Link href="/artist-discovery">
+        <span className={`p-2 flex flex-col items-center cursor-pointer ${isActive("/artist-discovery") || isActive("/opportunities") || isActive("/bands") ? "text-primary font-medium" : "text-foreground/60"}`}>
           <Music size={20} />
-          <span className="text-xs mt-1">Artists</span>
+          <span className="text-[0.7rem] mt-1">Discovery</span>
         </span>
       </Link>
 
