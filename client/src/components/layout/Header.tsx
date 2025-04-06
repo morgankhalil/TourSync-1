@@ -59,6 +59,12 @@ const Header = () => {
               Venue Dashboard
             </span>
           </Link>
+          <Link href="/import">
+            <span className="font-inter font-medium cursor-pointer hover:underline flex items-center">
+              <Route size={16} className="mr-1" />
+              Bandsintown Import
+            </span>
+          </Link>
           {activeVenue && (
             <span className="font-inter font-medium text-accent-foreground">
               {activeVenue.name}
