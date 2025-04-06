@@ -1,9 +1,11 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
+import calendarRoutes from "./routes/calendar";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 app.use(express.json());
+app.use('/api/calendar', calendarRoutes);
 app.use(express.urlencoded({ extended: false }));
 
 // Disable caching
