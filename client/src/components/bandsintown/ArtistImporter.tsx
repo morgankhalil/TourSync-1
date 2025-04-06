@@ -22,7 +22,8 @@ export function ArtistImporter() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const ws = new WebSocket(`ws://${window.location.hostname}:8080`);
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const ws = new WebSocket(`${protocol}//${window.location.hostname}:8080`);
 
     ws.onopen = () => {
       setSocket(ws);
