@@ -1189,3 +1189,41 @@ import { DatabaseStorage } from './storage/database';
 
 // Export an instance of DatabaseStorage
 export const storage = new DatabaseStorage();
+const bugJarPerformances = [
+  {
+    id: "perf_" + Date.now() + "_1",
+    artistName: "Every Time I Die",
+    date: "2024-03-15",
+    genre: "Metalcore",
+    drawSize: 145,
+    ticketPrice: 1800,
+    isSoldOut: true,
+    isHeadliner: true
+  },
+  {
+    id: "perf_" + Date.now() + "_2", 
+    artistName: "Less Than Jake",
+    date: "2024-02-28",
+    genre: "Ska Punk",
+    drawSize: 138,
+    ticketPrice: 2000,
+    isSoldOut: false,
+    isHeadliner: true
+  },
+  {
+    id: "perf_" + Date.now() + "_3",
+    artistName: "Joywave",
+    date: "2024-02-14",
+    genre: "Indie Rock",
+    drawSize: 150,
+    ticketPrice: 1500,
+    isSoldOut: true,
+    isHeadliner: true
+  }
+];
+
+// Add performances to Bug Jar's past performers
+const bugJarVenue = venues.find(v => v.name === "Bug Jar");
+if (bugJarVenue) {
+  bugJarVenue.pastPerformers = bugJarPerformances;
+}
