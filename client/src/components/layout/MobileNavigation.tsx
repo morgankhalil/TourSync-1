@@ -10,16 +10,16 @@ const MobileNavigation = () => {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 md:hidden bg-background/95 backdrop-blur-sm border-t border-border shadow-lg flex justify-around items-center py-2 z-50">
+    <nav className="fixed bottom-0 left-0 right-0 md:hidden bg-background border-t border-border shadow-lg flex justify-around items-center py-3 z-50">
       <Link href="/">
-        <a className={`p-2 flex flex-col items-center ${isActive("/") || isActive("/dashboard") ? "text-primary" : "text-gray-500"}`}>
+        <a className={`p-2 flex flex-col items-center ${isActive("/") || isActive("/dashboard") ? "text-primary font-medium" : "text-foreground/60"}`}>
           <CalendarDays size={20} />
-          <span className="text-xs mt-1">Dashboard</span>
+          <span className="text-[0.7rem] mt-1">Dashboard</span>
         </a>
       </Link>
       
       <Link href="/venues">
-        <a className={`p-2 flex flex-col items-center ${isActive("/venues") || isActive("/venue") ? "text-primary" : "text-gray-500"}`}>
+        <a className={`p-2 flex flex-col items-center ${isActive("/venues") || isActive("/venue") ? "text-primary font-medium" : "text-foreground/60"}`}>
           <Building2 size={20} />
           <span className="text-xs mt-1">Venues</span>
         </a>
