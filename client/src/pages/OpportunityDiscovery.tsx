@@ -12,11 +12,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MapPin, Calendar as CalendarIcon, Filter, Music, Users, Clock } from 'lucide-react';
+import { MapPin, Calendar as CalendarIcon, Filter, Music, Users, Clock, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Band, Tour, Venue } from '@shared/schema';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 import { VenueCalendarSidebar } from '@/components/venue/VenueCalendarSidebar';
+import { useActiveVenue } from '@/hooks/useActiveVenue';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Import our real matching algorithm
 import { calculateBandVenueMatch } from '@/utils/matchingAlgorithm';
@@ -36,12 +38,6 @@ const mapContainerStyle = {
   borderRadius: '0.5rem'
 };
 
-// Default map center (adjust based on venue location)
-const center = {
-  lat: 40.7128, // New York City coordinates as default
-  lng: -74.006
-};
-
 export function OpportunityDiscovery() {
   const [activeTab, setActiveTab] = useState('map-view');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
@@ -50,10 +46,37 @@ export function OpportunityDiscovery() {
   const [drawSizeFilter, setDrawSizeFilter] = useState<string>('');
   const [showAvailableOnly, setShowAvailableOnly] = useState(true);
   const [selectedBand, setSelectedBand] = useState<BandWithMatch | null>(null);
-  const [mapCenter, setMapCenter] = useState(center);
   const [selectedMarker, setSelectedMarker] = useState<BandWithMatch | null>(null);
-  const [activeVenue, setActiveVenue] = useState<Venue | null>(null);
   const [googleMapsApiKey, setGoogleMapsApiKey] = useState<string>("");
+  const [setMapCenterManually, setSetMapCenterManually] = useState<{lat: number, lng: number} | null>(null);
+  
+  // Get active venue from context
+  const { activeVenue, isLoading: isVenueLoading, setActiveVenue } = useActiveVenue();
+  
+  // Fetch venues for venue selector
+  const { data: venues = [], isLoading: isLoadingVenues } = useQuery<Venue[]>({
+    queryKey: ['/api/venues'],
+    retry: false
+  });
+  
+  // Set map center based on active venue or manual setting
+  const mapCenter = React.useMemo(() => {
+    // First priority: manually set map center (from venue selector)
+    if (setMapCenterManually) {
+      return setMapCenterManually;
+    }
+    
+    // Second priority: active venue location
+    if (activeVenue && activeVenue.latitude && activeVenue.longitude) {
+      return {
+        lat: parseFloat(activeVenue.latitude),
+        lng: parseFloat(activeVenue.longitude)
+      };
+    }
+    
+    // Default to NYC if no venue selected
+    return { lat: 40.7128, lng: -74.006 };
+  }, [activeVenue, setMapCenterManually]);
   
   // Fetch bands
   const { data: bands = [], isLoading: isLoadingBands } = useQuery<Band[]>({
@@ -61,19 +84,13 @@ export function OpportunityDiscovery() {
     retry: false
   });
 
-  // Fetch venues for the current user
-  const { data: venues = [], isLoading: isLoadingVenues } = useQuery<Venue[]>({
-    queryKey: ['/api/venues'],
-    retry: false
-  });
-  
   // Process bands with match percentage
   const processedBands: BandWithMatch[] = React.useMemo(() => {
     if (!bands || !activeVenue) return [];
     
     return bands.map((band: Band) => {
       // Calculate real match percentage using our algorithm
-      const matchPercent = activeVenue ? calculateBandVenueMatch(band, activeVenue) : 70;
+      const matchPercent = calculateBandVenueMatch(band, activeVenue);
       
       // Determine draw size category based on actual draw size
       let drawSizeCategory = 'Unknown';
@@ -83,10 +100,10 @@ export function OpportunityDiscovery() {
         else drawSizeCategory = 'Large (300+)';
       }
       
-      // Extract genres from band data or use defaults
+      // Extract genres from band data
       const genreList = band.genre 
         ? band.genre.split(',').map(g => g.trim()) 
-        : ['Rock', 'Indie', 'Alternative'].slice(0, Math.floor(Math.random() * 3) + 1);
+        : [];
       
       // Add match percentage and other attributes we'll use for filtering
       return {
@@ -130,21 +147,12 @@ export function OpportunityDiscovery() {
       });
   }, []);
 
-  // Set active venue
+  // Fetch Google Maps API key
   useEffect(() => {
-    if (venues && venues.length > 0) {
-      const venue = venues[0];
-      setActiveVenue(venue);
-      
-      // Update map center to venue's location
-      if (venue.latitude && venue.longitude) {
-        setMapCenter({
-          lat: parseFloat(venue.latitude),
-          lng: parseFloat(venue.longitude)
-        });
-      }
+    if (activeVenue && activeVenue.latitude && activeVenue.longitude) {
+      // No need to update map center as it's already handled in the mapCenter memo
     }
-  }, [venues]);
+  }, [activeVenue]);
   
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -203,7 +211,7 @@ export function OpportunityDiscovery() {
               if (venue) {
                 setActiveVenue(venue);
                 if (venue.latitude && venue.longitude) {
-                  setMapCenter({
+                  setSetMapCenterManually({
                     lat: parseFloat(venue.latitude),
                     lng: parseFloat(venue.longitude)
                   });

@@ -23,11 +23,11 @@ const VenueAvailability = () => {
   const updateAvailabilityMutation = useMutation({
     mutationFn: async (dates: Date[]) => {
       if (!activeVenue?.id) throw new Error('No venue selected');
-      const response = await fetch('/api/venue-availability', {
+      // Use the correct API endpoint for venue availability
+      const response = await fetch(`/api/venues/${activeVenue.id}/availability`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          venueId: activeVenue.id,
           dates: dates.map(date => ({ date, isAvailable: true }))
         })
       });
