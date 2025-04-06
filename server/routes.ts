@@ -4,8 +4,12 @@ import { storage } from "./storage";
 import { z } from "zod";
 import { insertBandSchema, insertTourSchema, insertTourDateSchema, insertVenueSchema, insertVenueAvailabilitySchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
+import { registerTouringRoutes } from "./routes/touring";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Register touring routes from dedicated module
+  registerTouringRoutes(app);
+  
   // Band routes
   app.get("/api/bands", async (_req, res) => {
     try {
@@ -723,103 +727,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all bands that are currently touring
-  app.get("/api/bands/touring", async (req, res) => {
-    try {
-      const radius = req.query.radius ? parseFloat(req.query.radius as string) : 50;
-      // Ensure venueId is a valid number
-      const rawVenueId = req.query.venueId ? req.query.venueId as string : undefined;
-      const venueId = rawVenueId && !isNaN(parseInt(rawVenueId)) ? parseInt(rawVenueId) : undefined;
-      const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
-      const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
-      
-      // Get all bands
-      const bands = await storage.getBands();
-      // Get all tours
-      const tours = await storage.getTours();
-      // Get the venue if specified
-      const venue = venueId ? await storage.getVenue(venueId) : undefined;
-      
-      // For demo purposes, if no venue is specified, use a default venue (Bug Jar)
-      const defaultVenue = venue || {
-        latitude: "43.1548",
-        longitude: "-77.5975",
-        name: "Default Location"
-      };
-      
-      // Create a touring band list with additional data
-      const touringBands = bands.map(band => {
-        // Find the tour for this band
-        const bandTours = tours.filter(tour => tour.bandId === band.id && tour.isActive);
-        
-        if (bandTours.length === 0) {
-          return { ...band, touring: null };
-        }
-        
-        // Use the first active tour for simplicity
-        const activeTour = bandTours[0];
-        
-        // Generate a random point within the radius for demo purposes
-        const venueLat = parseFloat(defaultVenue.latitude);
-        const venueLng = parseFloat(defaultVenue.longitude);
-        
-        // Random angle
-        const angle = Math.random() * Math.PI * 2;
-        // Random distance within radius
-        const randomDistance = Math.random() * radius;
-        // Convert to lat/lng (very rough approximation)
-        const latOffset = randomDistance * Math.cos(angle) / 69;
-        const lngOffset = randomDistance * Math.sin(angle) / (69 * Math.cos(venueLat * Math.PI / 180));
-        
-        const latitude = venueLat + latOffset;
-        const longitude = venueLng + lngOffset;
-        const distance = randomDistance;
-        
-        // Add a random touring path (for demo)
-        const routePoints = [];
-        // Add some random points to simulate a tour route
-        for (let i = 0; i < 3; i++) {
-          const routeAngle = Math.random() * Math.PI * 2;
-          const routeDistance = Math.random() * radius * 2;
-          const routeLatOffset = routeDistance * Math.cos(routeAngle) / 69;
-          const routeLngOffset = routeDistance * Math.sin(routeAngle) / (69 * Math.cos(venueLat * Math.PI / 180));
-          
-          routePoints.push({
-            lat: venueLat + routeLatOffset,
-            lng: venueLng + routeLngOffset
-          });
-        }
-        
-        // Add draw size attribute for demo (would come from real data)
-        const drawSizes = ['0-100', '100-200', '200-300', '300+'];
-        const drawSize = drawSizes[Math.floor(Math.random() * drawSizes.length)];
-        
-        // Add match score for demonstration
-        const matchScore = Math.floor(Math.random() * 30) + 70; // 70-99%
-        
-        return {
-          ...band,
-          drawSize,
-          matchScore,
-          touring: {
-            tourId: activeTour.id,
-            tourName: activeTour.name,
-            startDate: activeTour.startDate,
-            endDate: activeTour.endDate,
-            latitude: latitude.toString(),
-            longitude: longitude.toString(),
-            distance,
-            route: routePoints
-          }
-        };
-      }).filter(band => band.touring !== null);
-      
-      res.json(touringBands);
-    } catch (error) {
-      console.error("Error fetching touring bands:", error);
-      res.status(500).json({ message: "Error fetching touring bands" });
-    }
-  });
+  // Touring bands endpoint now comes from dedicated module
+  // Previously defined at this location
 
   // Google Maps API key endpoint
   app.get("/api/maps/api-key", (_req, res) => {

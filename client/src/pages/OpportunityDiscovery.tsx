@@ -158,14 +158,15 @@ export default function OpportunityDiscovery() {
   
   // Fetch touring bands
   const { data: touringBands = [], isLoading } = useQuery<TouringBand[]>({
-    queryKey: ['/api/bands/touring', selectedVenue?.id, radius, dateRange.start, dateRange.end],
+    queryKey: ['/api/bands/touring', selectedVenue?.id, radius],
     enabled: !!selectedVenue,
     queryFn: () => {
       const params = new URLSearchParams();
       if (selectedVenue) params.append('venueId', selectedVenue.id.toString());
       if (radius) params.append('radius', radius.toString());
-      if (dateRange.start) params.append('startDate', dateRange.start.toISOString());
-      if (dateRange.end) params.append('endDate', dateRange.end.toISOString());
+      // We'll re-add date filtering later once the basic functionality works
+      // if (dateRange.start) params.append('startDate', dateRange.start.toISOString());
+      // if (dateRange.end) params.append('endDate', dateRange.end.toISOString());
       
       return apiRequest(`/api/bands/touring?${params.toString()}`);
     }
