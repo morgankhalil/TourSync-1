@@ -13,6 +13,7 @@ import { DatePicker } from "../components/ui/date-picker";
 import { useActiveVenue } from "@/hooks/useActiveVenue";
 import { useVenues } from "@/hooks/useVenues";
 import { Separator } from "@/components/ui/separator";
+import { VenueCalendarSidebar } from "@/components/venue/VenueCalendarSidebar";
 import { 
   Building2, 
   Calendar, 
@@ -64,6 +65,8 @@ export default function OpportunityDiscovery() {
   const [radius, setRadius] = useState<number>(50);
   const [mapLoaded, setMapLoaded] = useState<boolean>(false);
   const [selectedBand, setSelectedBand] = useState<TouringBand | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [showCalendarSidebar, setShowCalendarSidebar] = useState<boolean>(true);
   const [dateRange, setDateRange] = useState<{start: Date | undefined, end: Date | undefined}>({
     start: new Date(),
     end: addDays(new Date(), 30)
@@ -443,16 +446,56 @@ export default function OpportunityDiscovery() {
     setDateRange({...dateRange, end: date});
   };
   
+  // Handle calendar date selection
+  const handleCalendarDateSelect = (date: Date, isAvailable: boolean) => {
+    setSelectedDate(date);
+    
+    // If the map is loaded, update the display to highlight bands near this date
+    if (mapLoaded && mapRef.current) {
+      // We'll implement the highlighting logic here
+      toast({
+        title: isAvailable ? "Date Available" : "Date Unavailable",
+        description: `Selected ${format(date, "MMMM d, yyyy")}`,
+      });
+      
+      // In a real implementation, we would filter bands by proximity to this date
+      // and highlight them differently on the map
+    }
+  };
+  
   return (
     <div className="flex flex-col flex-1 overflow-hidden h-full">
       <div className="flex flex-col md:flex-row h-full">
+        {/* Calendar Sidebar - conditionally shown */}
+        {showCalendarSidebar && selectedVenue && (
+          <div className="md:w-64 w-full">
+            <VenueCalendarSidebar 
+              venue={selectedVenue} 
+              onDateSelect={handleCalendarDateSelect}
+              selectedDate={selectedDate}
+              numDaysToShow={14}
+            />
+          </div>
+        )}
+        
         {/* Left side - Map and controls */}
-        <div className="w-full md:w-2/3 flex flex-col h-full">
+        <div className={`w-full ${showCalendarSidebar ? 'md:w-[calc(66.66%-16rem)]' : 'md:w-2/3'} flex flex-col h-full`}>
           <div className="p-4 bg-white border-b">
-            <h1 className="text-2xl font-bold mb-4 flex items-center">
-              <Compass className="w-6 h-6 mr-2 text-primary" />
-              Opportunity Discovery
-            </h1>
+            <div className="flex justify-between items-center mb-4">
+              <h1 className="text-2xl font-bold flex items-center">
+                <Compass className="w-6 h-6 mr-2 text-primary" />
+                Opportunity Discovery
+              </h1>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex items-center"
+                onClick={() => setShowCalendarSidebar(!showCalendarSidebar)}
+              >
+                <Calendar className="w-4 h-4 mr-2" />
+                {showCalendarSidebar ? "Hide Calendar" : "Show Calendar"}
+              </Button>
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
