@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { CalendarDays, Map, Compass, User, Building2 } from "lucide-react";
+import { CalendarDays, Map, Music, User, Building2 } from "lucide-react";
 
 const MobileNavigation = () => {
   const [location] = useLocation();
@@ -11,9 +11,9 @@ const MobileNavigation = () => {
   return (
     <div className="md:hidden bg-white border-t border-gray-200 flex justify-around py-2">
       <Link href="/">
-        <button className={`p-2 flex flex-col items-center ${isActive("/") ? "text-primary" : "text-gray-500"}`}>
+        <button className={`p-2 flex flex-col items-center ${isActive("/") || isActive("/dashboard") ? "text-primary" : "text-gray-500"}`}>
           <CalendarDays size={20} />
-          <span className="text-xs mt-1">Schedule</span>
+          <span className="text-xs mt-1">Dashboard</span>
         </button>
       </Link>
       
@@ -24,10 +24,10 @@ const MobileNavigation = () => {
         </button>
       </Link>
       
-      <Link href="/create-tour">
-        <button className={`p-2 flex flex-col items-center ${isActive("/create-tour") ? "text-primary" : "text-gray-500"}`}>
-          <Map size={20} />
-          <span className="text-xs mt-1">New Tour</span>
+      <Link href="/bands">
+        <button className={`p-2 flex flex-col items-center ${isActive("/bands") ? "text-primary" : "text-gray-500"}`}>
+          <Music size={20} />
+          <span className="text-xs mt-1">Bands</span>
         </button>
       </Link>
       
