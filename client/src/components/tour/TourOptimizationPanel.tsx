@@ -57,19 +57,21 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
     try {
       setIsLoading(true);
       const response = await apiRequest(`/api/tours/${tour.id}/gaps`);
-      const gaps = response as TourGap[];
-      setTourGaps(gaps.map(gap => ({
-        ...gap,
-        startDate: new Date(gap.startDate),
-        endDate: new Date(gap.endDate)
-      })));
+      
+      if (Array.isArray(response)) {
+        const gaps = response as TourGap[];
+        setTourGaps(gaps.map(gap => ({
+          ...gap,
+          startDate: new Date(gap.startDate),
+          endDate: new Date(gap.endDate)
+        })));
+      } else {
+        console.error("Unexpected response format for tour gaps:", response);
+        setTourGaps([]);
+      }
     } catch (error) {
       console.error("Error fetching tour gaps:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch tour gaps",
-        variant: "destructive"
-      });
+      setTourGaps([]);
     } finally {
       setIsLoading(false);
     }
@@ -92,7 +94,7 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
         }
       });
       
-      const venues = response as Venue[];
+      const venues = Array.isArray(response) ? response as Venue[] : [];
       setGapVenues(venues);
       
       if (venues.length === 0) {
@@ -104,11 +106,7 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
       }
     } catch (error) {
       console.error("Error fetching venues for gap:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch venues for gap",
-        variant: "destructive"
-      });
+      setGapVenues([]);
     } finally {
       setIsLoading(false);
     }
@@ -140,7 +138,7 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
         `/api/venues/${date.venueId}/nearby?radius=${searchRadius}&excludeIds=${excludeIds}`
       );
       
-      const venues = response as Venue[];
+      const venues = Array.isArray(response) ? response as Venue[] : [];
       setNearbyVenues(venues);
       
       if (venues.length === 0) {
@@ -152,11 +150,7 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
       }
     } catch (error) {
       console.error("Error fetching nearby venues:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch nearby venues",
-        variant: "destructive"
-      });
+      setNearbyVenues([]);
     } finally {
       setIsLoading(false);
     }

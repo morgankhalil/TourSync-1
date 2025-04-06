@@ -51,7 +51,7 @@ const TourDashboard = () => {
       if (!selectedTour?.id) return [];
       try {
         const response = await apiRequest(`/api/tours/${selectedTour.id}/dates`);
-        return response as unknown as TourDate[];
+        return Array.isArray(response) ? response as TourDate[] : [];
       } catch (error) {
         console.error("Error fetching tour dates:", error);
         return [];
@@ -72,7 +72,7 @@ const TourDashboard = () => {
       if (!selectedTour?.id) return { totalShows: 0, confirmed: 0, pending: 0, openDates: 0 };
       try {
         const response = await apiRequest(`/api/tours/${selectedTour.id}/stats`);
-        return response as unknown as { 
+        return response as { 
           totalShows: number; 
           confirmed: number; 
           pending: number; 
