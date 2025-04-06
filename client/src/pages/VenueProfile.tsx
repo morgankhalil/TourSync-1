@@ -70,7 +70,12 @@ export default function VenueProfile() {
           <h1 className="text-3xl font-bold">{venue.name}</h1>
           <p className="text-muted-foreground flex items-center mt-1">
             <MapPin className="h-4 w-4 mr-1" />
-            {venue.address}, {venue.city}, {venue.state} {venue.zipCode}
+            <span className="address-display">
+              {venue.address ? venue.address + ', ' : ''}
+              {venue.city ? venue.city + ', ' : ''}
+              {venue.state || ''} 
+              {venue.zipCode || ''}
+            </span>
           </p>
         </div>
         <Button onClick={() => setLocation("/venues")}>Back to Venues</Button>
@@ -93,6 +98,16 @@ export default function VenueProfile() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                      <h3 className="font-semibold text-sm text-muted-foreground mb-1">Address</h3>
+                      <p className="flex items-center">
+                        <MapPin className="h-4 w-4 mr-1" />
+                        {venue.address ? venue.address + ', ' : ''}
+                        {venue.city ? venue.city + ', ' : ''}
+                        {venue.state || ''} 
+                        {venue.zipCode || ''}
+                      </p>
+                    </div>
                     <div>
                       <h3 className="font-semibold text-sm text-muted-foreground mb-1">Capacity</h3>
                       <p className="flex items-center">
