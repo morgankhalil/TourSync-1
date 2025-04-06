@@ -62,7 +62,7 @@ const VenueMapView = ({ venue, onTourClick }: VenueMapViewProps) => {
           
           // Create and append the script tag
           const script = document.createElement('script');
-          script.src = `https://maps.googleapis.com/maps/api/js?key=${data.apiKey}&callback=initMap&libraries=places`;
+          script.src = `https://maps.googleapis.com/maps/api/js?key=${data.apiKey}&callback=initMap&libraries=places&loading=async`;
           script.async = true;
           script.defer = true;
           document.head.appendChild(script);

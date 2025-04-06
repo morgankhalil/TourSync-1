@@ -82,8 +82,9 @@ const BandMapView = () => {
   useEffect(() => {
     if (!window.google && mapsApiData?.apiKey && !isLoadingApiKey) {
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${mapsApiData.apiKey}&libraries=places&callback=initMap`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${mapsApiData.apiKey}&libraries=places&callback=initMap&loading=async`;
       script.async = true;
+      script.defer = true;
       window.initMap = () => {
         if (mapRef.current) {
           const newMap = new window.google.maps.Map(mapRef.current, {
