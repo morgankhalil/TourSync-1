@@ -26,6 +26,24 @@ export function registerTouringRoutes(app: Express): void {
             latitude: "40.7222",
             longitude: "-73.9875",
             distance: 12,
+            routeColor: "#ef4444", // Red
+            venues: [
+              {
+                name: "Mercury Lounge",
+                address: "217 E Houston St, New York, NY",
+                date: "2025-05-10"
+              },
+              {
+                name: "Paradise Rock Club",
+                address: "967 Commonwealth Ave, Boston, MA",
+                date: "2025-05-13"
+              },
+              {
+                name: "Grog Shop",
+                address: "2785 Euclid Heights Blvd, Cleveland, OH",
+                date: "2025-05-16"
+              }
+            ],
             route: [
               { lat: 40.7222, lng: -73.9875 }, // Mercury Lounge
               { lat: 42.3513, lng: -71.1304 }, // Paradise Rock Club
@@ -52,6 +70,24 @@ export function registerTouringRoutes(app: Express): void {
             latitude: "42.3513",
             longitude: "-71.1304",
             distance: 8,
+            routeColor: "#3b82f6", // Blue
+            venues: [
+              {
+                name: "Paradise Rock Club",
+                address: "967 Commonwealth Ave, Boston, MA",
+                date: "2025-04-15"
+              },
+              {
+                name: "Mercury Lounge",
+                address: "217 E Houston St, New York, NY",
+                date: "2025-04-18"
+              },
+              {
+                name: "Grog Shop",
+                address: "2785 Euclid Heights Blvd, Cleveland, OH",
+                date: "2025-04-21"
+              }
+            ],
             route: [
               { lat: 42.3513, lng: -71.1304 }, // Paradise Rock Club
               { lat: 40.7222, lng: -73.9875 }, // Mercury Lounge
@@ -78,6 +114,24 @@ export function registerTouringRoutes(app: Express): void {
             latitude: "41.9007",
             longitude: "-87.6869",
             distance: 15,
+            routeColor: "#10b981", // Green
+            venues: [
+              {
+                name: "Empty Bottle",
+                address: "1035 N Western Ave, Chicago, IL",
+                date: "2025-04-22"
+              },
+              {
+                name: "The Garage",
+                address: "123 Main St, Milwaukee, WI",
+                date: "2025-04-25"
+              },
+              {
+                name: "Grog Shop",
+                address: "2785 Euclid Heights Blvd, Cleveland, OH",
+                date: "2025-04-28"
+              }
+            ],
             route: [
               { lat: 41.9007, lng: -87.6869 }, // Empty Bottle
               { lat: 43.0389, lng: -87.9065 }, // The Garage
@@ -104,6 +158,24 @@ export function registerTouringRoutes(app: Express): void {
             latitude: "41.5085",
             longitude: "-81.5799",
             distance: 5,
+            routeColor: "#f59e0b", // Amber
+            venues: [
+              {
+                name: "Grog Shop",
+                address: "2785 Euclid Heights Blvd, Cleveland, OH",
+                date: "2025-05-01"
+              },
+              {
+                name: "Empty Bottle",
+                address: "1035 N Western Ave, Chicago, IL",
+                date: "2025-05-04"
+              },
+              {
+                name: "Mercury Lounge",
+                address: "217 E Houston St, New York, NY",
+                date: "2025-05-07"
+              }
+            ],
             route: [
               { lat: 41.5085, lng: -81.5799 }, // Grog Shop
               { lat: 41.9007, lng: -87.6869 }, // Empty Bottle
@@ -130,6 +202,24 @@ export function registerTouringRoutes(app: Express): void {
             latitude: "43.0389",
             longitude: "-87.9065",
             distance: 22,
+            routeColor: "#8b5cf6", // Violet
+            venues: [
+              {
+                name: "The Garage",
+                address: "123 Main St, Milwaukee, WI",
+                date: "2025-04-12"
+              },
+              {
+                name: "Empty Bottle",
+                address: "1035 N Western Ave, Chicago, IL",
+                date: "2025-04-15"
+              },
+              {
+                name: "Paradise Rock Club",
+                address: "967 Commonwealth Ave, Boston, MA",
+                date: "2025-04-18"
+              }
+            ],
             route: [
               { lat: 43.0389, lng: -87.9065 }, // The Garage
               { lat: 41.9007, lng: -87.6869 }, // Empty Bottle
@@ -156,6 +246,24 @@ export function registerTouringRoutes(app: Express): void {
             latitude: "40.7222",
             longitude: "-73.9875",
             distance: 18,
+            routeColor: "#ec4899", // Pink
+            venues: [
+              {
+                name: "Mercury Lounge",
+                address: "217 E Houston St, New York, NY",
+                date: "2025-04-05"
+              },
+              {
+                name: "Grog Shop",
+                address: "2785 Euclid Heights Blvd, Cleveland, OH",
+                date: "2025-04-08"
+              },
+              {
+                name: "The Garage",
+                address: "123 Main St, Milwaukee, WI",
+                date: "2025-04-11"
+              }
+            ],
             route: [
               { lat: 40.7222, lng: -73.9875 }, // Mercury Lounge
               { lat: 41.5085, lng: -81.5799 }, // Grog Shop

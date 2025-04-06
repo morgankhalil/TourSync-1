@@ -13,7 +13,17 @@ import { DatePicker } from "../components/ui/date-picker";
 import { useActiveVenue } from "@/hooks/useActiveVenue";
 import { useVenues } from "@/hooks/useVenues";
 import { Separator } from "@/components/ui/separator";
-import { ChevronDown, Compass, Calendar, Music, MessageCircle } from "lucide-react";
+import { 
+  Building2, 
+  Calendar, 
+  CalendarDays, 
+  ChevronDown, 
+  Compass, 
+  Contact, 
+  Map, 
+  MessageCircle, 
+  Music 
+} from "lucide-react";
 import { Venue } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { format, addDays } from "date-fns";
@@ -34,6 +44,12 @@ type TouringBand = {
     latitude: string;
     longitude: string;
     distance: number;
+    routeColor?: string;
+    venues?: Array<{
+      name: string;
+      address: string;
+      date: string;
+    }>;
     route: Array<{lat: number, lng: number}>;
   };
   drawSize: string;
@@ -208,11 +224,23 @@ export default function OpportunityDiscovery() {
       bandMarker.addListener("click", () => {
         setSelectedBand(band);
         
-        // Open info window
+        // Get venue information from the first venue in the tour
+        const venueInfo = band.touring.venues && band.touring.venues.length > 0
+          ? band.touring.venues[0]
+          : null;
+        
+        // Open info window with more detailed information
         infoWindowRef.current.setContent(
-          `<div class="text-sm font-semibold">${band.name}</div>
-           <div class="text-xs">${band.genre || 'Unknown genre'}</div>
-           <div class="text-xs">Touring: ${band.touring.tourName}</div>`
+          `<div class="p-3">
+            <div class="text-sm font-semibold">${band.name}</div>
+            <div class="text-xs">${band.genre || 'Unknown genre'}</div>
+            <div class="text-xs">Tour: ${band.touring.tourName}</div>
+            ${venueInfo ? `
+              <div class="mt-2 text-xs font-semibold">${venueInfo.name}</div>
+              <div class="text-xs">${venueInfo.address}</div>
+              <div class="text-xs">Concert date: ${venueInfo.date}</div>
+            ` : ''}
+          </div>`
         );
         infoWindowRef.current.open(mapRef.current, bandMarker);
       });
@@ -225,13 +253,57 @@ export default function OpportunityDiscovery() {
         const routePath = new google.maps.Polyline({
           path: band.touring.route,
           geodesic: true,
-          strokeColor: "#ef4444",
+          strokeColor: band.touring.routeColor || "#ef4444", // Use band's route color or default to red
           strokeOpacity: 0.5,
           strokeWeight: 2,
         });
         
         routePath.setMap(mapRef.current);
         markersRef.current.push(routePath);
+      }
+      
+      // Add venue markers for each stop on the tour route
+      if (band.touring.venues && band.touring.venues.length) {
+        band.touring.venues.forEach((venueInfo, index) => {
+          if (index === 0) return; // Skip the first venue as it's already covered by the band marker
+          
+          const position = band.touring.route && band.touring.route[index] 
+            ? band.touring.route[index] 
+            : null;
+            
+          if (!position) return;
+          
+          const venueMarker = new google.maps.Marker({
+            position: position,
+            map: mapRef.current,
+            title: venueInfo.name,
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              fillColor: band.touring.routeColor || "#ef4444",
+              fillOpacity: 0.4,
+              strokeWeight: 1,
+              strokeColor: "#ffffff",
+              scale: 5,
+            },
+          });
+          
+          // Add click listener for venue markers
+          venueMarker.addListener("click", () => {
+            // Open info window with venue details
+            infoWindowRef.current.setContent(
+              `<div class="p-2">
+                <div class="text-sm font-semibold">${venueInfo.name}</div>
+                <div class="text-xs">${venueInfo.address}</div>
+                <div class="text-xs">Concert date: ${venueInfo.date}</div>
+                <div class="text-xs">Band: ${band.name}</div>
+                <div class="text-xs">Tour: ${band.touring.tourName}</div>
+              </div>`
+            );
+            infoWindowRef.current.open(mapRef.current, venueMarker);
+          });
+          
+          markersRef.current.push(venueMarker);
+        });
       }
     });
   }, [touringBands, mapLoaded]);
@@ -312,11 +384,23 @@ export default function OpportunityDiscovery() {
       mapRef.current.panTo(marker.getPosition());
       mapRef.current.setZoom(11);
       
-      // Open info window
+      // Get venue information from the first venue in the tour
+      const venueInfo = band.touring.venues && band.touring.venues.length > 0
+        ? band.touring.venues[0]
+        : null;
+      
+      // Open info window with more detailed information
       infoWindowRef.current.setContent(
-        `<div class="text-sm font-semibold">${band.name}</div>
-         <div class="text-xs">${band.genre || 'Unknown genre'}</div>
-         <div class="text-xs">Touring: ${band.touring.tourName}</div>`
+        `<div class="p-3">
+          <div class="text-sm font-semibold">${band.name}</div>
+          <div class="text-xs">${band.genre || 'Unknown genre'}</div>
+          <div class="text-xs">Tour: ${band.touring.tourName}</div>
+          ${venueInfo ? `
+            <div class="mt-2 text-xs font-semibold">${venueInfo.name}</div>
+            <div class="text-xs">${venueInfo.address}</div>
+            <div class="text-xs">Concert date: ${venueInfo.date}</div>
+          ` : ''}
+        </div>`
       );
       infoWindowRef.current.open(mapRef.current, marker);
     }
@@ -561,38 +645,92 @@ export default function OpportunityDiscovery() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedBand(null)}>
           <div className="bg-white rounded-lg max-w-md w-full max-h-[80vh] overflow-auto" onClick={e => e.stopPropagation()}>
             <div className="p-6">
-              <div className="flex justify-between items-start">
+              <div className="flex justify-between items-start mb-3">
                 <h2 className="text-xl font-bold">{selectedBand.name}</h2>
                 <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200">
                   {selectedBand.matchScore}% match
                 </Badge>
               </div>
               
-              <div className="mt-2">
+              <div className="flex items-center gap-2 mb-3">
+                <Badge variant="outline" className="flex items-center gap-1 font-normal">
+                  <Calendar className="w-3 h-3" />
+                  {format(new Date(selectedBand.touring.startDate), "MMM d")} - {format(new Date(selectedBand.touring.endDate), "MMM d")}
+                </Badge>
+                
+                <Badge variant="outline" className="flex items-center gap-1 font-normal">
+                  <Music className="w-3 h-3" />
+                  Draw Size: {selectedBand.drawSize}
+                </Badge>
+              </div>
+              
+              <div className="mb-4">
                 <p className="text-gray-600">{selectedBand.genre}</p>
                 <p className="mt-2">{selectedBand.description || 'No description available.'}</p>
               </div>
               
-              <div className="mt-4 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="flex items-center gap-1 font-normal">
-                    <Calendar className="w-3 h-3" />
-                    {format(new Date(selectedBand.touring.startDate), "MMM d")} - {format(new Date(selectedBand.touring.endDate), "MMM d")}
-                  </Badge>
-                  
-                  <Badge variant="outline" className="flex items-center gap-1 font-normal">
-                    <Music className="w-3 h-3" />
-                    Draw Size: {selectedBand.drawSize}
-                  </Badge>
-                </div>
-                
-                <p className="text-sm">
-                  Touring with: <span className="font-medium">{selectedBand.touring.tourName}</span>
+              {/* Tour Information */}
+              <div className="rounded-lg bg-gray-50 p-3 mb-4">
+                <h3 className="font-semibold text-sm flex items-center">
+                  <Map className="h-4 w-4 mr-1 text-primary" />
+                  Tour Information
+                </h3>
+                <p className="text-sm mt-1">
+                  <span className="font-medium">{selectedBand.touring.tourName}</span>
                 </p>
-                
-                <p className="text-sm">
+                <p className="text-sm text-gray-600">
                   Distance from venue: <span className="font-medium">{Math.round(selectedBand.touring.distance)} miles</span>
                 </p>
+              </div>
+              
+              {/* Venue Information */}
+              {selectedBand.touring.venues && selectedBand.touring.venues.length > 0 && (
+                <div className="rounded-lg bg-gray-50 p-3 mb-4">
+                  <h3 className="font-semibold text-sm flex items-center">
+                    <Building2 className="h-4 w-4 mr-1 text-primary" />
+                    Upcoming Performances
+                  </h3>
+                  <div className="space-y-3 mt-2">
+                    {selectedBand.touring.venues.map((venueInfo, index) => (
+                      <div key={index} className="text-sm">
+                        <div className="font-medium">{venueInfo.name}</div>
+                        <div className="text-gray-600">{venueInfo.address}</div>
+                        <div className="text-gray-600">
+                          <CalendarDays className="h-3 w-3 inline-block mr-1" />
+                          {format(new Date(venueInfo.date), "EEE, MMM d, yyyy")}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Contact Information */}
+              <div className="rounded-lg bg-gray-50 p-3 mb-4">
+                <h3 className="font-semibold text-sm flex items-center">
+                  <Contact className="h-4 w-4 mr-1 text-primary" />
+                  Contact Information
+                </h3>
+                <p className="text-sm mt-1">
+                  Email: <span className="font-medium">{selectedBand.contactEmail}</span>
+                </p>
+                {selectedBand.contactPhone && (
+                  <p className="text-sm">
+                    Phone: <span className="font-medium">{selectedBand.contactPhone}</span>
+                  </p>
+                )}
+                {selectedBand.social && Object.keys(selectedBand.social).length > 0 && (
+                  <div className="mt-1 text-sm">
+                    Social:
+                    <div className="flex gap-2 mt-1">
+                      {Object.entries(selectedBand.social).map(([platform, handle]) => (
+                        <Badge key={platform} variant="outline">
+                          {platform}: {handle}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
               
               <div className="mt-6 grid grid-cols-2 gap-2">
