@@ -5,6 +5,7 @@ import { useTours } from "@/hooks/useTours";
 import VenueDiscoveryPanel from "../venue/VenueDiscoveryPanel";
 import VenueDetailModal from "../venue/VenueDetailModal";
 import { Venue, TourDate } from "@/types";
+import { apiRequest } from "@/lib/queryClient";
 
 declare global {
   interface Window {
@@ -29,14 +30,19 @@ const MapView = () => {
     enabled: !!activeTour,
   });
 
+  // Fetch Google Maps API key from server
+  const { data: mapsApiData, isLoading: isLoadingApiKey } = useQuery<{ apiKey: string }>({
+    queryKey: ['/api/maps/api-key'],
+  });
+
   // Find an open date to show in the discovery panel
   const openDate = tourDates?.find(td => td.isOpenDate);
 
   // Load Google Maps API
   useEffect(() => {
-    if (!window.google) {
+    if (!window.google && mapsApiData?.apiKey && !isLoadingApiKey) {
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places&callback=initMap`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${mapsApiData.apiKey}&libraries=places&callback=initMap`;
       script.async = true;
       window.initMap = () => {
         if (mapRef.current) {
@@ -57,7 +63,7 @@ const MapView = () => {
         }
       };
       document.head.appendChild(script);
-    } else if (mapRef.current && !map) {
+    } else if (mapRef.current && !map && window.google) {
       const newMap = new window.google.maps.Map(mapRef.current, {
         center: { lat: 41.0, lng: -87.0 },
         zoom: 5,
@@ -77,7 +83,7 @@ const MapView = () => {
     return () => {
       window.initMap = () => {};
     };
-  }, []);
+  }, [mapsApiData, isLoadingApiKey]);
 
   // Draw route on map when tour dates are loaded
   useEffect(() => {
@@ -168,23 +174,51 @@ const MapView = () => {
     setIsVenueDetailOpen(true);
   };
 
+  // Handle loading and error states
+  const isLoading = isLoadingApiKey;
+  const hasError = !mapsApiData?.apiKey && !isLoadingApiKey;
+  
   return (
     <div className="flex-1 relative">
-      <div className="map-container w-full relative">
-        <div className="absolute top-4 left-4 z-10 bg-white rounded-md shadow-card p-2">
-          <button className="p-1 text-gray-500 hover:text-gray-700" onClick={handleZoomIn}>
-            <ZoomIn size={20} />
-          </button>
-          <button className="p-1 text-gray-500 hover:text-gray-700" onClick={handleZoomOut}>
-            <ZoomOut size={20} />
-          </button>
-        </div>
+      <div className="map-container w-full h-full relative">
+        {!isLoading && !hasError && (
+          <div className="absolute top-4 left-4 z-10 bg-white rounded-md shadow-card p-2">
+            <button className="p-1 text-gray-500 hover:text-gray-700" onClick={handleZoomIn}>
+              <ZoomIn size={20} />
+            </button>
+            <button className="p-1 text-gray-500 hover:text-gray-700" onClick={handleZoomOut}>
+              <ZoomOut size={20} />
+            </button>
+          </div>
+        )}
         
         {/* The map container */}
         <div ref={mapRef} className="h-full w-full"></div>
         
+        {/* Loading indicator */}
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 z-10">
+            <div className="text-center">
+              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-primary font-medium">Loading Map...</p>
+            </div>
+          </div>
+        )}
+        
+        {/* Error state */}
+        {hasError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
+            <div className="text-center max-w-md p-6">
+              <p className="text-red-500 font-medium mb-4">Unable to load Google Maps</p>
+              <p className="text-gray-600 mb-4">
+                We're having trouble loading the map. Please ensure you have a valid Google Maps API key configured.
+              </p>
+            </div>
+          </div>
+        )}
+        
         {/* Show discovery panel when an open date is clicked */}
-        {openDate && (
+        {openDate && !isLoading && !hasError && (
           <button 
             onClick={() => handleOpenDiscoveryPanel(openDate)}
             className="absolute top-4 right-4 z-10 bg-white rounded-md shadow-card p-2 text-primary font-medium"
