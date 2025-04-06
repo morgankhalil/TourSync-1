@@ -10,10 +10,10 @@ const MobileNavigation = () => {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 md:hidden bg-background border-t border-border shadow-lg flex justify-around items-center py-3 z-50">
-      <Link href="/">
-        <span className={`p-2 flex flex-col items-center cursor-pointer ${isActive("/") ? "text-primary font-medium" : "text-foreground/60"}`}>
+      <Link href="/map">
+        <span className={`p-2 flex flex-col items-center cursor-pointer ${isActive("/map") ? "text-primary font-medium" : "text-foreground/60"}`}>
           <Compass size={20} />
-          <span className="text-[0.7rem] mt-1">Opportunities</span>
+          <span className="text-[0.7rem] mt-1">Map</span>
         </span>
       </Link>
 

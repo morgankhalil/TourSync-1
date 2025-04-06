@@ -26,8 +26,8 @@ import VenueProfile from './pages/VenueProfile';
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/dashboard" component={VenueDashboard} />
+      <Route path="/" component={VenueDashboard} />
+      <Route path="/map" component={Home} />
       <Route path="/bands" component={BandsPage} />
       <Route path="/create-tour" component={CreateTour} />
       <Route path="/tour-planning" component={TourPlanningWizard} />
