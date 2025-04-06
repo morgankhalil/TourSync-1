@@ -174,7 +174,7 @@ export default function VenueProfile() {
                 <CardHeader>
                   <CardTitle>Location</CardTitle>
                 </CardHeader>
-                <CardContent className="h-[400px]">
+                <CardContent className="h-[420px]">
                   <SimpleVenueMap venue={venue} />
                 </CardContent>
               </Card>
