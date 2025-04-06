@@ -157,30 +157,22 @@ export function ArtistImporter() {
         });
       };
 
-    ws.onmessage = (event) => {
-      const update = JSON.parse(event.data);
-      setUpdates(prev => [update, ...prev].slice(0, 50)); // Keep last 50 updates
-    };
+      ws.onmessage = (event) => {
+        const update = JSON.parse(event.data);
+        setUpdates(prev => [update, ...prev].slice(0, 50)); // Keep last 50 updates
+      };
 
-    ws.onclose = () => {
-      setSocket(null);
-      toast({
-        title: 'Disconnected',
-        description: 'Real-time updates disabled',
-        variant: 'destructive',
-      });
-    };
-
-    ws.onclose = () => {
-      setSocket(null);
-      toast({
-        title: 'Disconnected',
-        description: 'Attempting to reconnect...',
-        variant: 'destructive',
-      });
-      
-      // Attempt to reconnect after 3 seconds
-      reconnectTimeout = setTimeout(connect, 3000);
+      ws.onclose = () => {
+        setSocket(null);
+        toast({
+          title: 'Disconnected',
+          description: 'Attempting to reconnect...',
+          variant: 'destructive',
+        });
+        
+        // Attempt to reconnect after 3 seconds
+        reconnectTimeout = setTimeout(connect, 3000);
+      };
     };
 
     connect();
@@ -189,7 +181,7 @@ export function ArtistImporter() {
       clearTimeout(reconnectTimeout);
       if (ws) ws.close();
     };
-  }, [subscribedArtists]);
+  }, [subscribedArtists, toast]);
 
   const handleSubscribe = () => {
     if (!artistName.trim() || !socket) return;
