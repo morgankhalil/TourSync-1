@@ -114,8 +114,8 @@ async function initializeDatabase() {
   // Create a tour
   const tour = await storage.createTour({
     name: "Summer Vibes Tour",
-    startDate: new Date("2025-06-15").toISOString(),
-    endDate: new Date("2025-08-15").toISOString(),
+    startDate: new Date("2025-06-01").toISOString(),
+    endDate: new Date("2025-06-30").toISOString(),
     bandId: band.id,
     notes: "First national headline tour",
     isActive: true
@@ -127,7 +127,7 @@ async function initializeDatabase() {
     {
       tourId: tour.id,
       venueId: venues[0].id,
-      date: new Date("2025-06-20").toISOString(),
+      date: new Date("2025-06-05").toISOString(),
       city: "New York",
       state: "NY",
       status: "confirmed",
@@ -137,7 +137,7 @@ async function initializeDatabase() {
     {
       tourId: tour.id,
       venueId: venues[1].id,
-      date: new Date("2025-06-27").toISOString(),
+      date: new Date("2025-06-10").toISOString(),
       city: "Boston",
       state: "MA",
       status: "confirmed",
@@ -147,7 +147,7 @@ async function initializeDatabase() {
     {
       tourId: tour.id,
       venueId: venues[2].id,
-      date: new Date("2025-07-05").toISOString(),
+      date: new Date("2025-06-15").toISOString(),
       city: "Cleveland",
       state: "OH",
       status: "pending",
@@ -157,7 +157,7 @@ async function initializeDatabase() {
     {
       tourId: tour.id,
       venueId: null,
-      date: new Date("2025-07-10").toISOString(),
+      date: new Date("2025-06-20").toISOString(),
       city: "Detroit",
       state: "MI",
       status: "open",
@@ -167,7 +167,7 @@ async function initializeDatabase() {
     {
       tourId: tour.id,
       venueId: venues[3].id,
-      date: new Date("2025-07-15").toISOString(),
+      date: new Date("2025-06-25").toISOString(),
       city: "Chicago",
       state: "IL",
       status: "confirmed",
