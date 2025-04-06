@@ -207,8 +207,8 @@ const VenueMapView = ({ venue, onTourClick }: VenueMapViewProps) => {
   }
 
   return (
-    <div className="h-full w-full relative">
-      <div ref={mapRef} className="h-full w-full" />
+    <div className="h-[400px] w-full relative">
+      <div ref={mapRef} className="absolute inset-0" />
     </div>
   );
 };
