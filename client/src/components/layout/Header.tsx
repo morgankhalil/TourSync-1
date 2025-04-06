@@ -41,10 +41,10 @@ const Header = () => {
               All Venues
             </span>
           </Link>
-          <Link href="/tour-planning">
+          <Link href="/tour-dashboard">
             <span className="font-inter font-medium cursor-pointer hover:underline flex items-center">
               <Route size={16} className="mr-1" />
-              Plan Tour
+              Tour Dashboard
             </span>
           </Link>
           {activeVenue && (

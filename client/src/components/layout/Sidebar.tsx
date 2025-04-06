@@ -74,7 +74,7 @@ const Sidebar = () => {
                 <Link href="/tour-dashboard">
                   <Button variant="outline" size="sm" className="flex-1">
                     <BarChart3 size={14} className="mr-1" />
-                    Optimize
+                    Dashboard
                   </Button>
                 </Link>
               </div>

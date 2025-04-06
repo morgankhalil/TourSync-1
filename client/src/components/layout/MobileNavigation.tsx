@@ -31,17 +31,10 @@ const MobileNavigation = () => {
         </button>
       </Link>
       
-      <Link href="/tour-planning">
-        <button className={`p-2 flex flex-col items-center ${isActive("/tour-planning") ? "text-primary" : "text-gray-500"}`}>
-          <Route size={20} />
-          <span className="text-xs mt-1">Plan Tour</span>
-        </button>
-      </Link>
-      
       <Link href="/tour-dashboard">
         <button className={`p-2 flex flex-col items-center ${isActive("/tour-dashboard") ? "text-primary" : "text-gray-500"}`}>
           <BarChart3 size={20} />
-          <span className="text-xs mt-1">Optimize</span>
+          <span className="text-xs mt-1">Tour Dashboard</span>
         </button>
       </Link>
       
