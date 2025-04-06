@@ -19,8 +19,8 @@ const VenueSidebar = () => {
 
   // Fetch venue availability
   const { data: availabilityList, isLoading: isAvailabilityLoading } = useQuery<VenueAvailability[]>({
-    queryKey: activeVenue ? [`/api/venues/${activeVenue.id}/availability`] : [],
-    enabled: !!activeVenue,
+    queryKey: [`/api/venues/${activeVenue?.id || 27}/availability`],
+    enabled: true,
   });
 
   // Determine the sidebar classes based on mobile and open state
