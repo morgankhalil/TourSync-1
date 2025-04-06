@@ -1,214 +1,335 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
-import { 
-  CalendarDays, 
-  ChevronDown, 
-  Loader2,
-  ArrowRight
-} from "lucide-react";
-import { Tour, TourDate, VenueAvailability } from "@/types";
-import { Badge } from "@/components/ui/badge";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import React, { useState, useEffect } from 'react';
+import { Tour, TourDate, VenueAvailability, Venue } from '../../types';
+import { Badge } from '../ui/badge';
+import { Calendar } from '../ui/calendar';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Spinner } from '../ui/spinner';
 
 interface VenueBookingsListProps {
   venueId: number;
   onTourClick: (tour: Tour) => void;
 }
 
-// Type for grouped availability dates
+// Availability data type for calendar
 interface AvailabilityData {
   date: Date;
-  tourDate: TourDate; 
+  tourDate?: TourDate; 
   tour?: Tour;
+  isAvailable?: boolean;
 }
 
-// Availability Card component
-const AvailabilityCard = ({ availability }: { availability: VenueAvailability }) => {
-  const date = new Date(availability.date);
+const getStatusBadgeStyle = (status: string) => {
+  switch (status) {
+    case 'confirmed':
+      return 'bg-green-500 hover:bg-green-600';
+    case 'pending':
+      return 'bg-yellow-500 hover:bg-yellow-600';
+    case 'open':
+      return 'bg-purple-500 hover:bg-purple-600';
+    default:
+      return 'bg-gray-500 hover:bg-gray-600';
+  }
+};
+
+// Individual availability card component
+const AvailabilityCard = ({ availability, tour, onClick }: { 
+  availability: VenueAvailability | TourDate, 
+  tour?: Tour,
+  onClick?: () => void 
+}) => {
+  // Determine if this is a VenueAvailability or TourDate
+  const isTourDate = 'tourId' in availability;
+  
+  // Safely parse the date
+  const parseDateSafe = (dateString: string | Date) => {
+    try {
+      const date = new Date(dateString);
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return new Date(); // Return current date as fallback
+      }
+      return date;
+    } catch (error) {
+      console.error('Error parsing date:', error);
+      return new Date(); // Return current date as fallback
+    }
+  };
+  
+  const date = parseDateSafe(availability.date);
   
   return (
-    <div className="border rounded-md p-3 mb-2 bg-white">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center">
-          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-3">
-            <CalendarDays size={18} className="text-gray-500" />
-          </div>
-          <div>
-            <p className="font-medium">{format(date, "MMM d, yyyy")}</p>
-            <p className="text-sm text-gray-500">Open Date</p>
-          </div>
+    <Card 
+      className={`mb-4 cursor-pointer transform transition-transform hover:scale-105 ${
+        isTourDate ? 'border-l-4 border-l-primary' : 'border'
+      }`}
+      onClick={onClick}
+    >
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-lg">
+            {date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+          </CardTitle>
+          
+          {isTourDate && (
+            <Badge className={getStatusBadgeStyle((availability as TourDate).status || 'pending')}>
+              {(availability as TourDate).status || 'pending'}
+            </Badge>
+          )}
+          
+          {!isTourDate && (
+            <Badge variant={(availability as VenueAvailability).isAvailable ? "default" : "secondary"}>
+              {(availability as VenueAvailability).isAvailable ? 'Available' : 'Unavailable'}
+            </Badge>
+          )}
         </div>
-        <Badge variant={availability.isAvailable ? "outline" : "destructive"}>
-          {availability.isAvailable ? "Available" : "Unavailable"}
-        </Badge>
-      </div>
-    </div>
+        
+        {tour && (
+          <CardDescription className="mt-1">
+            {tour.name}
+          </CardDescription>
+        )}
+      </CardHeader>
+      
+      <CardContent>
+        {isTourDate && (
+          <p className="text-sm">
+            {(availability as TourDate).notes || 'No additional notes.'}
+          </p>
+        )}
+        
+        {!isTourDate && (
+          <div className="flex justify-end">
+            <Badge variant="outline">Venue Availability</Badge>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 
 const VenueBookingsList = ({ venueId, onTourClick }: VenueBookingsListProps) => {
-  // Get venue availability
-  const { data: availabilityData, isLoading: availabilityLoading } = useQuery<VenueAvailability[]>({
-    queryKey: ['/api/venues', venueId, 'availability'],
-    enabled: !!venueId,
-  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [availabilityData, setAvailabilityData] = useState<AvailabilityData[]>([]);
+  const [tourDates, setTourDates] = useState<TourDate[]>([]);
+  const [venueAvailability, setVenueAvailability] = useState<VenueAvailability[]>([]);
+  const [venue, setVenue] = useState<Venue | null>(null);
+  const [tours, setTours] = useState<{ [id: number]: Tour }>({});
+  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [selectedTour, setSelectedTour] = useState<Tour | null>(null);
   
-  // Get all tours with dates near this venue
-  const { data: nearbyTours, isLoading: toursLoading } = useQuery<Tour[]>({
-    queryKey: ['/api/venues', venueId, 'nearby-tours'],
-    enabled: !!venueId,
-  });
-  
-  // Get tour dates for all nearby tours
-  const { data: allTourDates, isLoading: datesLoading } = useQuery<TourDate[]>({
-    queryKey: ['/api/tours/all-dates'],
-    enabled: !!nearbyTours && nearbyTours.length > 0,
-  });
-  
-  // Handle clicking on a tour date to show tour details
-  const handleTourDateClick = (tourDate: TourDate) => {
-    // Find the associated tour
-    if (nearbyTours) {
-      const tour = nearbyTours.find(t => t.id === tourDate.tourId);
-      if (tour) {
-        onTourClick(tour);
+  // Load venue details
+  useEffect(() => {
+    async function fetchVenue() {
+      try {
+        const response = await fetch(`/api/venues/${venueId}`);
+        if (!response.ok) throw new Error('Failed to fetch venue');
+        const data = await response.json();
+        setVenue(data);
+      } catch (error) {
+        console.error('Error fetching venue:', error);
       }
+    }
+    
+    if (venueId) {
+      fetchVenue();
+    }
+  }, [venueId]);
+  
+  // Load tour dates associated with this venue
+  useEffect(() => {
+    async function fetchTourDates() {
+      try {
+        const response = await fetch(`/api/venues/${venueId}/tour-dates`);
+        if (!response.ok) throw new Error('Failed to fetch tour dates');
+        const data = await response.json();
+        setTourDates(data);
+        
+        // Fetch associated tours
+        const tourIds = new Set(data.map((date: TourDate) => date.tourId));
+        const tourPromises = Array.from(tourIds).map((id) => 
+          fetch(`/api/tours/${id as number}`).then(res => res.json())
+        );
+        
+        const toursData = await Promise.all(tourPromises);
+        const toursMap = toursData.reduce((acc: { [id: number]: Tour }, tour: Tour) => {
+          acc[tour.id] = tour;
+          return acc;
+        }, {});
+        
+        setTours(toursMap);
+      } catch (error) {
+        console.error('Error fetching tour dates:', error);
+      }
+    }
+    
+    if (venueId) {
+      fetchTourDates();
+    }
+  }, [venueId]);
+  
+  // Load venue availability
+  useEffect(() => {
+    async function fetchVenueAvailability() {
+      try {
+        const response = await fetch(`/api/venues/${venueId}/availability`);
+        if (!response.ok) throw new Error('Failed to fetch venue availability');
+        const data = await response.json();
+        setVenueAvailability(data);
+      } catch (error) {
+        console.error('Error fetching venue availability:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    if (venueId) {
+      fetchVenueAvailability();
+    }
+  }, [venueId]);
+  
+  // Combine tour dates and venue availability for the calendar
+  useEffect(() => {
+    const combinedData: AvailabilityData[] = [];
+    
+    // Safely parse the date
+    const parseDateSafe = (dateString: string | Date) => {
+      try {
+        const date = new Date(dateString);
+        // Check if date is valid
+        if (isNaN(date.getTime())) {
+          return new Date(); // Return current date as fallback
+        }
+        return date;
+      } catch (error) {
+        console.error('Error parsing date:', error);
+        return new Date(); // Return current date as fallback
+      }
+    };
+    
+    // Add tour dates
+    tourDates.forEach(tourDate => {
+      const tour = tours[tourDate.tourId];
+      combinedData.push({
+        date: parseDateSafe(tourDate.date),
+        tourDate,
+        tour,
+        isAvailable: false
+      });
+    });
+    
+    // Add venue availability
+    venueAvailability.forEach(avail => {
+      const safeDate = parseDateSafe(avail.date);
+      
+      // Check if there's already a tour date for this date
+      const existingIndex = combinedData.findIndex(item => 
+        item.date.toDateString() === safeDate.toDateString()
+      );
+      
+      if (existingIndex === -1) {
+        // No tour date for this date, add availability
+        combinedData.push({
+          date: safeDate,
+          isAvailable: avail.isAvailable
+        });
+      } else {
+        // Update existing entry with availability
+        combinedData[existingIndex].isAvailable = avail.isAvailable;
+      }
+    });
+    
+    setAvailabilityData(combinedData);
+  }, [tourDates, venueAvailability, tours]);
+  
+  // Handle clicking on a tour date
+  const handleTourDateClick = (tourDate: TourDate) => {
+    const tour = tours[tourDate.tourId];
+    if (tour) {
+      setSelectedTour(tour);
+      onTourClick(tour);
     }
   };
   
-  // Group tour dates by month
-  const groupedBookings: Record<string, AvailabilityData[]> = {};
+  // Filter availabilities for the selected date
+  const filteredAvailabilities = date
+    ? availabilityData.filter(avail => 
+        avail.date.toDateString() === date.toDateString()
+      )
+    : [];
   
-  if (allTourDates && nearbyTours) {
-    allTourDates.forEach(date => {
-      // Only include dates associated with this venue
-      if (date.venueId === venueId) {
-        const dateObj = new Date(date.date);
-        const monthYear = format(dateObj, "MMMM yyyy");
-        
-        if (!groupedBookings[monthYear]) {
-          groupedBookings[monthYear] = [];
-        }
-        
-        const tour = nearbyTours.find(t => t.id === date.tourId);
-        
-        groupedBookings[monthYear].push({
-          date: dateObj,
-          tourDate: date,
-          tour
-        });
-      }
-    });
-  }
-  
-  // Sort months
-  const sortedMonths = Object.keys(groupedBookings).sort((a, b) => {
-    return new Date(a).getTime() - new Date(b).getTime();
-  });
-  
-  // Loading state
-  if (availabilityLoading || toursLoading || datesLoading) {
+  if (isLoading) {
     return (
-      <div className="p-4">
-        <h2 className="text-xl font-bold mb-4">Venue Bookings</h2>
-        <div className="flex items-center justify-center p-8">
-          <Loader2 className="animate-spin mr-2" size={20} />
-          <p>Loading bookings...</p>
-        </div>
+      <div className="h-full w-full flex items-center justify-center">
+        <Spinner />
       </div>
     );
   }
   
   return (
-    <div className="p-2">
-      <h2 className="text-xl font-bold mb-4">Venue Bookings</h2>
+    <div className="h-full flex flex-col">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold mb-2">
+          {venue?.name} Bookings
+        </h2>
+        <p className="text-gray-500">
+          View and manage bookings for {venue?.name}
+        </p>
+      </div>
       
-      {/* Current & Upcoming Bookings */}
-      {sortedMonths.length > 0 ? (
-        <Accordion type="single" collapsible className="mb-6">
-          {sortedMonths.map((month) => (
-            <AccordionItem value={month} key={month}>
-              <AccordionTrigger className="py-2">
-                <span className="text-md font-medium">{month}</span>
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="pl-2 space-y-2">
-                  {groupedBookings[month]
-                    .sort((a, b) => a.date.getTime() - b.date.getTime())
-                    .map((item) => (
-                      <div 
-                        key={`booking-${item.tourDate.id}`}
-                        onClick={() => handleTourDateClick(item.tourDate)}
-                        className="border rounded-md p-3 hover:bg-gray-50 cursor-pointer transition"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <div className="w-10 h-10 flex-shrink-0 flex flex-col items-center justify-center mr-3 border rounded-md">
-                              <span className="font-bold text-sm">{format(item.date, "d")}</span>
-                              <span className="text-xs text-gray-500">{format(item.date, "EEE")}</span>
-                            </div>
-                            <div>
-                              <p className="font-medium">
-                                {item.tour?.name || "Unknown Tour"}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                {item.tourDate.city}, {item.tourDate.state}
-                              </p>
-                            </div>
-                          </div>
-                          {item.tourDate.status === "confirmed" ? (
-                            <Badge className="bg-green-500">Confirmed</Badge>
-                          ) : item.tourDate.status === "pending" ? (
-                            <Badge className="bg-yellow-500">Pending</Badge>
-                          ) : (
-                            <Badge variant="outline">Open</Badge>
-                          )}
-                        </div>
-                        <div className="mt-1 flex justify-end">
-                          <button className="text-xs text-primary flex items-center">
-                            View details <ArrowRight size={12} className="ml-1" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      ) : (
-        <div className="bg-gray-50 border rounded-md p-4 text-center mb-6">
-          <p className="text-gray-500">No current bookings</p>
+      <div className="grid grid-cols-1 md:grid-cols-[350px_1fr] gap-6">
+        <div className="bg-card rounded-lg p-4 border">
+          <h3 className="text-lg font-semibold mb-4">Calendar</h3>
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={setDate}
+            className="rounded-md border"
+            disabled={{ before: new Date(Date.now() - 86400000) }} // Disable past dates
+          />
         </div>
-      )}
-      
-      {/* Venue Availability Section */}
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold flex items-center mb-3">
-          <CalendarDays size={18} className="mr-2" /> 
-          Venue Availability
-        </h3>
         
-        {availabilityData && availabilityData.length > 0 ? (
-          availabilityData
-            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-            .map(item => (
-              <AvailabilityCard 
-                key={`availability-${item.id}`} 
-                availability={item} 
-              />
-            ))
-        ) : (
-          <div className="bg-gray-50 border rounded-md p-4 text-center">
-            <p className="text-gray-500">No availability information</p>
-          </div>
-        )}
+        <div>
+          <h3 className="text-lg font-semibold mb-4">
+            {date ? `Events on ${date.toLocaleDateString()}` : 'Select a date'}
+          </h3>
+          
+          {filteredAvailabilities.length > 0 ? (
+            <div>
+              {filteredAvailabilities.map((avail, index) => (
+                <div key={index}>
+                  {avail.tourDate ? (
+                    <AvailabilityCard 
+                      availability={avail.tourDate} 
+                      tour={avail.tour}
+                      onClick={() => avail.tour && handleTourDateClick(avail.tourDate!)}
+                    />
+                  ) : (
+                    avail.isAvailable !== undefined && (
+                      <Card className="mb-4 bg-muted/20">
+                        <CardHeader>
+                          <CardTitle className="text-lg">Venue Availability</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p>
+                            {avail.isAvailable 
+                              ? 'This date is marked as available for booking.' 
+                              : 'This date is marked as unavailable for booking.'}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    )
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center p-8 bg-muted/20 rounded-lg">
+              <p className="text-muted-foreground">
+                No events or availability information for this date.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -415,7 +415,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tours = await storage.getTours();
       
       // Get dates for each tour and combine them
-      const allDatePromises = tours.map(tour => storage.getTourDates(tour.id));
+      const allDatePromises = tours.map(tour => {
+        // Ensure we have a valid tour id
+        if (!tour || isNaN(tour.id)) {
+          console.warn("Invalid tour ID encountered:", tour);
+          return Promise.resolve([]);
+        }
+        return storage.getTourDates(tour.id);
+      });
+      
       const allDatesArrays = await Promise.all(allDatePromises);
       
       // Flatten the array of arrays
@@ -424,7 +432,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(allDates);
     } catch (error) {
       console.error("Error fetching all tour dates:", error);
-      res.status(500).json({ message: "Error fetching all tour dates" });
+      res.status(500).json({ message: "Error fetching tour" });
     }
   });
   
@@ -437,7 +445,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tours = await storage.getTours();
       
       // Get all tour dates
-      const allDatePromises = tours.map(tour => storage.getTourDates(tour.id));
+      const allDatePromises = tours.map(tour => {
+        // Ensure we have a valid tour id
+        if (!tour || isNaN(tour.id)) {
+          console.warn("Invalid tour ID encountered:", tour);
+          return Promise.resolve([]);
+        }
+        return storage.getTourDates(tour.id);
+      });
+      
       const allDatesArrays = await Promise.all(allDatePromises);
       const allDates = allDatesArrays.flat();
       
@@ -473,6 +489,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // For each tour, check if it has any venues near this venue
       const nearbyToursPromises = allTours.map(async (tour) => {
+        // Skip tours with invalid IDs
+        if (!tour || isNaN(tour.id)) {
+          console.warn("Invalid tour ID encountered:", tour);
+          return null;
+        }
+        
         const tourDates = await storage.getTourDates(tour.id);
         
         // Check if this tour has any dates with venues near our venue
