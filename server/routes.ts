@@ -669,10 +669,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Google Maps API key endpoint
-  app.get("/api/maps/api-key", (req, res) => {
+  app.get("/api/maps/api-key", (_req, res) => {
     try {
       const apiKey = process.env.GOOGLE_MAPS_API_KEY;
       if (!apiKey) {
+        console.error('Missing GOOGLE_MAPS_API_KEY in environment variables');
         return res.status(500).json({ message: "Google Maps API key is not configured" });
       }
       res.json({ apiKey });
