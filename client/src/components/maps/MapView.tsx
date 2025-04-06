@@ -21,7 +21,7 @@ const MapView = () => {
   const [isDiscoveryPanelOpen, setIsDiscoveryPanelOpen] = useState(false);
   const [selectedTourDate, setSelectedTourDate] = useState<TourDate | null>(null);
   const [venues, setVenues] = useState<Map<number, Venue>>(new Map());
-  
+
   const { activeTour } = useTours();
 
   // Define handler functions
@@ -29,7 +29,7 @@ const MapView = () => {
     setSelectedTourDate(tourDate);
     setIsDiscoveryPanelOpen(true);
   }, []);
-  
+
   const handleVenueSelect = useCallback((venue: Venue) => {
     setSelectedVenue(venue);
     setIsVenueDetailOpen(true);
@@ -133,30 +133,30 @@ const MapView = () => {
         const allMarkers = document.querySelectorAll('.gm-style img[src*="data:image/svg"]');
         allMarkers.forEach(marker => marker.remove());
       }
-      
+
       // Filter out tour dates with venues
       const locationsWithVenues = tourDates.filter(td => td.venueId && venues.has(td.venueId));
-      
+
       if (locationsWithVenues.length === 0) return;
 
       const pathCoordinates: {lat: number, lng: number}[] = [];
-      
+
       // Add markers for each location
       locationsWithVenues.forEach(td => {
         if (!td.venueId) return;
-        
+
         const venue = venues.get(td.venueId);
         if (!venue) return;
-        
+
         // Convert latitude and longitude from string to number
         const lat = parseFloat(venue.latitude);
         const lng = parseFloat(venue.longitude);
-        
+
         if (isNaN(lat) || isNaN(lng)) return;
-        
+
         const position = { lat, lng };
         pathCoordinates.push(position);
-        
+
         const marker = new window.google.maps.Marker({
           position,
           map,
@@ -172,19 +172,19 @@ const MapView = () => {
             scaledSize: new window.google.maps.Size(30, 30)
           }
         });
-        
+
         marker.addListener('click', () => {
           // Show venue details when marker is clicked
           handleVenueSelect(venue);
         });
       });
-      
+
       // Add markers for open dates (no venue)
       const openDates = tourDates.filter(td => td.isOpenDate);
       openDates.forEach(td => {
         // For open dates, place them roughly at geographic center based on city/state
         // Here, we'd normally use geocoding, but for this demo we'll use a simple approximation
-        
+
         // Use a predefined mapping for common US cities
         const cityCoordinates: Record<string, {lat: number, lng: number}> = {
           'New York': { lat: 40.7128, lng: -74.0060 },
@@ -194,9 +194,9 @@ const MapView = () => {
           'Cleveland': { lat: 41.4993, lng: -81.6944 },
           'Minneapolis': { lat: 44.9778, lng: -93.2650 }
         };
-        
+
         const coords = cityCoordinates[td.city] || { lat: 40.0, lng: -85.0 }; // Default if city not found
-        
+
         const marker = new window.google.maps.Marker({
           position: coords,
           map,
@@ -212,12 +212,12 @@ const MapView = () => {
             scaledSize: new window.google.maps.Size(30, 30)
           }
         });
-        
+
         marker.addListener('click', () => {
           handleOpenDiscoveryPanel(td);
         });
       });
-      
+
       // Only create path if we have multiple points
       if (pathCoordinates.length >= 2) {
         const tourPath = new window.google.maps.Polyline({
@@ -227,9 +227,9 @@ const MapView = () => {
           strokeOpacity: 1.0,
           strokeWeight: 3
         });
-        
+
         tourPath.setMap(map);
-        
+
         // Fit bounds to show all markers
         const bounds = new window.google.maps.LatLngBounds();
         pathCoordinates.forEach(coord => bounds.extend(coord));
@@ -245,7 +245,7 @@ const MapView = () => {
   // Handle loading and error states
   const isLoading = isLoadingApiKey;
   const hasError = !mapsApiData?.apiKey && !isLoadingApiKey;
-  
+
   return (
     <div className="flex-1 relative">
       <div className="map-container w-full h-full relative">
@@ -259,10 +259,10 @@ const MapView = () => {
             </button>
           </div>
         )}
-        
+
         {/* The map container */}
-        <div ref={mapRef} className="h-full w-full"></div>
-        
+        <div ref={mapRef} className="h-[300px] md:h-[500px] w-full"></div>
+
         {/* Loading indicator */}
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 z-10">
@@ -272,7 +272,7 @@ const MapView = () => {
             </div>
           </div>
         )}
-        
+
         {/* Error state */}
         {hasError && (
           <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
@@ -284,7 +284,7 @@ const MapView = () => {
             </div>
           </div>
         )}
-        
+
         {/* Show discovery panel when an open date is clicked */}
         {openDate && !isLoading && !hasError && (
           <button 
@@ -294,7 +294,7 @@ const MapView = () => {
             Find Venues for Open Date
           </button>
         )}
-        
+
         {/* Venue Discovery Panel */}
         <VenueDiscoveryPanel 
           isOpen={isDiscoveryPanelOpen}
@@ -304,7 +304,7 @@ const MapView = () => {
           toCity="Minneapolis"
           onVenueSelect={handleVenueSelect}
         />
-        
+
         {/* Venue Detail Modal */}
         <VenueDetailModal 
           venue={selectedVenue}

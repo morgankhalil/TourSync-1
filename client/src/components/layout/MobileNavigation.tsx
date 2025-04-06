@@ -9,7 +9,7 @@ const MobileNavigation = () => {
   };
 
   return (
-    <div className="md:hidden bg-white border-t border-gray-200 flex justify-around py-2">
+    <div className="md:hidden bg-white border-t border-gray-200 flex justify-around py-2 pb-4">
       <Link href="/">
         <button className={`p-2 flex flex-col items-center ${isActive("/") || isActive("/dashboard") ? "text-primary" : "text-gray-500"}`}>
           <CalendarDays size={20} />

@@ -39,7 +39,7 @@ const AvailabilityCard = ({ availability, tour, onClick }: {
 }) => {
   // Determine if this is a VenueAvailability or TourDate
   const isTourDate = 'tourId' in availability;
-  
+
   // Safely parse the date
   const parseDateSafe = (dateString: string | Date) => {
     try {
@@ -54,9 +54,9 @@ const AvailabilityCard = ({ availability, tour, onClick }: {
       return new Date(); // Return current date as fallback
     }
   };
-  
+
   const date = parseDateSafe(availability.date);
-  
+
   return (
     <Card 
       className={`mb-4 cursor-pointer transform transition-transform hover:scale-105 ${
@@ -69,34 +69,34 @@ const AvailabilityCard = ({ availability, tour, onClick }: {
           <CardTitle className="text-lg">
             {date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
           </CardTitle>
-          
+
           {isTourDate && (
             <Badge className={getStatusBadgeStyle((availability as TourDate).status || 'pending')}>
               {(availability as TourDate).status || 'pending'}
             </Badge>
           )}
-          
+
           {!isTourDate && (
             <Badge variant={(availability as VenueAvailability).isAvailable ? "default" : "secondary"}>
               {(availability as VenueAvailability).isAvailable ? 'Available' : 'Unavailable'}
             </Badge>
           )}
         </div>
-        
+
         {tour && (
           <CardDescription className="mt-1">
             {tour.name}
           </CardDescription>
         )}
       </CardHeader>
-      
+
       <CardContent>
         {isTourDate && (
           <p className="text-sm">
             {(availability as TourDate).notes || 'No additional notes.'}
           </p>
         )}
-        
+
         {!isTourDate && (
           <div className="flex justify-end">
             <Badge variant="outline">Venue Availability</Badge>
@@ -116,7 +116,7 @@ const VenueBookingsList = ({ venueId, onTourClick }: VenueBookingsListProps) => 
   const [tours, setTours] = useState<{ [id: number]: Tour }>({});
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedTour, setSelectedTour] = useState<Tour | null>(null);
-  
+
   // Load venue details
   useEffect(() => {
     async function fetchVenue() {
@@ -129,12 +129,12 @@ const VenueBookingsList = ({ venueId, onTourClick }: VenueBookingsListProps) => 
         console.error('Error fetching venue:', error);
       }
     }
-    
+
     if (venueId) {
       fetchVenue();
     }
   }, [venueId]);
-  
+
   // Load tour dates associated with this venue
   useEffect(() => {
     async function fetchTourDates() {
@@ -143,30 +143,30 @@ const VenueBookingsList = ({ venueId, onTourClick }: VenueBookingsListProps) => 
         if (!response.ok) throw new Error('Failed to fetch tour dates');
         const data = await response.json();
         setTourDates(data);
-        
+
         // Fetch associated tours
         const tourIds = new Set(data.map((date: TourDate) => date.tourId));
         const tourPromises = Array.from(tourIds).map((id) => 
           fetch(`/api/tours/${id as number}`).then(res => res.json())
         );
-        
+
         const toursData = await Promise.all(tourPromises);
         const toursMap = toursData.reduce((acc: { [id: number]: Tour }, tour: Tour) => {
           acc[tour.id] = tour;
           return acc;
         }, {});
-        
+
         setTours(toursMap);
       } catch (error) {
         console.error('Error fetching tour dates:', error);
       }
     }
-    
+
     if (venueId) {
       fetchTourDates();
     }
   }, [venueId]);
-  
+
   // Load venue availability
   useEffect(() => {
     async function fetchVenueAvailability() {
@@ -181,16 +181,16 @@ const VenueBookingsList = ({ venueId, onTourClick }: VenueBookingsListProps) => 
         setIsLoading(false);
       }
     }
-    
+
     if (venueId) {
       fetchVenueAvailability();
     }
   }, [venueId]);
-  
+
   // Combine tour dates and venue availability for the calendar
   useEffect(() => {
     const combinedData: AvailabilityData[] = [];
-    
+
     // Safely parse the date
     const parseDateSafe = (dateString: string | Date) => {
       try {
@@ -205,7 +205,7 @@ const VenueBookingsList = ({ venueId, onTourClick }: VenueBookingsListProps) => 
         return new Date(); // Return current date as fallback
       }
     };
-    
+
     // Add tour dates
     tourDates.forEach(tourDate => {
       const tour = tours[tourDate.tourId];
@@ -216,16 +216,16 @@ const VenueBookingsList = ({ venueId, onTourClick }: VenueBookingsListProps) => 
         isAvailable: false
       });
     });
-    
+
     // Add venue availability
     venueAvailability.forEach(avail => {
       const safeDate = parseDateSafe(avail.date);
-      
+
       // Check if there's already a tour date for this date
       const existingIndex = combinedData.findIndex(item => 
         item.date.toDateString() === safeDate.toDateString()
       );
-      
+
       if (existingIndex === -1) {
         // No tour date for this date, add availability
         combinedData.push({
@@ -237,10 +237,10 @@ const VenueBookingsList = ({ venueId, onTourClick }: VenueBookingsListProps) => 
         combinedData[existingIndex].isAvailable = avail.isAvailable;
       }
     });
-    
+
     setAvailabilityData(combinedData);
   }, [tourDates, venueAvailability, tours]);
-  
+
   // Handle clicking on a tour date
   const handleTourDateClick = (tourDate: TourDate) => {
     const tour = tours[tourDate.tourId];
@@ -249,14 +249,14 @@ const VenueBookingsList = ({ venueId, onTourClick }: VenueBookingsListProps) => 
       onTourClick(tour);
     }
   };
-  
+
   // Filter availabilities for the selected date
   const filteredAvailabilities = date
     ? availabilityData.filter(avail => 
         avail.date.toDateString() === date.toDateString()
       )
     : [];
-  
+
   if (isLoading) {
     return (
       <div className="h-full w-full flex items-center justify-center">
@@ -264,7 +264,7 @@ const VenueBookingsList = ({ venueId, onTourClick }: VenueBookingsListProps) => 
       </div>
     );
   }
-  
+
   return (
     <div className="h-full flex flex-col">
       <div className="mb-6">
@@ -275,7 +275,7 @@ const VenueBookingsList = ({ venueId, onTourClick }: VenueBookingsListProps) => 
           View and manage bookings for {venue?.name}
         </p>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-[350px_1fr] gap-6">
         <div className="bg-card rounded-lg p-4 border">
           <h3 className="text-lg font-semibold mb-4">Calendar</h3>
@@ -287,12 +287,12 @@ const VenueBookingsList = ({ venueId, onTourClick }: VenueBookingsListProps) => 
             disabled={{ before: new Date(Date.now() - 86400000) }} // Disable past dates
           />
         </div>
-        
+
         <div>
           <h3 className="text-lg font-semibold mb-4">
             {date ? `Events on ${date.toLocaleDateString()}` : 'Select a date'}
           </h3>
-          
+
           {filteredAvailabilities.length > 0 ? (
             <div>
               {filteredAvailabilities.map((avail, index) => (
