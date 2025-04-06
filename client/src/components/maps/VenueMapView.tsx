@@ -62,10 +62,12 @@ const VenueMapView = ({ venue, onTourClick }: VenueMapViewProps) => {
           
           // Create and append the script tag
           const script = document.createElement('script');
-          script.src = `https://maps.googleapis.com/maps/api/js?key=${data.apiKey}&callback=initMap&libraries=places&loading=async`;
+          script.src = `https://maps.googleapis.com/maps/api/js?key=${data.apiKey}&callback=initMap&libraries=places&v=weekly`;
           script.async = true;
           script.defer = true;
           document.head.appendChild(script);
+          
+          console.log('Google Maps script added to document head');
           
           return () => {
             // Clean up
@@ -107,10 +109,18 @@ const VenueMapView = ({ venue, onTourClick }: VenueMapViewProps) => {
 
   // Initialize the map
   const initializeMap = useCallback(() => {
-    if (!mapRef.current || !window.google) return;
+    if (!mapRef.current || !window.google) {
+      console.error('Map ref or Google Maps not available');
+      return;
+    }
     
     try {
       // Check if venue has valid coordinates
+      if (!venue?.latitude || !venue?.longitude) {
+        console.error('Venue coordinates missing');
+        return;
+      }
+      
       const lat = parseFloat(venue.latitude);
       const lng = parseFloat(venue.longitude);
       
@@ -118,6 +128,8 @@ const VenueMapView = ({ venue, onTourClick }: VenueMapViewProps) => {
         console.error('Invalid venue coordinates:', venue);
         return;
       }
+      
+      console.log('Initializing map with coordinates:', lat, lng);
       
       const venuePosition = { lat, lng };
       
