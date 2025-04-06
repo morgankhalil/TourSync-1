@@ -138,7 +138,7 @@ const VenueMapView = ({ venue, onTourClick }: VenueMapViewProps) => {
 
     // Filter tours by selected date if provided
     const selectedDateStr = selectedDate?.toISOString().split('T')[0];
-    
+
     tours.forEach(async (tour) => {
       try {
         // Fetch tour dates for this tour
@@ -148,7 +148,7 @@ const VenueMapView = ({ venue, onTourClick }: VenueMapViewProps) => {
         // Add markers for tour dates with venues
         tourDates.forEach((date: any) => {
           if (!date.venueId) return;
-          
+
           // Skip if date doesn't match selected date
           const tourDateStr = new Date(date.date).toISOString().split('T')[0];
           if (selectedDate && tourDateStr !== selectedDateStr) return;
