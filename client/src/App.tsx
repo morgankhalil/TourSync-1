@@ -6,6 +6,7 @@ import NotFound from "./pages/not-found";
 import Home from "./pages/Home";
 import CreateTour from "./pages/CreateTour";
 import Profile from "./pages/Profile";
+import BandsPage from "./pages/BandsPage";
 import VenueView from "./pages/VenueView";
 import VenueList from "./pages/VenueList";
 import VenueDashboard from "./pages/VenueDashboard";
