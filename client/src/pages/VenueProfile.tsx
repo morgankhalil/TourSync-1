@@ -11,7 +11,7 @@ import PastPerformancesManager from "@/components/venue/PastPerformancesManager"
 import { Loader2, MapPin, Users, Info, CheckIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 // Import VenueMapView as a fallback if VenueMap is unavailable
-import VenueMapView from "../components/maps/VenueMapView";
+import SimpleVenueMap from "../components/maps/SimpleVenueMap";
 
 export default function VenueProfile() {
   const params = useParams();
@@ -160,10 +160,7 @@ export default function VenueProfile() {
                   <CardTitle>Location</CardTitle>
                 </CardHeader>
                 <CardContent className="h-[400px]">
-                  <VenueMapView 
-                    venue={venue}
-                    onTourClick={() => {}}
-                  />
+                  <SimpleVenueMap venue={venue} />
                 </CardContent>
               </Card>
 
