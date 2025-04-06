@@ -22,46 +22,12 @@ const VenueMapView = ({ venue, onTourClick }: VenueMapViewProps) => {
   const [tours, setTours] = useState<Tour[]>([]);
 
   // Fetch Google Maps API key
-  const { data: mapsApiData } = useQuery<{ apiKey: string }>({
+  const { data: mapsApiData, isLoading: isLoadingApiKey } = useQuery<{ apiKey: string }>({
     queryKey: ['/api/maps/api-key'],
   });
 
-  // Load Google Maps API
-  useEffect(() => {
-    if (!window.google && mapsApiData?.apiKey) {
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${mapsApiData.apiKey}&libraries=places&callback=initMap&loading=async`;
-      script.async = true;
-      script.defer = true;
-
-      window.initMap = () => {
-        if (mapRef.current && venue?.latitude && venue?.longitude) {
-          const lat = parseFloat(venue.latitude);
-          const lng = parseFloat(venue.longitude);
-
-          if (!isNaN(lat) && !isNaN(lng)) {
-            const newMap = new window.google.maps.Map(mapRef.current, {
-              center: { lat, lng },
-              zoom: 14,
-              mapTypeControl: false,
-              streetViewControl: false,
-              fullscreenControl: true,
-            });
-            setMap(newMap);
-            setIsLoading(false);
-          }
-        }
-      };
-
-      document.head.appendChild(script);
-
-      return () => {
-        window.initMap = () => {};
-        if (document.head.contains(script)) {
-          document.head.removeChild(script);
-        }
-      };
-    } else if (window.google && mapRef.current && venue?.latitude && venue?.longitude) {
+  const initializeMap = useCallback(() => {
+    if (mapRef.current && venue?.latitude && venue?.longitude) {
       const lat = parseFloat(venue.latitude);
       const lng = parseFloat(venue.longitude);
 
@@ -77,7 +43,26 @@ const VenueMapView = ({ venue, onTourClick }: VenueMapViewProps) => {
         setIsLoading(false);
       }
     }
-  }, [mapsApiData, venue]);
+  }, [venue]);
+
+  // Load Google Maps API
+  useEffect(() => {
+    if (!window.google && mapsApiData?.apiKey) {
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${mapsApiData.apiKey}&libraries=places`;
+      script.async = true;
+      script.onload = initializeMap;
+      document.head.appendChild(script);
+
+      return () => {
+        if (document.head.contains(script)) {
+          document.head.removeChild(script);
+        }
+      };
+    } else if (window.google) {
+      initializeMap();
+    }
+  }, [mapsApiData, initializeMap]);
 
   // Fetch nearby tours
   useEffect(() => {
@@ -173,7 +158,7 @@ const VenueMapView = ({ venue, onTourClick }: VenueMapViewProps) => {
     });
   }, [map, tours, onTourClick]);
 
-  if (isLoading) {
+  if (isLoading || isLoadingApiKey) {
     return (
       <div className="h-full w-full flex items-center justify-center">
         <Spinner />
