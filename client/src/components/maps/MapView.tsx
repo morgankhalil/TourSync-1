@@ -1,11 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { ZoomIn, ZoomOut } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useTours } from "@/hooks/useTours";
 import VenueDiscoveryPanel from "../venue/VenueDiscoveryPanel";
 import VenueDetailModal from "../venue/VenueDetailModal";
 import { Venue, TourDate } from "@/types";
-import { apiRequest } from "@/lib/queryClient";
 
 declare global {
   interface Window {
@@ -21,8 +20,32 @@ const MapView = () => {
   const [isVenueDetailOpen, setIsVenueDetailOpen] = useState(false);
   const [isDiscoveryPanelOpen, setIsDiscoveryPanelOpen] = useState(false);
   const [selectedTourDate, setSelectedTourDate] = useState<TourDate | null>(null);
+  const [venues, setVenues] = useState<Map<number, Venue>>(new Map());
   
   const { activeTour } = useTours();
+
+  // Define handler functions
+  const handleOpenDiscoveryPanel = useCallback((tourDate: TourDate) => {
+    setSelectedTourDate(tourDate);
+    setIsDiscoveryPanelOpen(true);
+  }, []);
+  
+  const handleVenueSelect = useCallback((venue: Venue) => {
+    setSelectedVenue(venue);
+    setIsVenueDetailOpen(true);
+  }, []);
+
+  const handleZoomIn = useCallback(() => {
+    if (map) {
+      map.setZoom(map.getZoom() + 1);
+    }
+  }, [map]);
+
+  const handleZoomOut = useCallback(() => {
+    if (map) {
+      map.setZoom(map.getZoom() - 1);
+    }
+  }, [map]);
 
   // Fetch tour dates
   const { data: tourDates } = useQuery<TourDate[]>({
@@ -30,10 +53,26 @@ const MapView = () => {
     enabled: !!activeTour,
   });
 
+  // Fetch venues
+  const { data: venuesList } = useQuery<Venue[]>({
+    queryKey: ['/api/venues'],
+  });
+
   // Fetch Google Maps API key from server
   const { data: mapsApiData, isLoading: isLoadingApiKey } = useQuery<{ apiKey: string }>({
     queryKey: ['/api/maps/api-key'],
   });
+
+  // Process venues into a map for quick lookup
+  useEffect(() => {
+    if (venuesList) {
+      const venueMap = new Map<number, Venue>();
+      venuesList.forEach(venue => {
+        venueMap.set(venue.id, venue);
+      });
+      setVenues(venueMap);
+    }
+  }, [venuesList]);
 
   // Find an open date to show in the discovery panel
   const openDate = tourDates?.find(td => td.isOpenDate);
@@ -83,32 +122,45 @@ const MapView = () => {
     return () => {
       window.initMap = () => {};
     };
-  }, [mapsApiData, isLoadingApiKey]);
+  }, [mapsApiData, isLoadingApiKey, map]);
 
   // Draw route on map when tour dates are loaded
   useEffect(() => {
-    if (map && tourDates && tourDates.length > 0) {
+    if (map && tourDates && tourDates.length > 0 && venues.size > 0) {
       // Clear previous markers and routes
-      map.data?.forEach((feature: any) => {
-        map.data.remove(feature);
-      });
+      // First, remove any existing markers
+      if (window.google && window.google.maps) {
+        const allMarkers = document.querySelectorAll('.gm-style img[src*="data:image/svg"]');
+        allMarkers.forEach(marker => marker.remove());
+      }
       
       // Filter out tour dates with venues
-      const locationsWithVenues = tourDates.filter(td => !td.isOpenDate && td.venueId);
+      const locationsWithVenues = tourDates.filter(td => td.venueId && venues.has(td.venueId));
       
-      if (locationsWithVenues.length < 2) return;
+      if (locationsWithVenues.length === 0) return;
 
+      const pathCoordinates: {lat: number, lng: number}[] = [];
+      
       // Add markers for each location
       locationsWithVenues.forEach(td => {
-        // In a real app, we would use proper geocoding or stored coordinates
-        // For demo, we're just creating markers at estimated coordinates
-        const lat = 35 + Math.random() * 10;
-        const lng = -90 + Math.random() * 10;
+        if (!td.venueId) return;
+        
+        const venue = venues.get(td.venueId);
+        if (!venue) return;
+        
+        // Convert latitude and longitude from string to number
+        const lat = parseFloat(venue.latitude);
+        const lng = parseFloat(venue.longitude);
+        
+        if (isNaN(lat) || isNaN(lng)) return;
+        
+        const position = { lat, lng };
+        pathCoordinates.push(position);
         
         const marker = new window.google.maps.Marker({
-          position: { lat, lng },
+          position,
           map,
-          title: `${td.city}, ${td.state}`,
+          title: `${venue.name} - ${td.city}, ${td.state}`,
           icon: {
             url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${td.status === 'confirmed' ? '#2EB67D' : td.status === 'pending' ? '#ECB22E' : '#4A154B'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -122,57 +174,73 @@ const MapView = () => {
         });
         
         marker.addListener('click', () => {
-          // Open venue details when marker is clicked
-          // In a real app, we would get the venue data and show it
+          // Show venue details when marker is clicked
+          handleVenueSelect(venue);
         });
       });
-
-      // Create a simple line between locations
-      // In a real app, we would use the DirectionsService to get the actual route
-      const pathCoordinates = locationsWithVenues.map(td => {
-        const lat = 35 + Math.random() * 10;
-        const lng = -90 + Math.random() * 10;
-        return { lat, lng };
+      
+      // Add markers for open dates (no venue)
+      const openDates = tourDates.filter(td => td.isOpenDate);
+      openDates.forEach(td => {
+        // For open dates, place them roughly at geographic center based on city/state
+        // Here, we'd normally use geocoding, but for this demo we'll use a simple approximation
+        
+        // Use a predefined mapping for common US cities
+        const cityCoordinates: Record<string, {lat: number, lng: number}> = {
+          'New York': { lat: 40.7128, lng: -74.0060 },
+          'Boston': { lat: 42.3601, lng: -71.0589 },
+          'Chicago': { lat: 41.8781, lng: -87.6298 },
+          'Detroit': { lat: 42.3314, lng: -83.0458 },
+          'Cleveland': { lat: 41.4993, lng: -81.6944 },
+          'Minneapolis': { lat: 44.9778, lng: -93.2650 }
+        };
+        
+        const coords = cityCoordinates[td.city] || { lat: 40.0, lng: -85.0 }; // Default if city not found
+        
+        const marker = new window.google.maps.Marker({
+          position: coords,
+          map,
+          title: `Open Date: ${td.city}, ${td.state}`,
+          icon: {
+            url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4A154B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="10" r="8" stroke-dasharray="4"/>
+                <path d="M12 18l-6 6"/>
+                <path d="M18 24l-6-6"/>
+              </svg>
+            `)}`,
+            scaledSize: new window.google.maps.Size(30, 30)
+          }
+        });
+        
+        marker.addListener('click', () => {
+          handleOpenDiscoveryPanel(td);
+        });
       });
       
-      const tourPath = new window.google.maps.Polyline({
-        path: pathCoordinates,
-        geodesic: true,
-        strokeColor: '#4A154B',
-        strokeOpacity: 1.0,
-        strokeWeight: 3
-      });
-      
-      tourPath.setMap(map);
-      
-      // Fit bounds to show all markers
-      const bounds = new window.google.maps.LatLngBounds();
-      pathCoordinates.forEach(coord => bounds.extend(coord));
-      map.fitBounds(bounds);
+      // Only create path if we have multiple points
+      if (pathCoordinates.length >= 2) {
+        const tourPath = new window.google.maps.Polyline({
+          path: pathCoordinates,
+          geodesic: true,
+          strokeColor: '#4A154B',
+          strokeOpacity: 1.0,
+          strokeWeight: 3
+        });
+        
+        tourPath.setMap(map);
+        
+        // Fit bounds to show all markers
+        const bounds = new window.google.maps.LatLngBounds();
+        pathCoordinates.forEach(coord => bounds.extend(coord));
+        map.fitBounds(bounds);
+      } else if (pathCoordinates.length === 1) {
+        // If only one point, center on it with a reasonable zoom level
+        map.setCenter(pathCoordinates[0]);
+        map.setZoom(10);
+      }
     }
-  }, [map, tourDates]);
-
-  const handleZoomIn = () => {
-    if (map) {
-      map.setZoom(map.getZoom() + 1);
-    }
-  };
-
-  const handleZoomOut = () => {
-    if (map) {
-      map.setZoom(map.getZoom() - 1);
-    }
-  };
-
-  const handleOpenDiscoveryPanel = (tourDate: TourDate) => {
-    setSelectedTourDate(tourDate);
-    setIsDiscoveryPanelOpen(true);
-  };
-
-  const handleVenueSelect = (venue: Venue) => {
-    setSelectedVenue(venue);
-    setIsVenueDetailOpen(true);
-  };
+  }, [map, tourDates, venues, handleOpenDiscoveryPanel, handleVenueSelect]);
 
   // Handle loading and error states
   const isLoading = isLoadingApiKey;
