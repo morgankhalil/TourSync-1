@@ -3,9 +3,10 @@ import { Plus, Info } from "lucide-react";
 import { useTours } from "@/hooks/useTours";
 import { useQuery } from "@tanstack/react-query";
 import TourDateItem from "./TourDateItem";
-import { TourDate } from "@/types";
+import { TourDate, Venue } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import VenueDetailModal from "../venue/VenueDetailModal";
 
 // SVG Marker component for the legend
 const StatusMarker = ({ color, isDashed = false }: { color: string, isDashed?: boolean }) => (
@@ -50,14 +51,30 @@ const StatusLegend = () => (
 const TourDatesList = () => {
   const { activeTour } = useTours();
   const [selectedTourDateId, setSelectedTourDateId] = useState<number | null>(null);
+  const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
+  const [isVenueDetailOpen, setIsVenueDetailOpen] = useState(false);
 
   const { data: tourDates, isLoading } = useQuery<TourDate[]>({
     queryKey: activeTour ? [`/api/tours/${activeTour.id}/dates`] : [],
     enabled: !!activeTour,
   });
 
-  const handleTourDateClick = (id: number) => {
-    setSelectedTourDateId(id === selectedTourDateId ? null : id);
+  // Fetch venues
+  const { data: venuesList } = useQuery<Venue[]>({
+    queryKey: ['/api/venues'],
+  });
+
+  const handleTourDateClick = (tourDate: TourDate) => {
+    setSelectedTourDateId(tourDate.id === selectedTourDateId ? null : tourDate.id);
+    
+    // Only show venue details if the tour date has a venue
+    if (tourDate.venueId && venuesList) {
+      const venue = venuesList.find(v => v.id === tourDate.venueId);
+      if (venue) {
+        setSelectedVenue(venue);
+        setIsVenueDetailOpen(true);
+      }
+    }
   };
 
   if (!activeTour) {
@@ -109,12 +126,19 @@ const TourDatesList = () => {
               key={tourDate.id} 
               tourDate={tourDate} 
               isSelected={tourDate.id === selectedTourDateId}
-              onClick={() => handleTourDateClick(tourDate.id)} 
+              onClick={() => handleTourDateClick(tourDate)} 
             />
           ))
       ) : (
         <div className="text-gray-500 text-sm">No tour dates found</div>
       )}
+
+      {/* Venue Detail Modal */}
+      <VenueDetailModal 
+        venue={selectedVenue}
+        isOpen={isVenueDetailOpen}
+        onClose={() => setIsVenueDetailOpen(false)}
+      />
     </div>
   );
 };

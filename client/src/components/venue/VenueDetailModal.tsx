@@ -1,5 +1,5 @@
-import { Venue } from "@/types";
-import { X, Users, DollarSign, MapPin, Music } from "lucide-react";
+import { Venue, VenueAvailability } from "@/types";
+import { Users, DollarSign, MapPin, Music } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,7 @@ interface VenueDetailModalProps {
 }
 
 const VenueDetailModal = ({ venue, isOpen, onClose }: VenueDetailModalProps) => {
-  const { data: availabilities } = useQuery({
+  const { data: availabilities } = useQuery<VenueAvailability[]>({
     queryKey: venue ? [`/api/venues/${venue.id}/availability`] : [],
     enabled: !!venue && isOpen,
   });
@@ -22,9 +22,11 @@ const VenueDetailModal = ({ venue, isOpen, onClose }: VenueDetailModalProps) => 
 
   // Get available dates from the venue's availability
   const availableDates = availabilities
-    ?.filter(a => a.isAvailable)
-    .map(a => new Date(a.date))
-    .slice(0, 3); // Just show the first 3 for simplicity
+    ? availabilities
+        .filter((a: VenueAvailability) => a.isAvailable)
+        .map((a: VenueAvailability) => new Date(a.date))
+        .slice(0, 3) // Just show the first 3 for simplicity
+    : [];
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -32,9 +34,6 @@ const VenueDetailModal = ({ venue, isOpen, onClose }: VenueDetailModalProps) => 
         <DialogHeader>
           <div className="flex justify-between items-center">
             <DialogTitle className="font-inter font-semibold text-lg">Venue Details</DialogTitle>
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-              <X size={20} />
-            </button>
           </div>
         </DialogHeader>
         
@@ -84,7 +83,7 @@ const VenueDetailModal = ({ venue, isOpen, onClose }: VenueDetailModalProps) => 
             <h4 className="font-inter font-medium mb-2">Available Dates</h4>
             {availableDates && availableDates.length > 0 ? (
               <div className="flex flex-wrap gap-2">
-                {availableDates.map((date, i) => (
+                {availableDates.map((date: Date, i: number) => (
                   <Badge key={i} variant="secondary" className="px-3 py-1 bg-gray-100 rounded-full text-sm">
                     {format(date, "MMMM d, yyyy")}
                   </Badge>
