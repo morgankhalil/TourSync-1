@@ -517,6 +517,22 @@ export class MemStorage implements IStorage {
     // Create sample venues
     const venues: InsertVenue[] = [
       {
+        name: "Bug Jar",
+        address: "219 Monroe Ave",
+        city: "Rochester", 
+        state: "NY",
+        zipCode: "14607",
+        capacity: 200,
+        contactName: "Booking Manager",
+        contactEmail: "booking@bugjar.com",
+        contactPhone: "585-454-2966",
+        description: "Longtime intimate venue featuring indie rock, punk and alternative bands",
+        genre: "Indie, Punk, Alternative",
+        dealType: "Guarantee + 60/40 Split",
+        latitude: "43.1548",
+        longitude: "-77.5975"
+      },
+      {
         name: "Mercury Lounge",
         address: "217 E Houston St",
         city: "New York",
