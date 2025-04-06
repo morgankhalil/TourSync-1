@@ -7,6 +7,7 @@ import { fromZodError } from "zod-validation-error";
 import { registerTouringRoutes } from "./routes/touring";
 import { registerBandsintownRoutes } from "./routes/bandsintown";
 import { registerConfigRoutes } from "./routes/config";
+import { registerVenuePerformancesRoutes } from "./routes/venue-performances";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register touring routes from dedicated module
@@ -17,6 +18,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register configuration routes
   registerConfigRoutes(app);
+  
+  // Register venue performances routes
+  registerVenuePerformancesRoutes(app);
   
   // Band routes
   app.get("/api/bands", async (_req, res) => {

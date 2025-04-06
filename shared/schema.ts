@@ -45,7 +45,7 @@ export const venues = pgTable("venues", {
   technicalSpecs: jsonb("technical_specs"), // Sound system, stage dimensions, etc.
   venueType: text("venue_type"), // Club, theater, arena, etc.
   amenities: jsonb("amenities"), // Green room, parking, etc.
-  pastPerformers: jsonb("past_performers"), // List of notable past performers
+  pastPerformers: jsonb("past_performers").$type<any[]>(), // List of notable past performers
   photoGallery: jsonb("photo_gallery"), // Venue photos
   loadingInfo: text("loading_info"), // Loading dock details
   accommodations: text("accommodations"), // Nearby hotels, etc.

@@ -21,6 +21,7 @@ import { SidebarProvider } from "./context/SidebarContext";
 import EditVenue from './pages/EditVenue';
 import VenueAvailability from './pages/VenueAvailability';
 import { BandsintownPage } from './pages/BandsintownPage';
+import VenueProfile from './pages/VenueProfile';
 
 function Router() {
   return (
@@ -35,6 +36,7 @@ function Router() {
       <Route path="/profile" component={Profile} />
       <Route path="/venues" component={VenueList} />
       <Route path="/venues/:id" component={VenueView} />
+      <Route path="/venue-profile/:id" component={VenueProfile} />
       <Route path="/edit-venue" component={EditVenue} />
       <Route path="/venue-availability" component={VenueAvailability} />
       <Route path="/opportunities" component={OpportunityDiscovery} />
