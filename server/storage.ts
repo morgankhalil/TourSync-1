@@ -46,6 +46,11 @@ export interface IStorage {
   findAvailableVenuesBetweenDates(startDate: Date, endDate: Date, startLat: number, startLng: number, endLat: number, endLng: number, radius: number): Promise<Venue[]>;
   findVenuesAlongRoute(waypoints: {lat: number, lng: number}[], radius: number): Promise<Venue[]>;
   getTourStats(tourId: number): Promise<{totalShows: number, confirmed: number, pending: number, openDates: number}>;
+  
+  // Tour optimization operations
+  findVenuesNearExistingVenue(venueId: number, radius: number, excludeVenueIds?: number[]): Promise<Venue[]>;
+  findTourGaps(tourId: number, minGapDays: number): Promise<{startDate: Date, endDate: Date, durationDays: number}[]>;
+  findVenuesForTourGap(tourId: number, gapStartDate: Date, gapEndDate: Date, radius: number): Promise<Venue[]>;
 }
 
 // Helper to calculate distance between two points using haversine formula
@@ -325,6 +330,144 @@ export class MemStorage implements IStorage {
       pending,
       openDates
     };
+  }
+  
+  // Tour optimization operations
+  async findVenuesNearExistingVenue(venueId: number, radius: number, excludeVenueIds: number[] = []): Promise<Venue[]> {
+    const venue = await this.getVenue(venueId);
+    if (!venue) return [];
+    
+    const venues = await this.getVenues();
+    
+    // Filter venues based on distance and exclude list
+    return venues.filter(v => {
+      // Skip if venue is in exclude list
+      if (excludeVenueIds.includes(v.id)) return false;
+      
+      // Skip if it's the same venue
+      if (v.id === venueId) return false;
+      
+      // Calculate distance and check if within radius
+      const distance = calculateDistance(
+        parseFloat(venue.latitude),
+        parseFloat(venue.longitude),
+        parseFloat(v.latitude),
+        parseFloat(v.longitude)
+      );
+      
+      return distance <= radius;
+    });
+  }
+  
+  async findTourGaps(tourId: number, minGapDays: number = 2): Promise<{startDate: Date, endDate: Date, durationDays: number}[]> {
+    const tour = await this.getTour(tourId);
+    if (!tour) return [];
+    
+    // Get tour dates and sort them chronologically
+    let tourDates = await this.getTourDates(tourId);
+    tourDates = tourDates.sort((a, b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      return dateA.getTime() - dateB.getTime();
+    });
+    
+    // Need at least 2 tour dates to find gaps
+    if (tourDates.length < 2) return [];
+    
+    const gaps: {startDate: Date, endDate: Date, durationDays: number}[] = [];
+    
+    // Analyze consecutive dates to find gaps
+    for (let i = 0; i < tourDates.length - 1; i++) {
+      const currentDate = new Date(tourDates[i].date);
+      const nextDate = new Date(tourDates[i+1].date);
+      
+      // Calculate days between dates
+      const diffTime = Math.abs(nextDate.getTime() - currentDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) - 1; // Subtract 1 to get gap days
+      
+      // Check if gap is large enough to be considered
+      if (diffDays >= minGapDays) {
+        // Calculate the start and end dates of the gap
+        const gapStartDate = new Date(currentDate);
+        gapStartDate.setDate(gapStartDate.getDate() + 1); // Day after current date
+        
+        const gapEndDate = new Date(nextDate);
+        gapEndDate.setDate(gapEndDate.getDate() - 1); // Day before next date
+        
+        gaps.push({
+          startDate: gapStartDate,
+          endDate: gapEndDate,
+          durationDays: diffDays
+        });
+      }
+    }
+    
+    return gaps;
+  }
+  
+  async findVenuesForTourGap(tourId: number, gapStartDate: Date, gapEndDate: Date, radius: number): Promise<Venue[]> {
+    const tour = await this.getTour(tourId);
+    if (!tour) return [];
+    
+    // Get tour dates before and after the gap
+    const tourDates = await this.getTourDates(tourId);
+    if (tourDates.length === 0) return [];
+    
+    // Sort tour dates and find the dates immediately before and after the gap
+    const sortedDates = tourDates.sort((a, b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      return dateA.getTime() - dateB.getTime();
+    });
+    
+    let beforeDate: TourDate | null = null;
+    let afterDate: TourDate | null = null;
+    
+    // Find the date before and after the gap
+    for (const date of sortedDates) {
+      const tourDate = new Date(date.date);
+      
+      if (tourDate < gapStartDate) {
+        // This is before the gap
+        beforeDate = date;
+      } else if (tourDate > gapEndDate && !afterDate) {
+        // This is after the gap (and we haven't found an after date yet)
+        afterDate = date;
+        break;
+      }
+    }
+    
+    // If we don't have before and after dates, we can't calculate midpoint
+    if (!beforeDate || !afterDate) return [];
+    
+    // Get the venue IDs for before and after dates
+    const beforeVenueId = beforeDate.venueId;
+    const afterVenueId = afterDate.venueId;
+    
+    // Skip if either venue is not defined
+    if (!beforeVenueId || !afterVenueId) return [];
+    
+    // Get the venues
+    const beforeVenue = await this.getVenue(beforeVenueId);
+    const afterVenue = await this.getVenue(afterVenueId);
+    
+    // Skip if either venue is not found
+    if (!beforeVenue || !afterVenue) return [];
+    
+    // Calculate midpoint between venues
+    const midLat = (parseFloat(beforeVenue.latitude) + parseFloat(afterVenue.latitude)) / 2;
+    const midLng = (parseFloat(beforeVenue.longitude) + parseFloat(afterVenue.longitude)) / 2;
+    
+    // Find venues near the midpoint
+    const nearbyVenues = await this.getVenuesByLocation(midLat, midLng, radius);
+    
+    // Create exclusion list (venues already in the tour)
+    const tourVenueIds = tourDates
+      .filter(td => td.venueId !== undefined)
+      .map(td => td.venueId as number);
+    
+    // Filter out venues already in the tour
+    return nearbyVenues.filter(venue => !tourVenueIds.includes(venue.id));
   }
 
   private initializeSampleData() {

@@ -28,7 +28,9 @@ import {
 import { Tour, TourDate, Venue, Band } from '@/types';
 import { useTours } from '@/hooks/useTours';
 import { apiRequest, queryClient, getQueryFn } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 import { format, addDays, differenceInDays } from 'date-fns';
+import TourOptimizationPanel from '@/components/tour/TourOptimizationPanel';
 
 const TourPlanningWizard = () => {
   const [, setLocation] = useLocation();
@@ -265,6 +267,12 @@ const TourPlanningWizard = () => {
   const handleSaveTour = async () => {
     if (!currentBandId || !selectedDates.length) return;
     
+    // Make sure we're on the review step
+    if (currentStep !== 4) {
+      setCurrentStep(4);
+      return;
+    }
+    
     try {
       // Create the tour first
       const newTour = {
@@ -302,7 +310,18 @@ const TourPlanningWizard = () => {
     }
   };
 
+  const { toast } = useToast();
+  
   const handleNextStep = () => {
+    if (currentStep === 2 && tourDates.length === 0) {
+      toast({
+        title: "No tour dates",
+        description: "Please add at least one tour date before proceeding",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setCurrentStep(prev => prev + 1);
   };
 
@@ -475,7 +494,7 @@ const TourPlanningWizard = () => {
                 Back
               </Button>
               <Button onClick={handleNextStep}>
-                Next: Review Tour
+                Next: Optimize Tour
               </Button>
             </div>
           </div>
@@ -485,7 +504,53 @@ const TourPlanningWizard = () => {
         return (
           <div className="space-y-6">
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold">Step 3: Review & Save Tour</h2>
+              <h2 className="text-2xl font-bold">Step 3: Optimize Your Tour</h2>
+              <p className="text-muted-foreground">
+                Find venues to fill tour gaps and optimize your routing.
+              </p>
+            </div>
+            
+            <TourOptimizationPanel 
+              tour={tourDetails || null}
+              tourDates={tourDates}
+              onSelectVenue={(venue) => {
+                // Find the first open date to assign this venue to
+                const openTourDateIndex = tourDates.findIndex(td => 
+                  td.isOpenDate || td.status === 'open' || !td.venueId
+                );
+                
+                if (openTourDateIndex >= 0) {
+                  const updatedTourDates = [...tourDates];
+                  updatedTourDates[openTourDateIndex] = {
+                    ...updatedTourDates[openTourDateIndex],
+                    venueId: venue.id,
+                    venueName: venue.name,
+                    city: venue.city,
+                    state: venue.state,
+                    isOpenDate: false,
+                    status: 'pending',
+                  };
+                  setTourDates(updatedTourDates);
+                }
+              }}
+            />
+            
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={handlePreviousStep}>
+                Back
+              </Button>
+              <Button onClick={handleNextStep}>
+                Next: Review Tour
+              </Button>
+            </div>
+          </div>
+        );
+        
+      case 4:
+        return (
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold">Step 4: Review & Save Tour</h2>
               <p className="text-muted-foreground">Review your tour details before saving.</p>
             </div>
             
@@ -589,6 +654,12 @@ const TourPlanningWizard = () => {
               <div className={`flex flex-col items-center ${currentStep >= 3 ? 'text-primary' : 'text-muted-foreground'}`}>
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 3 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
                   3
+                </div>
+                <span className="text-sm mt-1">Optimize</span>
+              </div>
+              <div className={`flex flex-col items-center ${currentStep >= 4 ? 'text-primary' : 'text-muted-foreground'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 4 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                  4
                 </div>
                 <span className="text-sm mt-1">Review</span>
               </div>

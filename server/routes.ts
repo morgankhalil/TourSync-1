@@ -605,6 +605,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error finding venues between dates" });
     }
   });
+  
+  // Tour Optimization Routes
+  
+  // Find venues near an existing venue
+  app.get("/api/venues/:id/nearby", async (req, res) => {
+    try {
+      const venueId = parseInt(req.params.id);
+      const radius = req.query.radius ? parseFloat(req.query.radius as string) : 50;
+      const excludeIdsParam = req.query.excludeIds as string;
+      const excludeIds = excludeIdsParam ? excludeIdsParam.split(",").map(id => parseInt(id.trim())) : [];
+      
+      const venues = await storage.findVenuesNearExistingVenue(venueId, radius, excludeIds);
+      res.json(venues);
+    } catch (error) {
+      console.error("Error finding nearby venues:", error);
+      res.status(500).json({ message: "Error finding nearby venues" });
+    }
+  });
+  
+  // Find gaps in a tour schedule
+  app.get("/api/tours/:id/gaps", async (req, res) => {
+    try {
+      const tourId = parseInt(req.params.id);
+      const minGapDays = req.query.minDays ? parseInt(req.query.minDays as string) : 2;
+      
+      const gaps = await storage.findTourGaps(tourId, minGapDays);
+      res.json(gaps);
+    } catch (error) {
+      console.error("Error finding tour gaps:", error);
+      res.status(500).json({ message: "Error finding tour gaps" });
+    }
+  });
+  
+  // Find venues to fill a gap in a tour
+  app.post("/api/tours/:id/fill-gap", async (req, res) => {
+    try {
+      const schema = z.object({
+        gapStartDate: z.string().transform(val => new Date(val)),
+        gapEndDate: z.string().transform(val => new Date(val)),
+        radius: z.number().default(50)
+      });
+      
+      const tourId = parseInt(req.params.id);
+      const { gapStartDate, gapEndDate, radius } = schema.parse(req.body);
+      
+      const venues = await storage.findVenuesForTourGap(tourId, gapStartDate, gapEndDate, radius);
+      res.json(venues);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      
+      console.error("Error finding venues for tour gap:", error);
+      res.status(500).json({ message: "Error finding venues for tour gap" });
+    }
+  });
 
   // Google Maps API key endpoint
   app.get("/api/maps/api-key", (req, res) => {
