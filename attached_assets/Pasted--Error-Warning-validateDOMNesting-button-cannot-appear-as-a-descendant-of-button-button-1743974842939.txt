@@ -1,0 +1,67 @@
+[Error] Warning: validateDOMNesting(...): <button> cannot appear as a descendant of <button>.
+button
+@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-day-picker.js:28394:24
+div
+Navigation@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-day-picker.js:28408:24
+CaptionNavigation@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-day-picker.js:28427:36
+div
+Caption@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-day-picker.js:28450:24
+div
+Month@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-day-picker.js:29390:31
+div
+Months@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-day-picker.js:29419:24
+div
+Root@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-day-picker.js:29424:24
+FocusProvider@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-day-picker.js:28945:33
+ModifiersProvider@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-day-picker.js:28758:31
+SelectRangeProvider@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-day-picker.js:28593:30
+SelectMultipleProvider@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-day-picker.js:28498:33
+SelectSingleProvider@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-day-picker.js:29025:31
+NavigationProvider@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-day-picker.js:28338:31
+DayPickerProvider@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-day-picker.js:28171:27
+RootProvider@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-day-picker.js:29465:23
+DayPicker
+Calendar@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/ui/calendar.tsx:21:19
+button
+_c@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/ui/button.tsx:47:9
+div
+div
+_c9@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/ui/card.tsx:114:10
+div
+_c@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/ui/card.tsx:20:9
+div
+div
+div
+Primitive.div@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RLTE5R7I.js:41:11
+Presence@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-CJ52NQAI.js:25:31
+TabsContent@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js:448:80
+_c5@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/ui/tabs.tsx:72:10
+div
+Primitive.div@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RLTE5R7I.js:41:11
+TabsProvider@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-YRL5WAL7.js:38:13
+Tabs@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js:325:11
+div
+VenueProfile@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/pages/VenueProfile.tsx:31:27
+Route@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js:323:14
+Switch@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js:380:27
+Router
+div
+div
+MainContent@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/App.tsx:143:33
+SidebarProvider@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/context/SidebarContext.tsx:21:5
+QueryClientProvider@https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js:2805:9
+App
+	printWarning (chunk-RPCDYKBN.js:521)
+	error (chunk-RPCDYKBN.js:505)
+	validateDOMNesting (chunk-RPCDYKBN.js:8256)
+	createInstance (chunk-RPCDYKBN.js:8328)
+	completeWork (chunk-RPCDYKBN.js:16290)
+	completeUnitOfWork (chunk-RPCDYKBN.js:19224)
+	performUnitOfWork (chunk-RPCDYKBN.js:19206)
+	workLoopSync (chunk-RPCDYKBN.js:19137)
+	renderRootSync (chunk-RPCDYKBN.js:19116)
+	performSyncWorkOnRoot (chunk-RPCDYKBN.js:18874)
+	flushSyncCallbacks (chunk-RPCDYKBN.js:9119)
+	(anonymous function) (chunk-RPCDYKBN.js:18627)
+> Selected Element
+< <div class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-9 w-9 p-0 font-normal aria-selected:opacity-100" role="gridcell">2</div>

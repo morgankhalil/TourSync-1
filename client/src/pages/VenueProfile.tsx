@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import PastPerformancesManager from "@/components/venue/PastPerformancesManager";
-import { Loader2, MapPin, Users, Info } from "lucide-react";
+import { Loader2, MapPin, Users, Info, CheckIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 // Import VenueMapView as a fallback if VenueMap is unavailable
 import VenueMapView from "../components/maps/VenueMapView";
@@ -178,7 +178,7 @@ export default function VenueProfile() {
                       className="w-full"
                       onClick={() => setActiveTab("performances")}
                     >
-                      <Calendar className="h-4 w-4 mr-2" />
+                      <span className="mr-2">📊</span>
                       View Past Performances
                     </Button>
                     <Button 
@@ -186,7 +186,7 @@ export default function VenueProfile() {
                       className="w-full"
                       onClick={() => setActiveTab("calendar")}
                     >
-                      <Calendar className="h-4 w-4 mr-2" />
+                      <span className="mr-2">📅</span>
                       View Availability Calendar
                     </Button>
                   </div>
@@ -211,19 +211,22 @@ export default function VenueProfile() {
               <div className="flex flex-col gap-4">
                 <div className="calendar-container border rounded-md p-4 bg-white">
                   <div className="w-full max-w-md mx-auto">
-                    <Calendar
-                      mode="multiple"
-                      selected={[new Date()]}
-                      className="rounded-md"
-                      showOutsideDays={false}
-                      disabled={{
-                        before: new Date(),
-                      }}
-                      classNames={{
-                        day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-                        day_today: "bg-accent text-accent-foreground",
-                      }}
-                    />
+                    {/* Using a div here to prevent button nesting issues */}
+                    <div className="calendar-wrapper">
+                      <Calendar
+                        mode="multiple"
+                        selected={[new Date()]}
+                        className="rounded-md"
+                        showOutsideDays={false}
+                        disabled={{
+                          before: new Date(),
+                        }}
+                        classNames={{
+                          day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                          day_today: "bg-accent text-accent-foreground",
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
                 <div className="flex justify-between gap-2 mt-2">
@@ -231,9 +234,14 @@ export default function VenueProfile() {
                     <div className="w-4 h-4 rounded-full bg-primary"></div>
                     <span className="text-sm">Available</span>
                   </div>
-                  <Button>
-                    Save Changes
-                  </Button>
+                  <div> {/* Wrap in div to prevent button nesting issues */}
+                    <Button type="button">
+                      <span className="flex items-center gap-1">
+                        <CheckIcon className="h-4 w-4" />
+                        Save Availability
+                      </span>
+                    </Button>
+                  </div>
                 </div>
                 <p className="text-sm text-muted-foreground mt-2">
                   Note: Select dates to mark your venue as available. Currently this is a preview - full calendar functionality will be available soon.
