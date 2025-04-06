@@ -48,7 +48,38 @@ async function initializeDatabase() {
         parking: "Street parking",
         bar: true
       },
-      pastPerformers: [],
+      pastPerformers: [
+        {
+          id: "perf_" + Date.now() + "_1",
+          artistName: "Every Time I Die",
+          date: "2024-03-15",
+          genre: "Metalcore",
+          drawSize: 145,
+          ticketPrice: 18,
+          isSoldOut: true,
+          isHeadliner: true
+        },
+        {
+          id: "perf_" + Date.now() + "_2",
+          artistName: "Less Than Jake",
+          date: "2024-02-28",
+          genre: "Ska Punk",
+          drawSize: 138,
+          ticketPrice: 20,
+          isSoldOut: false,
+          isHeadliner: true
+        },
+        {
+          id: "perf_" + Date.now() + "_3",
+          artistName: "Joywave",
+          date: "2024-02-14",
+          genre: "Indie Rock",
+          drawSize: 150,
+          ticketPrice: 15,
+          isSoldOut: true,
+          isHeadliner: true
+        }
+      ],
       loadingInfo: "Load in through front door",
       accommodations: "Several hotels within walking distance",
       preferredGenres: ["Indie Rock", "Punk", "Alternative", "Metal"],
