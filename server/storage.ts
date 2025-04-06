@@ -549,6 +549,38 @@ export class MemStorage implements IStorage {
         contactPhone: "323-555-7890",
         genre: "Hard Rock",
         social: { facebook: "velvetthunderofficial", instagram: "@velvet_thunder" }
+      },
+      {
+        name: "Indie Folk Collective",
+        description: "Six-piece folk band with rich harmonies and acoustic instruments",
+        contactEmail: "booking@indiefolkcollective.com",
+        contactPhone: "555-567-8901",
+        genre: "Folk, Indie",
+        social: { facebook: "indiefolkcollective", instagram: "@indie_folk_collective", spotify: "indiefolkcollective" }
+      },
+      {
+        name: "Basement Punk",
+        description: "High-energy punk trio from the midwest",
+        contactEmail: "noise@basementpunk.com",
+        contactPhone: "555-678-9012",
+        genre: "Punk",
+        social: { facebook: "basementpunkofficial", instagram: "@basement_punk" }
+      },
+      {
+        name: "Jazz Fusion Experience",
+        description: "Progressive jazz fusion ensemble featuring seasoned musicians",
+        contactEmail: "management@jazzfusionexp.com",
+        contactPhone: "555-789-0123",
+        genre: "Jazz, Fusion",
+        social: { facebook: "jazzfusionexperience", instagram: "@jazz_fusion_exp", spotify: "jazzfusionexperience" }
+      },
+      {
+        name: "DJ Electro Vibes",
+        description: "Electronic music producer and DJ with a dance-focused sound",
+        contactEmail: "bookings@djelectrovibes.com",
+        contactPhone: "555-890-1234",
+        genre: "Electronic, EDM",
+        social: { facebook: "djelectrovibes", instagram: "@dj_electro_vibes", soundcloud: "djelectrovibes" }
       }
     ];
     
@@ -782,6 +814,40 @@ export class MemStorage implements IStorage {
     };
     const createdTour4 = { ...tour4, id: this.tourIdCounter++ };
     this.toursData.set(createdTour4.id, createdTour4);
+    
+    // Tour 5: Indie Folk Collective - Eastern Route
+    const tour5StartDate = new Date(today);
+    tour5StartDate.setDate(tour5StartDate.getDate() + 5);
+    const tour5EndDate = new Date(today);
+    tour5EndDate.setDate(tour5EndDate.getDate() + 40);
+
+    const tour5: InsertTour = {
+      name: "Acoustic Adventures Tour",
+      startDate: tour5StartDate,
+      endDate: tour5EndDate,
+      bandId: createdBands[4].id,
+      notes: "Intimate venues tour showcasing our new album",
+      isActive: true
+    };
+    const createdTour5 = { ...tour5, id: this.tourIdCounter++ };
+    this.toursData.set(createdTour5.id, createdTour5);
+    
+    // Tour 6: Basement Punk - East Coast Blitz
+    const tour6StartDate = new Date(today);
+    tour6StartDate.setDate(tour6StartDate.getDate() - 2);
+    const tour6EndDate = new Date(today);
+    tour6EndDate.setDate(tour6EndDate.getDate() + 25);
+
+    const tour6: InsertTour = {
+      name: "East Coast Noise Tour",
+      startDate: tour6StartDate,
+      endDate: tour6EndDate,
+      bandId: createdBands[5].id,
+      notes: "High-energy punk tour hitting small venues",
+      isActive: true
+    };
+    const createdTour6 = { ...tour6, id: this.tourIdCounter++ };
+    this.toursData.set(createdTour6.id, createdTour6);
 
     // Create tour dates for Tour 1 (Sonic Waves)
     const tour1Dates: InsertTourDate[] = [
@@ -961,12 +1027,82 @@ export class MemStorage implements IStorage {
       }
     ];
 
+    // Create tour dates for Tour 5 (Indie Folk Collective)
+    const tour5Dates: InsertTourDate[] = [
+      {
+        tourId: createdTour5.id,
+        venueId: 1,
+        date: new Date(tour5StartDate.getTime() + 3 * 24 * 60 * 60 * 1000),
+        city: "Rochester",
+        state: "NY",
+        status: "confirmed",
+        venueName: "Bug Jar",
+        isOpenDate: false
+      },
+      {
+        tourId: createdTour5.id,
+        venueId: 3,
+        date: new Date(tour5StartDate.getTime() + 7 * 24 * 60 * 60 * 1000),
+        city: "Cleveland",
+        state: "OH",
+        status: "confirmed",
+        venueName: "Grog Shop",
+        isOpenDate: false
+      },
+      {
+        tourId: createdTour5.id,
+        venueId: 4,
+        date: new Date(tour5StartDate.getTime() + 10 * 24 * 60 * 60 * 1000),
+        city: "Chicago",
+        state: "IL",
+        status: "pending",
+        venueName: "Empty Bottle",
+        isOpenDate: false
+      }
+    ];
+    
+    // Create tour dates for Tour 6 (Basement Punk)
+    const tour6Dates: InsertTourDate[] = [
+      {
+        tourId: createdTour6.id,
+        venueId: 2,
+        date: new Date(tour6StartDate.getTime() + 5 * 24 * 60 * 60 * 1000),
+        city: "New York",
+        state: "NY",
+        status: "confirmed",
+        venueName: "Mercury Lounge",
+        isOpenDate: false
+      },
+      {
+        tourId: createdTour6.id,
+        venueId: 3,
+        date: new Date(tour6StartDate.getTime() + 8 * 24 * 60 * 60 * 1000),
+        city: "Cleveland",
+        state: "OH",
+        status: "confirmed",
+        venueName: "Grog Shop",
+        isOpenDate: false
+      },
+      {
+        tourId: createdTour6.id,
+        venueId: 6,
+        date: new Date(tour6StartDate.getTime() + 12 * 24 * 60 * 60 * 1000),
+        city: "Milwaukee",
+        state: "WI",
+        status: "pending",
+        venueName: "Cactus Club",
+        isOpenDate: false
+      }
+    ];
+
     // Combine all tour dates
     const allTourDates = [
       ...tour1Dates,
       ...tour2Dates,
       ...tour3Dates,
-      ...tour4Dates
+      ...tour4Dates,
+      ...tour5Dates,
+      ...tour6Dates
     ];
 
     // Save all tour dates

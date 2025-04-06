@@ -727,7 +727,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/bands/touring", async (req, res) => {
     try {
       const radius = req.query.radius ? parseFloat(req.query.radius as string) : 50;
-      const venueId = req.query.venueId ? parseInt(req.query.venueId as string) : undefined;
+      // Ensure venueId is a valid number
+      const rawVenueId = req.query.venueId ? req.query.venueId as string : undefined;
+      const venueId = rawVenueId && !isNaN(parseInt(rawVenueId)) ? parseInt(rawVenueId) : undefined;
       const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
       const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
       
