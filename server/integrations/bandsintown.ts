@@ -111,7 +111,8 @@ export class BandsintownIntegration {
 
       if (existingBand) {
         // Update existing band
-        return await storage.updateBand(existingBand.id, bandData);
+        const updatedBand = await storage.updateBand(existingBand.id, bandData);
+        return updatedBand || null;
       } else {
         // Create new band
         return await storage.createBand(bandData);
@@ -184,8 +185,16 @@ export class BandsintownIntegration {
             contactPhone: null,
             description: `${event.venue.name} in ${event.venue.city}, ${event.venue.region}, ${event.venue.country}`,
             amenities: null,
-            techSpecs: null,
-            dealType: null
+            technicalSpecs: null,
+            dealType: null,
+            genre: null,
+            venueType: null,
+            pastPerformers: null,
+            photoGallery: null,
+            loadingInfo: null,
+            accommodations: null,
+            preferredGenres: null,
+            priceRange: null
           };
           
           venue = await storage.createVenue(venueData);
@@ -254,6 +263,104 @@ export class BandsintownIntegration {
     }
     
     return results;
+  }
+  
+  /**
+   * Extract unique venues from band tour data
+   * This is useful for importing venue data from artist tours
+   */
+  async extractVenuesFromEvents(artistNames: string[]): Promise<{ venueName: string, city: string, region: string, country: string, latitude: string, longitude: string }[]> {
+    // Set to track unique venues (by name and location)
+    const uniqueVenueMap = new Map<string, { venueName: string, city: string, region: string, country: string, latitude: string, longitude: string }>();
+    
+    for (const artistName of artistNames) {
+      try {
+        // Get events for this artist
+        const events = await this.getArtistEvents(artistName);
+        
+        // Extract unique venues
+        for (const event of events) {
+          const venue = event.venue;
+          
+          // Create unique key using name and coordinates
+          const venueKey = `${venue.name}-${venue.latitude}-${venue.longitude}`;
+          
+          if (!uniqueVenueMap.has(venueKey)) {
+            uniqueVenueMap.set(venueKey, {
+              venueName: venue.name,
+              city: venue.city,
+              region: venue.region,
+              country: venue.country,
+              latitude: venue.latitude,
+              longitude: venue.longitude
+            });
+          }
+        }
+      } catch (error) {
+        console.error(`Error extracting venues for ${artistName}:`, error);
+      }
+    }
+    
+    // Convert map to array
+    return Array.from(uniqueVenueMap.values());
+  }
+  
+  /**
+   * Import venues extracted from artist events into the database
+   */
+  async importExtractedVenues(artistNames: string[]): Promise<Venue[]> {
+    const extractedVenues = await this.extractVenuesFromEvents(artistNames);
+    const importedVenues: Venue[] = [];
+    
+    for (const venueData of extractedVenues) {
+      try {
+        // Check if venue already exists by location (approximate match)
+        const existingVenues = await storage.getVenuesByLocation(
+          parseFloat(venueData.latitude),
+          parseFloat(venueData.longitude),
+          0.5 // Small radius to find exact venue
+        );
+        
+        if (existingVenues.length > 0) {
+          importedVenues.push(existingVenues[0]);
+          continue;
+        }
+        
+        // Create new venue
+        const venueInsertData: InsertVenue = {
+          name: venueData.venueName,
+          address: "Unknown Address", // Bandsintown doesn't provide full address
+          city: venueData.city,
+          state: venueData.region,
+          zipCode: "00000", // Placeholder
+          latitude: venueData.latitude,
+          longitude: venueData.longitude,
+          capacity: null,
+          contactName: null,
+          contactEmail: null,
+          contactPhone: null,
+          description: `${venueData.venueName} in ${venueData.city}, ${venueData.region}, ${venueData.country}`,
+          amenities: null,
+          technicalSpecs: null,
+          dealType: null,
+          genre: null,
+          venueType: null,
+          pastPerformers: null,
+          photoGallery: null,
+          loadingInfo: null,
+          accommodations: null,
+          preferredGenres: null,
+          priceRange: null
+        };
+        
+        const newVenue = await storage.createVenue(venueInsertData);
+        importedVenues.push(newVenue);
+      } catch (error) {
+        console.error(`Error importing venue ${venueData.venueName}:`, error);
+      }
+    }
+    
+    return importedVenues;
   }
 }
 

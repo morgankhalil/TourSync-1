@@ -13,6 +13,7 @@ import VenueDashboard from "./pages/VenueDashboard";
 import TourPlanningWizard from "./pages/TourPlanningWizard";
 import TourDashboard from "./pages/TourDashboard";
 import { OpportunityDiscovery } from "./pages/OpportunityDiscovery";
+import { BandsintownImport } from "./pages/BandsintownImport";
 import Header from "./components/layout/Header";
 import MobileNavigation from "./components/layout/MobileNavigation";
 import { useMediaQuery } from "./hooks/use-mobile";
@@ -39,6 +40,7 @@ function Router() {
       <Route path="/opportunities" component={OpportunityDiscovery} />
       <Route path="/opportunity-discovery" component={OpportunityDiscovery} />
       <Route path="/import" component={BandsintownPage} />
+      <Route path="/import-bandsintown" component={BandsintownImport} />
       <Route component={NotFound} />
     </Switch>
   );

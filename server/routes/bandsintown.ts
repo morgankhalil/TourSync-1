@@ -12,6 +12,11 @@ const batchImportSchema = z.object({
   artistNames: z.array(z.string()).min(1, "At least one artist name is required")
 });
 
+// Schema for extracting venues request
+const extractVenuesSchema = z.object({
+  artistNames: z.array(z.string()).min(1, "At least one artist name is required")
+});
+
 let bandsintownIntegration: BandsintownIntegration | null = null;
 
 // Helper to get the integration
@@ -127,6 +132,60 @@ export function registerBandsintownRoutes(app: Express): void {
     } catch (error) {
       console.error('Error batch importing artists:', error);
       res.status(500).json({ error: 'Failed to batch import artists' });
+    }
+  });
+  
+  // Extract venues from artist events
+  app.post('/api/bandsintown/extract-venues', async (req: Request, res: Response) => {
+    try {
+      const validationResult = extractVenuesSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: 'Invalid request body',
+          details: validationResult.error.format()
+        });
+      }
+      
+      const { artistNames } = validationResult.data;
+      const integration = getIntegration();
+      
+      const venues = await integration.extractVenuesFromEvents(artistNames);
+      
+      res.json({
+        message: `Successfully extracted ${venues.length} unique venues from ${artistNames.length} artists`,
+        data: venues
+      });
+    } catch (error) {
+      console.error('Error extracting venues:', error);
+      res.status(500).json({ error: 'Failed to extract venues' });
+    }
+  });
+  
+  // Import venues from artist events
+  app.post('/api/bandsintown/import-venues', async (req: Request, res: Response) => {
+    try {
+      const validationResult = extractVenuesSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: 'Invalid request body',
+          details: validationResult.error.format()
+        });
+      }
+      
+      const { artistNames } = validationResult.data;
+      const integration = getIntegration();
+      
+      const venues = await integration.importExtractedVenues(artistNames);
+      
+      res.json({
+        message: `Successfully imported ${venues.length} unique venues from ${artistNames.length} artists`,
+        data: venues
+      });
+    } catch (error) {
+      console.error('Error importing venues:', error);
+      res.status(500).json({ error: 'Failed to import venues' });
     }
   });
 }
