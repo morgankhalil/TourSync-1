@@ -8,6 +8,7 @@ import { Spinner } from '../ui/spinner';
 interface VenueBookingsListProps {
   venueId: number;
   onTourClick: (tour: Tour) => void;
+  onDateSelect?: (date: Date | undefined) => void; // Added onDateSelect prop
 }
 
 // Availability data type for calendar
@@ -107,7 +108,7 @@ const AvailabilityCard = ({ availability, tour, onClick }: {
   );
 };
 
-const VenueBookingsList = ({ venueId, onTourClick }: VenueBookingsListProps) => {
+const VenueBookingsList = ({ venueId, onTourClick, onDateSelect }: VenueBookingsListProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [availabilityData, setAvailabilityData] = useState<AvailabilityData[]>([]);
   const [tourDates, setTourDates] = useState<TourDate[]>([]);
@@ -250,6 +251,12 @@ const VenueBookingsList = ({ venueId, onTourClick }: VenueBookingsListProps) => 
     }
   };
 
+  // Handle date change from calendar
+  const handleDateChange = (date: Date | undefined) => {
+    setDate(date);
+    onDateSelect?.(date); // Notify parent component of date selection
+  };
+
   // Filter availabilities for the selected date
   const filteredAvailabilities = date
     ? availabilityData.filter(avail => 
@@ -282,7 +289,7 @@ const VenueBookingsList = ({ venueId, onTourClick }: VenueBookingsListProps) => 
           <Calendar
             mode="single"
             selected={date}
-            onSelect={setDate}
+            onSelect={handleDateChange} // Use handleDateChange here
             className="rounded-md border"
             disabled={{ before: new Date(Date.now() - 86400000) }} // Disable past dates
           />
