@@ -616,7 +616,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const excludeIdsParam = req.query.excludeIds as string;
       const excludeIds = excludeIdsParam ? excludeIdsParam.split(",").map(id => parseInt(id.trim())) : [];
       
-      const venues = await storage.findVenuesNearExistingVenue(venueId, radius, excludeIds);
+      let venues = await storage.findVenuesNearExistingVenue(venueId, radius, excludeIds);
+      
+      // If no venues found, return all venues except excluded ones and the current one
+      if (venues.length === 0) {
+        const allVenues = await storage.getVenues();
+        venues = allVenues.filter(v => 
+          v.id !== venueId && 
+          !excludeIds.includes(v.id)
+        );
+      }
+      
       res.json(venues);
     } catch (error) {
       console.error("Error finding nearby venues:", error);
@@ -650,7 +660,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tourId = parseInt(req.params.id);
       const { gapStartDate, gapEndDate, radius } = schema.parse(req.body);
       
-      const venues = await storage.findVenuesForTourGap(tourId, gapStartDate, gapEndDate, radius);
+      let venues = await storage.findVenuesForTourGap(tourId, gapStartDate, gapEndDate, radius);
+      
+      // If no venues found, return all venues except those already in the tour
+      if (venues.length === 0) {
+        const allVenues = await storage.getVenues();
+        const tourDates = await storage.getTourDates(tourId);
+        const tourVenueIds = tourDates
+          .filter(td => td.venueId !== undefined)
+          .map(td => td.venueId as number);
+        
+        venues = allVenues.filter(venue => !tourVenueIds.includes(venue.id));
+      }
+      
       res.json(venues);
     } catch (error) {
       if (error instanceof z.ZodError) {
