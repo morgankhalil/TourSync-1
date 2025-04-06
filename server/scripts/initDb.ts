@@ -23,72 +23,6 @@ async function initializeDatabase() {
   // Create sample venues
   const venueData = [
     {
-      name: "Bug Jar",
-      address: "219 Monroe Ave",
-      city: "Rochester",
-      state: "NY",
-      zipCode: "14607",
-      capacity: 150,
-      contactName: "Booking Manager",
-      contactEmail: "booking@bugjar.com",
-      contactPhone: "585-454-2966",
-      description: "Iconic Rochester venue known for indie rock, punk, and alternative shows",
-      genre: "Indie, Punk, Alternative",
-      dealType: "Door Split",
-      latitude: "43.1498",
-      longitude: "-77.5963",
-      technicalSpecs: {
-        stage: "15x10 feet",
-        sound: "House PA system",
-        lighting: "Basic stage lighting"
-      },
-      venueType: "Club",
-      amenities: {
-        greenRoom: true,
-        parking: "Street parking",
-        bar: true
-      },
-      pastPerformers: [
-        {
-          id: "perf_" + Date.now() + "_1",
-          artistName: "Every Time I Die",
-          date: "2024-03-15",
-          genre: "Metalcore",
-          drawSize: 145,
-          ticketPrice: 18,
-          isSoldOut: true,
-          isHeadliner: true
-        },
-        {
-          id: "perf_" + Date.now() + "_2",
-          artistName: "Less Than Jake",
-          date: "2024-02-28",
-          genre: "Ska Punk",
-          drawSize: 138,
-          ticketPrice: 20,
-          isSoldOut: false,
-          isHeadliner: true
-        },
-        {
-          id: "perf_" + Date.now() + "_3",
-          artistName: "Joywave",
-          date: "2024-02-14",
-          genre: "Indie Rock",
-          drawSize: 150,
-          ticketPrice: 15,
-          isSoldOut: true,
-          isHeadliner: true
-        }
-      ],
-      loadingInfo: "Load in through front door",
-      accommodations: "Several hotels within walking distance",
-      preferredGenres: ["Indie Rock", "Punk", "Alternative", "Metal"],
-      priceRange: {
-        min: 10,
-        max: 20
-      }
-    },
-    {
       name: "Mercury Lounge",
       address: "217 E Houston St",
       city: "New York",
@@ -167,6 +101,72 @@ async function initializeDatabase() {
       dealType: "70/30 Split",
       latitude: "43.0389",
       longitude: "-87.9065"
+    },
+    {
+      name: "Bug Jar",
+      address: "219 Monroe Ave",
+      city: "Rochester",
+      state: "NY",
+      zipCode: "14607",
+      capacity: 150,
+      contactName: "Booking Manager",
+      contactEmail: "booking@bugjar.com",
+      contactPhone: "585-454-2966",
+      description: "Iconic Rochester venue known for indie rock, punk, and alternative shows",
+      genre: "Indie, Punk, Alternative",
+      dealType: "Door Split",
+      latitude: "43.1498",
+      longitude: "-77.5963",
+      technicalSpecs: {
+        stage: "15x10 feet",
+        sound: "House PA system",
+        lighting: "Basic stage lighting"
+      },
+      venueType: "Club",
+      amenities: {
+        greenRoom: true,
+        parking: "Street parking",
+        bar: true
+      },
+      pastPerformers: [
+        {
+          id: "perf_" + Date.now() + "_1",
+          artistName: "Every Time I Die",
+          date: "2024-03-15",
+          genre: "Metalcore",
+          drawSize: 145,
+          ticketPrice: 18,
+          isSoldOut: true,
+          isHeadliner: true
+        },
+        {
+          id: "perf_" + Date.now() + "_2",
+          artistName: "Less Than Jake",
+          date: "2024-02-28",
+          genre: "Ska Punk",
+          drawSize: 138,
+          ticketPrice: 20,
+          isSoldOut: false,
+          isHeadliner: true
+        },
+        {
+          id: "perf_" + Date.now() + "_3",
+          artistName: "Joywave",
+          date: "2024-02-14",
+          genre: "Indie Rock",
+          drawSize: 150,
+          ticketPrice: 15,
+          isSoldOut: true,
+          isHeadliner: true
+        }
+      ],
+      loadingInfo: "Load in through front door",
+      accommodations: "Several hotels within walking distance",
+      preferredGenres: ["Indie Rock", "Punk", "Alternative", "Metal"],
+      priceRange: {
+        min: 10,
+        max: 20
+      }
     }
   ];
 
@@ -250,18 +250,18 @@ async function initializeDatabase() {
   // Create venue availability
   for (let i = 0; i < venues.length; i++) {
     const venue = venues[i];
-    
+
     // Add some random available dates
     for (let j = 0; j < 5; j++) {
       const date = new Date("2025-06-15");
       date.setDate(date.getDate() + Math.floor(Math.random() * 60)); // Random date in summer 2025
-      
+
       const availability = await storage.createVenueAvailability({
         venueId: venue.id,
         date: date.toISOString(),
         isAvailable: Math.random() > 0.3 // 70% chance of being available
       });
-      
+
       console.log(`Created venue availability for ${venue.name} on ${new Date(availability.date).toLocaleDateString()}`);
     }
   }
@@ -269,8 +269,33 @@ async function initializeDatabase() {
   console.log('Database initialization complete!');
 }
 
+async function removeDuplicateVenues() {
+  console.log('Removing duplicate venues...');
+  const existingVenues = await db.select().from(venues);
+  const venueNames = {};
+  const venuesToRemove = [];
+
+  for (const venue of existingVenues) {
+    if (venueNames[venue.name]) {
+      venuesToRemove.push(venue.id);
+    } else {
+      venueNames[venue.name] = true;
+    }
+  }
+
+  if (venuesToRemove.length > 0) {
+    console.log(`Removing ${venuesToRemove.length} duplicate venues...`);
+    await db.deleteFrom(venues).where('id', 'in', venuesToRemove);
+    console.log('Duplicate venues removed.');
+  } else {
+    console.log('No duplicate venues found.');
+  }
+}
+
+
 // Run the initialization
 initializeDatabase()
+  .then(() => removeDuplicateVenues())
   .catch(error => {
     console.error('Error initializing database:', error);
   })
