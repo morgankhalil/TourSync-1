@@ -20,11 +20,14 @@ const Header = () => {
         </Link>
       </div>
       <div className="flex items-center">
-        <div className="hidden md:flex space-x-4 mr-4">
-          <Link href="/venue">
-            <span className="font-inter font-medium cursor-pointer hover:underline">Venue View</span>
+        <div className="hidden md:flex space-x-6 mr-4">
+          <Link href="/venues">
+            <span className="font-inter font-medium cursor-pointer hover:underline">Venues</span>
           </Link>
-          <span className="font-inter font-medium">The Sonic Waves</span>
+          <Link href="/create-tour">
+            <span className="font-inter font-medium cursor-pointer hover:underline">Create Tour</span>
+          </Link>
+          <span className="font-inter font-medium text-accent-foreground">The Sonic Waves</span>
         </div>
         <Link href="/profile">
           <button className="w-8 h-8 rounded-full bg-accent flex items-center justify-center">

@@ -17,17 +17,17 @@ const MobileNavigation = () => {
         </button>
       </Link>
       
-      <Link href="/venue">
-        <button className={`p-2 flex flex-col items-center ${isActive("/venue") ? "text-primary" : "text-gray-500"}`}>
+      <Link href="/venues">
+        <button className={`p-2 flex flex-col items-center ${isActive("/venues") || isActive("/venue") ? "text-primary" : "text-gray-500"}`}>
           <Building2 size={20} />
-          <span className="text-xs mt-1">Venue</span>
+          <span className="text-xs mt-1">Venues</span>
         </button>
       </Link>
       
-      <Link href="/discover">
-        <button className={`p-2 flex flex-col items-center ${isActive("/discover") ? "text-primary" : "text-gray-500"}`}>
-          <Compass size={20} />
-          <span className="text-xs mt-1">Discover</span>
+      <Link href="/create-tour">
+        <button className={`p-2 flex flex-col items-center ${isActive("/create-tour") ? "text-primary" : "text-gray-500"}`}>
+          <Map size={20} />
+          <span className="text-xs mt-1">New Tour</span>
         </button>
       </Link>
       

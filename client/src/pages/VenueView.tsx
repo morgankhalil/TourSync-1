@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'wouter';
+import { useParams, useLocation } from 'wouter';
 import { Tour, Venue } from '../types';
 import VenueMapView from '../components/maps/VenueMapView';
 import VenueBookingsList from '../components/venue/VenueBookingsList';
@@ -8,29 +8,57 @@ import { Spinner } from '../components/ui/spinner';
 
 const VenueView = () => {
   const { id } = useParams<{ id: string }>();
+  const [, setLocation] = useLocation();
   const [venue, setVenue] = useState<Venue | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTour, setSelectedTour] = useState<Tour | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
+  // Fetch first venue or venue by ID
   useEffect(() => {
     async function fetchVenue() {
-      if (!id) return;
-      
       try {
-        const venueId = parseInt(id);
-        if (isNaN(venueId)) {
-          console.error('Invalid venue ID');
-          return;
+        let venueId: number | null = null;
+        
+        if (id) {
+          // If ID is provided, try to parse it
+          const parsedId = parseInt(id);
+          if (!isNaN(parsedId)) {
+            venueId = parsedId;
+          } else {
+            console.error('Invalid venue ID');
+          }
         }
         
-        const response = await fetch(`/api/venues/${venueId}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch venue');
+        if (venueId) {
+          // Fetch specific venue
+          const response = await fetch(`/api/venues/${venueId}`);
+          if (!response.ok) {
+            throw new Error('Failed to fetch venue');
+          }
+          
+          const data = await response.json();
+          setVenue(data);
+        } else {
+          // If no valid ID, fetch the first venue
+          const response = await fetch('/api/venues');
+          if (!response.ok) {
+            throw new Error('Failed to fetch venues');
+          }
+          
+          const venues = await response.json();
+          if (venues && venues.length > 0) {
+            const firstVenue = venues[0];
+            setVenue(firstVenue);
+            
+            // Redirect to the first venue for proper URL
+            if (!id) {
+              setLocation(`/venues/${firstVenue.id}`);
+            }
+          } else {
+            console.error('No venues available');
+          }
         }
-        
-        const data = await response.json();
-        setVenue(data);
       } catch (error) {
         console.error('Error fetching venue:', error);
       } finally {
@@ -39,7 +67,7 @@ const VenueView = () => {
     }
     
     fetchVenue();
-  }, [id]);
+  }, [id, setLocation]);
   
   const handleTourClick = (tour: Tour) => {
     setSelectedTour(tour);
