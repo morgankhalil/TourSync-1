@@ -209,14 +209,28 @@ export default function VenueProfile() {
             <CardContent>
               {/* Using a simplified version of VenueAvailability component */}
               <div className="flex flex-col gap-4">
-                <div className="calendar-container border rounded-md p-4">
-                  <Calendar
-                    mode="multiple"
-                    selected={[]}
-                    className="rounded-md"
-                  />
+                <div className="calendar-container border rounded-md p-4 bg-white">
+                  <div className="w-full max-w-md mx-auto">
+                    <Calendar
+                      mode="multiple"
+                      selected={[new Date()]}
+                      className="rounded-md"
+                      showOutsideDays={false}
+                      disabled={{
+                        before: new Date(),
+                      }}
+                      classNames={{
+                        day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                        day_today: "bg-accent text-accent-foreground",
+                      }}
+                    />
+                  </div>
                 </div>
-                <div className="flex justify-end gap-2">
+                <div className="flex justify-between gap-2 mt-2">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 rounded-full bg-primary"></div>
+                    <span className="text-sm">Available</span>
+                  </div>
                   <Button>
                     Save Changes
                   </Button>

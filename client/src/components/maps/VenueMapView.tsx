@@ -113,33 +113,70 @@ const VenueMapView = (props: VenueMapViewProps) => {
       return;
     }
 
-    const loadGoogleMaps = () => {
-      if (!window.google) {
-        console.log("Loading Google Maps API script");
-        const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-        script.async = true;
-        script.defer = true;
+    // Create a simple placeholder API for the map
+    const mapHolderRef = mapRef.current;
+
+    // Attach the Google Maps script
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      try {
+        console.log("Google Maps script loaded - initializing map");
+        const lat = parseFloat(venue.latitude);
+        const lng = parseFloat(venue.longitude);
         
-        script.onload = () => {
-          console.log("Google Maps API loaded, initializing map");
-          setTimeout(initializeMap, 100); // Small delay to ensure DOM is ready
-        };
+        const newMap = new window.google.maps.Map(mapHolderRef, {
+          center: { lat, lng },
+          zoom: 14,
+          mapTypeControl: false,
+          streetViewControl: false,
+          fullscreenControl: true,
+        });
         
-        document.head.appendChild(script);
-        return () => {
-          if (document.head.contains(script)) {
-            document.head.removeChild(script);
-          }
-        };
-      } else {
-        console.log("Google Maps already loaded, initializing map directly");
-        initializeMap();
+        // Add a marker for the venue itself
+        try {
+          new window.google.maps.Marker({
+            position: { lat, lng },
+            map: newMap,
+            title: venue.name,
+            animation: window.google.maps.Animation.DROP,
+            icon: {
+              path: window.google.maps.SymbolPath.CIRCLE,
+              scale: 10,
+              fillColor: "#4285F4",
+              fillOpacity: 1,
+              strokeWeight: 2,
+              strokeColor: "#FFFFFF"
+            }
+          });
+        } catch (err) {
+          console.error("Error adding venue marker:", err);
+        }
+        
+        setMap(newMap);
+        setIsLoading(false);
+      } catch (err) {
+        console.error("Error initializing map:", err);
+        setError(`Failed to initialize map: ${err}`);
       }
     };
     
-    loadGoogleMaps();
-  }, [mapsApiData, mapRef, initializeMap]);
+    script.onerror = () => {
+      console.error("Failed to load Google Maps script");
+      setError("Failed to load Google Maps API");
+    };
+    
+    document.head.appendChild(script);
+    
+    // Cleanup function
+    return () => {
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    };
+  }, [mapsApiData, venue.latitude, venue.longitude]);
 
   // Fetch nearby tours
   useEffect(() => {
@@ -217,22 +254,22 @@ const VenueMapView = (props: VenueMapViewProps) => {
                 markerColor = '#E01E5A'; // Red for open dates
               }
 
-              // Add marker
-              const markerView = new window.google.maps.marker.AdvancedMarkerElement({
-                position: { lat, lng },
-                map,
-                title: `${tour.name} - ${parseDateSafe(date.date).toLocaleDateString()}`,
-                content: new window.google.maps.marker.PinElement({
-                  scale: 1,
-                  background: markerColor,
-                  borderColor: '#FFFFFF',
-                }),
-              });
-
-              // Add click handler
-              markerView.addListener('click', () => {
-                onTourClick(tour);
-              });
+              // Just use standard markers to avoid compatibility issues
+              try {
+                // Use standard marker
+                const marker = new window.google.maps.Marker({
+                  position: { lat, lng },
+                  map,
+                  title: `${tour.name} - ${parseDateSafe(date.date).toLocaleDateString()}`
+                });
+                
+                // Add click handler
+                marker.addListener('click', () => {
+                  onTourClick(tour);
+                });
+              } catch (e) {
+                console.error('Error creating marker:', e);
+              }
             })
             .catch(err => console.error('Error fetching venue:', err));
         });
