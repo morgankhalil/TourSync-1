@@ -37,6 +37,7 @@ function Router() {
       <Route path="/edit-venue" component={EditVenue} />
       <Route path="/venue-availability" component={VenueAvailability} />
       <Route path="/opportunities" component={OpportunityDiscovery} />
+      <Route path="/opportunity-discovery" component={OpportunityDiscovery} />
       <Route path="/import" component={BandsintownPage} />
       <Route component={NotFound} />
     </Switch>

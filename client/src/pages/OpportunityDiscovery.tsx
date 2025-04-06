@@ -298,7 +298,7 @@ export function OpportunityDiscovery() {
           <TabsContent value="map-view" className="space-y-4">
             <div className="rounded-md overflow-hidden border">
               <LoadScript
-                googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
+                googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ""}
               >
                 <GoogleMap
                   mapContainerStyle={mapContainerStyle}
