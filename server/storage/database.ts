@@ -288,4 +288,174 @@ export class DatabaseStorage implements IStorage {
       openDates
     };
   }
+  
+  // Tour optimization methods
+  
+  async findVenuesNearExistingVenue(venueId: number, radius: number, excludeVenueIds: number[] = []): Promise<Venue[]> {
+    // First get the venue to find its coordinates
+    const venue = await this.getVenue(venueId);
+    if (!venue) {
+      return [];
+    }
+    
+    // Get venues near this venue's coordinates
+    const nearbyVenues = await this.getVenuesByLocation(
+      parseFloat(venue.latitude), 
+      parseFloat(venue.longitude), 
+      radius
+    );
+    
+    // Filter out the excluded venues and the original venue
+    return nearbyVenues.filter(v => 
+      v.id !== venueId && 
+      !excludeVenueIds.includes(v.id)
+    );
+  }
+  
+  async findTourGaps(tourId: number, minGapDays: number = 2): Promise<{startDate: Date, endDate: Date, durationDays: number}[]> {
+    // Get all tour dates sorted by date
+    const tourDates = await db.query.tourDates.findMany({
+      where: eq(schema.tourDates.tourId, tourId),
+      orderBy: asc(schema.tourDates.date)
+    });
+    
+    if (tourDates.length <= 1) {
+      return []; // No gaps with 0 or 1 date
+    }
+    
+    // Get the tour details to establish overall date range
+    const tour = await this.getTour(tourId);
+    if (!tour) {
+      return [];
+    }
+    
+    const gaps: {startDate: Date, endDate: Date, durationDays: number}[] = [];
+    
+    // Check for a gap at the beginning of the tour
+    const firstTourDate = new Date(tourDates[0].date);
+    const tourStartDate = new Date(tour.startDate);
+    
+    const initialGapDays = Math.floor((firstTourDate.getTime() - tourStartDate.getTime()) / (1000 * 60 * 60 * 24));
+    if (initialGapDays >= minGapDays) {
+      gaps.push({
+        startDate: tourStartDate,
+        endDate: new Date(firstTourDate.getTime() - 86400000), // day before first tour date
+        durationDays: initialGapDays
+      });
+    }
+    
+    // Check for gaps between dates
+    for (let i = 0; i < tourDates.length - 1; i++) {
+      const currentDate = new Date(tourDates[i].date);
+      const nextDate = new Date(tourDates[i + 1].date);
+      
+      const diffDays = Math.floor((nextDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (diffDays > minGapDays) {
+        gaps.push({
+          startDate: new Date(currentDate.getTime() + 86400000), // day after current date
+          endDate: new Date(nextDate.getTime() - 86400000), // day before next date
+          durationDays: diffDays - 1
+        });
+      }
+    }
+    
+    // Check for a gap at the end of the tour
+    const lastTourDate = new Date(tourDates[tourDates.length - 1].date);
+    const tourEndDate = new Date(tour.endDate);
+    
+    const finalGapDays = Math.floor((tourEndDate.getTime() - lastTourDate.getTime()) / (1000 * 60 * 60 * 24));
+    if (finalGapDays >= minGapDays) {
+      gaps.push({
+        startDate: new Date(lastTourDate.getTime() + 86400000), // day after last tour date
+        endDate: tourEndDate,
+        durationDays: finalGapDays
+      });
+    }
+    
+    return gaps;
+  }
+  
+  async findVenuesForTourGap(tourId: number, gapStartDate: Date, gapEndDate: Date, radius: number): Promise<Venue[]> {
+    // Get the tour to determine its general route
+    const tour = await this.getTour(tourId);
+    if (!tour) {
+      return [];
+    }
+    
+    // Get all tour dates ordered by date
+    const tourDates = await db.query.tourDates.findMany({
+      where: eq(schema.tourDates.tourId, tourId),
+      orderBy: asc(schema.tourDates.date)
+    });
+    
+    if (tourDates.length < 2) {
+      return []; // Need at least 2 dates to determine a route
+    }
+    
+    // Find dates before and after gap
+    let beforeVenue: Venue | undefined;
+    let afterVenue: Venue | undefined;
+    
+    for (let i = 0; i < tourDates.length; i++) {
+      const tourDate = tourDates[i];
+      const dateObj = new Date(tourDate.date);
+      
+      if (dateObj < gapStartDate && (!beforeVenue || dateObj > new Date(beforeVenue.date))) {
+        // Find venue for this date
+        if (tourDate.venueId) {
+          const venue = await this.getVenue(tourDate.venueId);
+          if (venue) {
+            beforeVenue = { ...venue, date: tourDate.date };
+          }
+        }
+      }
+      
+      if (dateObj > gapEndDate && (!afterVenue || dateObj < new Date(afterVenue.date))) {
+        // Find venue for this date
+        if (tourDate.venueId) {
+          const venue = await this.getVenue(tourDate.venueId);
+          if (venue) {
+            afterVenue = { ...venue, date: tourDate.date };
+          }
+        }
+      }
+    }
+    
+    // If we don't have before/after venues, use wider search
+    if (!beforeVenue || !afterVenue) {
+      return [];
+    }
+    
+    // Find venues between these two points
+    const beforeLat = parseFloat(beforeVenue.latitude);
+    const beforeLng = parseFloat(beforeVenue.longitude);
+    const afterLat = parseFloat(afterVenue.latitude);
+    const afterLng = parseFloat(afterVenue.longitude);
+    
+    // Create a central point between the two venues
+    const midLat = (beforeLat + afterLat) / 2;
+    const midLng = (beforeLng + afterLng) / 2;
+    
+    // Find venues near midpoint
+    const venues = await this.getVenuesByLocation(midLat, midLng, radius);
+    
+    // Filter venues to make sure they're available during the gap
+    const gapStartStr = gapStartDate.toISOString().split('T')[0];
+    const gapEndStr = gapEndDate.toISOString().split('T')[0];
+    
+    const availableVenueIds = await db.select({ id: venueAvailability.venueId })
+      .from(venueAvailability)
+      .where(and(
+        between(
+          venueAvailability.date,
+          gapStartStr,
+          gapEndStr
+        ),
+        eq(venueAvailability.isAvailable, true)
+      ));
+    
+    const availableIds = new Set(availableVenueIds.map(v => v.id));
+    return venues.filter(v => availableIds.has(v.id));
+  }
 }
