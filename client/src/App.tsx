@@ -25,6 +25,7 @@ function Router() {
       <Route path="/create-tour" component={CreateTour} />
       <Route path="/tour-planning" component={TourPlanningWizard} />
       <Route path="/tour-planning/:tourId" component={TourPlanningWizard} />
+      <Route path="/tours" component={TourDashboard} />
       <Route path="/tour-dashboard" component={TourDashboard} />
       <Route path="/profile" component={Profile} />
       <Route path="/venue" component={VenueList} />
