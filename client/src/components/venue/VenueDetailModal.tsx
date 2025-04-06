@@ -1,4 +1,5 @@
-import { Venue, VenueAvailability } from "@/types";
+import { VenueAvailability } from "@/types";
+import { Venue } from "@shared/schema";
 import { Users, DollarSign, MapPin, Music, Link as LinkIcon, Phone, Mail } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
