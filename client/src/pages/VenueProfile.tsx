@@ -161,14 +161,7 @@ export default function VenueProfile() {
                 </CardHeader>
                 <CardContent className="h-[400px]">
                   <VenueMapView 
-                    venue={{
-                      ...venue,
-                      capacity: venue.capacity === null ? undefined : venue.capacity,
-                      contactName: venue.contactName === null ? undefined : venue.contactName,
-                      contactEmail: venue.contactEmail === null ? undefined : venue.contactEmail,
-                      contactPhone: venue.contactPhone === null ? undefined : venue.contactPhone,
-                      description: venue.description === null ? undefined : venue.description
-                    }}
+                    venue={venue}
                     onTourClick={() => {}}
                   />
                 </CardContent>

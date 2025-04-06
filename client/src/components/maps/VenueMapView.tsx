@@ -11,7 +11,13 @@ declare global {
 }
 
 interface VenueMapViewProps {
-  venue: Venue;
+  venue: {
+    id: number;
+    name: string;
+    latitude: string;
+    longitude: string;
+    [key: string]: any; // Allow additional properties
+  };
   onTourClick: (tour: Tour) => void;
   selectedDate?: Date;
 }

@@ -104,7 +104,7 @@ const VenueList = () => {
                   variant="default" 
                   size="sm"
                   className="w-full"
-                  onClick={() => setLocation(`/venue-profile/${venue.id}`)}
+                  onClick={() => setLocation(`/venues/${venue.id}`)}
                 >
                   <Calendar size={16} className="mr-2" />
                   View Venue Details
