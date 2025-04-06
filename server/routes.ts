@@ -189,6 +189,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error fetching tours" });
     }
   });
+  
+  // Get all tour dates across all tours (for venue view)
+  app.get("/api/tours/all-dates", async (req, res) => {
+    try {
+      console.log("Fetching all tour dates");
+      // Get all tours
+      const tours = await storage.getTours();
+      console.log("Tours fetched:", tours.length);
+      
+      if (!tours || tours.length === 0) {
+        console.log("No tours found, returning empty array");
+        return res.json([]);
+      }
+      
+      // Get dates for each tour and combine them
+      const allDatePromises = tours.map(async (tour) => {
+        // Ensure we have a valid tour id
+        if (!tour || isNaN(tour.id)) {
+          console.warn("Invalid tour ID encountered:", tour);
+          return [];
+        }
+        try {
+          const dates = await storage.getTourDates(tour.id);
+          console.log(`Fetched ${dates.length} dates for tour ${tour.id}`);
+          return dates;
+        } catch (err) {
+          console.error(`Error fetching dates for tour ${tour.id}:`, err);
+          return [];
+        }
+      });
+      
+      const allDatesArrays = await Promise.all(allDatePromises);
+      console.log("All date arrays fetched:", allDatesArrays.length);
+      
+      // Flatten the array of arrays
+      const allDates = allDatesArrays.flat();
+      console.log("Total dates found:", allDates.length);
+      
+      return res.json(allDates);
+    } catch (error) {
+      console.error("Error fetching all tour dates:", error);
+      res.status(500).json({ message: "Error fetching all tour dates" });
+    }
+  });
 
   app.get("/api/tours/:id", async (req, res) => {
     try {
@@ -405,38 +449,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting venue availability:", error);
       res.status(500).json({ message: "Error deleting venue availability" });
-    }
-  });
-
-  // Get all tour dates across all tours (for venue view)
-  app.get("/api/tours/all-dates", async (req, res) => {
-    try {
-      // Get all tours
-      const tours = await storage.getTours();
-      
-      if (!tours || tours.length === 0) {
-        return res.json([]);
-      }
-      
-      // Get dates for each tour and combine them
-      const allDatePromises = tours.map(tour => {
-        // Ensure we have a valid tour id
-        if (!tour || isNaN(tour.id)) {
-          console.warn("Invalid tour ID encountered:", tour);
-          return Promise.resolve([]);
-        }
-        return storage.getTourDates(tour.id);
-      });
-      
-      const allDatesArrays = await Promise.all(allDatePromises);
-      
-      // Flatten the array of arrays
-      const allDates = allDatesArrays.flat();
-      
-      res.json(allDates);
-    } catch (error) {
-      console.error("Error fetching all tour dates:", error);
-      res.status(500).json({ message: "Error fetching all tour dates" });
     }
   });
   
