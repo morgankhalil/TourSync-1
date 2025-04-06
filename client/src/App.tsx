@@ -24,7 +24,7 @@ import { BandsintownPage } from './pages/BandsintownPage';
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={OpportunityDiscovery} />
+      <Route path="/" component={Home} />
       <Route path="/dashboard" component={VenueDashboard} />
       <Route path="/bands" component={BandsPage} />
       <Route path="/create-tour" component={CreateTour} />

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -54,6 +55,7 @@ export function OpportunityDiscovery() {
   const [mapCenter, setMapCenter] = useState(center);
   const [selectedMarker, setSelectedMarker] = useState<BandWithMatch | null>(null);
   const [activeVenue, setActiveVenue] = useState<Venue | null>(null);
+  const [googleMapsApiKey, setGoogleMapsApiKey] = useState<string>("");
   
   // Fetch bands
   const { data: bands = [], isLoading: isLoadingBands } = useQuery<Band[]>({
@@ -101,6 +103,19 @@ export function OpportunityDiscovery() {
     });
   }, [processedBands, genreFilters, drawSizeFilter]);
   
+  // Fetch Google Maps API key from backend
+  useEffect(() => {
+    axios.get('/api/config/maps-api-key')
+      .then(response => {
+        if (response.data && response.data.apiKey) {
+          setGoogleMapsApiKey(response.data.apiKey);
+        }
+      })
+      .catch(error => {
+        console.error("Failed to fetch Google Maps API key:", error);
+      });
+  }, []);
+
   // Set active venue
   useEffect(() => {
     if (venues && venues.length > 0) {
@@ -298,7 +313,7 @@ export function OpportunityDiscovery() {
           <TabsContent value="map-view" className="space-y-4">
             <div className="rounded-md overflow-hidden border">
               <LoadScript
-                googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ""}
+                googleMapsApiKey={googleMapsApiKey}
               >
                 <GoogleMap
                   mapContainerStyle={mapContainerStyle}
