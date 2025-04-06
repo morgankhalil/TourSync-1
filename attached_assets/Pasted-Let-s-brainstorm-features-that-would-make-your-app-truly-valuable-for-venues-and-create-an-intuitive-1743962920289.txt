@@ -1,0 +1,74 @@
+Let's brainstorm features that would make your app truly valuable for venues and create an intuitive user experience.
+
+## What Venues Really Need
+
+### Discovery Pain Points
+- Venues often don't know which bands are touring nearby that would be a good fit
+- Cold outreach is time-consuming with low success rates
+- Difficulty finding replacements for last-minute cancellations
+- Limited visibility into a band's draw/audience in their specific market
+
+### Business Concerns
+- Need to fill calendar gaps efficiently
+- Want to book bands that match their venue's audience/brand
+- Need to estimate potential revenue (ticket sales, bar sales)
+- Want to reduce empty nights while maintaining quality
+- Need to understand technical requirements before booking
+
+## Key Features to Consider
+
+### For Venues
+1. **Smart Matching**
+   - Filter by genre, audience size, technical requirements
+   - See bands' previous performance metrics at similar venues
+   - Match based on open calendar dates
+
+2. **Quick Decision Tools**
+   - One-page band profiles with all decision-making info
+   - Audio/video samples without leaving the platform
+   - Social media audience in the venue's geographic area
+   - "Similar to" comparisons with bands that have performed well
+
+3. **Opportunity Alerts**
+   - Notifications when compatible bands announce tours near their location
+   - Last-minute availability alerts for emergency bookings
+   - Early access to bands trending in their region
+
+4. **Efficient Communication**
+   - Standardized inquiry templates
+   - Integrated calendar for availability checking
+   - One-click booking requests
+
+5. **Data Insights**
+   - Success patterns of similar venues
+   - Genre performance trends in their market
+   - Optimal pricing recommendations
+
+### For Intuitive Experience
+
+1. **Dashboard Design**
+   - Calendar view with color-coded booking status
+   - Map view showing touring bands in proximity
+   - Timeline view of upcoming opportunities
+
+2. **Visual Simplicity**
+   - Genre-based color coding
+   - Data visualization for audience potential
+   - Clear availability indicators
+
+3. **Streamlined Workflow**
+   - Discover → Review → Contact → Book pipeline
+   - Saved preferences that automatically filter results
+   - "Quick action" buttons for common tasks
+
+4. **Personalization**
+   - Learning algorithm that improves suggestions over time
+   - Custom venue profile highlighting unique attributes
+   - Saved searches and favorite bands
+
+5. **Minimal Friction**
+   - Reduce clicks to get to decision-making information
+   - Batch actions for reaching out to multiple bands
+   - Templates for common communications
+
+Would you like to focus on developing any particular aspect of these features? Or shall we discuss how to implement them in your current dashboard design?

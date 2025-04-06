@@ -12,6 +12,7 @@ import VenueList from "./pages/VenueList";
 import VenueDashboard from "./pages/VenueDashboard";
 import TourPlanningWizard from "./pages/TourPlanningWizard";
 import TourDashboard from "./pages/TourDashboard";
+import OpportunityDiscovery from "./pages/OpportunityDiscovery";
 import Header from "./components/layout/Header";
 import MobileNavigation from "./components/layout/MobileNavigation";
 import { useMediaQuery } from "./hooks/use-mobile";
@@ -34,6 +35,7 @@ function Router() {
       <Route path="/venues/:id" component={VenueView} />
       <Route path="/edit-venue" component={EditVenue} />
       <Route path="/venue-availability" component={VenueAvailability} />
+      <Route path="/opportunities" component={OpportunityDiscovery} />
       <Route component={NotFound} />
     </Switch>
   );

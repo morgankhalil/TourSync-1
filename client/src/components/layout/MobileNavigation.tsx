@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { CalendarDays, Map, Music, User, Building2, BarChart3 } from "lucide-react";
+import { CalendarDays, Map, Music, User, Building2, BarChart3, Compass } from "lucide-react";
 
 const MobileNavigation = () => {
   const [location] = useLocation();
@@ -35,6 +35,13 @@ const MobileNavigation = () => {
         <span className={`p-2 flex flex-col items-center cursor-pointer ${isActive("/tour-dashboard") ? "text-primary" : "text-gray-500"}`}>
           <BarChart3 size={20} />
           <span className="text-xs mt-1">Tour</span>
+        </span>
+      </Link>
+
+      <Link href="/opportunities">
+        <span className={`p-2 flex flex-col items-center cursor-pointer ${isActive("/opportunities") ? "text-primary" : "text-gray-500"}`}>
+          <Compass size={20} />
+          <span className="text-xs mt-1">Opps</span>
         </span>
       </Link>
 

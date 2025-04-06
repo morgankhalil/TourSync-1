@@ -723,6 +723,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all bands that are currently touring
+  app.get("/api/bands/touring", async (req, res) => {
+    try {
+      const radius = req.query.radius ? parseFloat(req.query.radius as string) : 50;
+      const venueId = req.query.venueId ? parseInt(req.query.venueId as string) : undefined;
+      const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
+      const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
+      
+      // Get all bands
+      const bands = await storage.getBands();
+      // Get all tours
+      const tours = await storage.getTours();
+      // Get the venue if specified
+      const venue = venueId ? await storage.getVenue(venueId) : undefined;
+      
+      // Create a touring band list with additional data
+      const touringBands = bands.map(band => {
+        // Find the tour for this band
+        const bandTours = tours.filter(tour => tour.bandId === band.id && tour.isActive);
+        
+        if (bandTours.length === 0) {
+          return { ...band, touring: null };
+        }
+        
+        // Use the first active tour for simplicity
+        const activeTour = bandTours[0];
+        
+        // Random location near the venue if provided
+        let latitude = 0;
+        let longitude = 0;
+        let distance = 0;
+        
+        if (venue) {
+          // Generate a random point within the radius (for demo purposes)
+          const venueLat = parseFloat(venue.latitude);
+          const venueLng = parseFloat(venue.longitude);
+          
+          // Random angle
+          const angle = Math.random() * Math.PI * 2;
+          // Random distance within radius
+          const randomDistance = Math.random() * radius;
+          // Convert to lat/lng (very rough approximation)
+          const latOffset = randomDistance * Math.cos(angle) / 69;
+          const lngOffset = randomDistance * Math.sin(angle) / (69 * Math.cos(venueLat * Math.PI / 180));
+          
+          latitude = venueLat + latOffset;
+          longitude = venueLng + lngOffset;
+          distance = randomDistance;
+        }
+        
+        // Add a random touring path (for demo)
+        const routePoints = [];
+        if (venue) {
+          // Add some random points to simulate a tour route
+          for (let i = 0; i < 3; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const randomDistance = Math.random() * radius * 2;
+            const latOffset = randomDistance * Math.cos(angle) / 69;
+            const lngOffset = randomDistance * Math.sin(angle) / (69 * Math.cos(parseFloat(venue.latitude) * Math.PI / 180));
+            
+            routePoints.push({
+              lat: parseFloat(venue.latitude) + latOffset,
+              lng: parseFloat(venue.longitude) + lngOffset
+            });
+          }
+        }
+        
+        // Add draw size attribute for demo (would come from real data)
+        const drawSizes = ['0-100', '100-200', '200-300', '300+'];
+        const drawSize = drawSizes[Math.floor(Math.random() * drawSizes.length)];
+        
+        // Add match score for demonstration
+        const matchScore = Math.floor(Math.random() * 30) + 70; // 70-99%
+        
+        return {
+          ...band,
+          drawSize,
+          matchScore,
+          touring: {
+            tourId: activeTour.id,
+            tourName: activeTour.name,
+            startDate: activeTour.startDate,
+            endDate: activeTour.endDate,
+            latitude: latitude.toString(),
+            longitude: longitude.toString(),
+            distance,
+            route: routePoints
+          }
+        };
+      }).filter(band => band.touring !== null);
+      
+      res.json(touringBands);
+    } catch (error) {
+      console.error("Error fetching touring bands:", error);
+      res.status(500).json({ message: "Error fetching touring bands" });
+    }
+  });
+
+  // Google Maps API key endpoint
+  app.get("/api/maps/api-key", (_req, res) => {
+    // In a real application, this would be stored in environment variables
+    // For demonstration purposes, we're returning a placeholder
+    // The user would need to add their own API key
+    res.json({ apiKey: process.env.GOOGLE_MAPS_API_KEY || "" });
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
