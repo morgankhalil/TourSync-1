@@ -52,16 +52,12 @@ const VenueMapView = ({ venue, onTourClick }: VenueMapViewProps) => {
   useEffect(() => {
     if (!window.google && mapsApiData?.apiKey) {
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${mapsApiData.apiKey}&libraries=places&callback=Function.prototype`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${mapsApiData.apiKey}&libraries=places&callback=initMap&loading=async`;
       script.async = true;
-      script.defer = true;
-      
-      const handleScriptLoad = () => {
-        script.removeEventListener('load', handleScriptLoad);
+      window.initMap = () => {
         initializeMap();
+        delete window.initMap;
       };
-      
-      script.addEventListener('load', handleScriptLoad);
       document.head.appendChild(script);
 
       return () => {
