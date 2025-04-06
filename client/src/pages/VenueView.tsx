@@ -15,7 +15,11 @@ const VenueView = () => {
   const { id } = useParams<{ id: string }>();
   const [selectedTour, setSelectedTour] = React.useState<Tour | null>(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [selectedDate, setSelectedDate] = React.useState<Date | null>(null); // Added state for selected date
+  const [selectedDate, setSelectedDate] = React.useState<Date | null>(null);
+
+  const handleDateSelect = (date: Date | undefined) => {
+    setSelectedDate(date || null);
+  };
 
   const { data: venue, isLoading: isVenueLoading } = useQuery<Venue>({
     queryKey: [`/api/venues/${id}`],
@@ -100,7 +104,7 @@ const VenueView = () => {
           <CardTitle>Location</CardTitle>
         </CardHeader>
         <CardContent className="h-[calc(100%-5rem)]">
-          <VenueMapView venue={venue} onTourClick={handleTourClick} selectedDate={selectedDate} /> {/* Pass selectedDate to VenueMapView */}
+          <VenueMapView venue={venue} onTourClick={handleTourClick} selectedDate={selectedDate} />
         </CardContent>
       </Card>
 
@@ -114,16 +118,13 @@ const VenueView = () => {
             {availabilities && availabilities.length > 0 ? (
               <div className="space-y-2">
                 {availabilities.map((availability, index) => (
-                  <Button key={index} onClick={() => setSelectedDate(new Date(availability.date))} className="w-full justify-start text-left"> {/* Added onClick handler */}
+                  <Button key={index} onClick={() => handleDateSelect(new Date(availability.date))} className="w-full justify-start text-left">
                     <div className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
                       <Calendar className="w-4 h-4 text-primary" />
                       <span>{format(new Date(availability.date), 'MMM d, yyyy')}</span>
                     </div>
                   </Button>
                 ))}
-                {/*<Button className="w-full mt-4" variant="outline">
-                  View All Dates
-                </Button>*/}
               </div>
             ) : (
               <p className="text-center text-muted-foreground py-4">No available dates</p>
