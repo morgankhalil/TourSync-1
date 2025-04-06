@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { CalendarDays, Map, Compass, User } from "lucide-react";
+import { CalendarDays, Map, Compass, User, Building2 } from "lucide-react";
 
 const MobileNavigation = () => {
   const [location] = useLocation();
@@ -17,10 +17,10 @@ const MobileNavigation = () => {
         </button>
       </Link>
       
-      <Link href="/map">
-        <button className={`p-2 flex flex-col items-center ${isActive("/map") ? "text-primary" : "text-gray-500"}`}>
-          <Map size={20} />
-          <span className="text-xs mt-1">Map</span>
+      <Link href="/venue">
+        <button className={`p-2 flex flex-col items-center ${isActive("/venue") ? "text-primary" : "text-gray-500"}`}>
+          <Building2 size={20} />
+          <span className="text-xs mt-1">Venue</span>
         </button>
       </Link>
       

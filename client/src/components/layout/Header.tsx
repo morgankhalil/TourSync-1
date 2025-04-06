@@ -20,7 +20,10 @@ const Header = () => {
         </Link>
       </div>
       <div className="flex items-center">
-        <div className="hidden md:block mr-4">
+        <div className="hidden md:flex space-x-4 mr-4">
+          <Link href="/venue">
+            <span className="font-inter font-medium cursor-pointer hover:underline">Venue View</span>
+          </Link>
           <span className="font-inter font-medium">The Sonic Waves</span>
         </div>
         <Link href="/profile">

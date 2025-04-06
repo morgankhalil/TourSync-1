@@ -6,6 +6,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import CreateTour from "@/pages/CreateTour";
 import Profile from "@/pages/Profile";
+import VenueView from "@/pages/VenueView";
 import Header from "@/components/layout/Header";
 import MobileNavigation from "@/components/layout/MobileNavigation";
 import { useMediaQuery } from "@/hooks/use-mobile";
@@ -17,6 +18,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/create-tour" component={CreateTour} />
       <Route path="/profile" component={Profile} />
+      <Route path="/venue" component={VenueView} />
       <Route component={NotFound} />
     </Switch>
   );

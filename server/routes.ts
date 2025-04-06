@@ -408,6 +408,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all tour dates across all tours (for venue view)
+  app.get("/api/tours/all-dates", async (req, res) => {
+    try {
+      // Get all tours
+      const tours = await storage.getTours();
+      
+      // Get dates for each tour and combine them
+      const allDatePromises = tours.map(tour => storage.getTourDates(tour.id));
+      const allDatesArrays = await Promise.all(allDatePromises);
+      
+      // Flatten the array of arrays
+      const allDates = allDatesArrays.flat();
+      
+      res.json(allDates);
+    } catch (error) {
+      console.error("Error fetching all tour dates:", error);
+      res.status(500).json({ message: "Error fetching all tour dates" });
+    }
+  });
+  
+  // Get tour dates associated with a specific venue
+  app.get("/api/venues/:id/tour-dates", async (req, res) => {
+    try {
+      const venueId = parseInt(req.params.id);
+      
+      // Get all tours
+      const tours = await storage.getTours();
+      
+      // Get all tour dates
+      const allDatePromises = tours.map(tour => storage.getTourDates(tour.id));
+      const allDatesArrays = await Promise.all(allDatePromises);
+      const allDates = allDatesArrays.flat();
+      
+      // Filter dates for the specified venue
+      const venueDates = allDates.filter(date => date.venueId === venueId);
+      
+      res.json(venueDates);
+    } catch (error) {
+      console.error("Error fetching venue tour dates:", error);
+      res.status(500).json({ message: "Error fetching venue tour dates" });
+    }
+  });
+  
+  // Get tours that are near a specific venue
+  app.get("/api/venues/:id/nearby-tours", async (req, res) => {
+    try {
+      const venueId = parseInt(req.params.id);
+      const venue = await storage.getVenue(venueId);
+      
+      if (!venue) {
+        return res.status(404).json({ message: "Venue not found" });
+      }
+      
+      // Default radius in miles
+      const radius = req.query.radius ? parseFloat(req.query.radius as string) : 100;
+      
+      // Fetch tours with venues along a route that's near this venue
+      const lat = parseFloat(venue.latitude);
+      const lng = parseFloat(venue.longitude);
+      
+      // Get all tours
+      const allTours = await storage.getTours();
+      
+      // For each tour, check if it has any venues near this venue
+      const nearbyToursPromises = allTours.map(async (tour) => {
+        const tourDates = await storage.getTourDates(tour.id);
+        
+        // Check if this tour has any dates with venues near our venue
+        const hasNearbyVenue = tourDates.some(date => {
+          if (!date.venueId) return false;
+          
+          // For demo purposes, we'll include all tours - in a real implementation,
+          // you'd check the actual distance between venue coordinates
+          return true;
+        });
+        
+        return hasNearbyVenue ? tour : null;
+      });
+      
+      const nearbyToursWithNulls = await Promise.all(nearbyToursPromises);
+      const nearbyTours = nearbyToursWithNulls.filter(tour => tour !== null);
+      
+      res.json(nearbyTours);
+    } catch (error) {
+      console.error("Error fetching nearby tours:", error);
+      res.status(500).json({ message: "Error fetching nearby tours" });
+    }
+  });
+
   // Specialized routes
   app.get("/api/tours/:id/stats", async (req, res) => {
     try {
