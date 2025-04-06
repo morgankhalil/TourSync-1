@@ -25,7 +25,7 @@ const VenueMapView = ({ venue, onTourClick }: VenueMapViewProps) => {
 
   // Fetch Google Maps API key
   const { data: mapsApiData, isLoading: isLoadingApiKey, isError } = useQuery<{ apiKey: string }>({
-    queryKey: ['/api/maps/api-key'],
+    queryKey: ['/api/config/maps-api-key'],
     retry: 2,
     onError: () => setError("Failed to load Maps API key"),
   });
@@ -185,7 +185,7 @@ const VenueMapView = ({ venue, onTourClick }: VenueMapViewProps) => {
               });
 
               // Add click handler
-              marker.addListener('click', () => {
+              markerView.addListener('click', () => {
                 onTourClick(tour);
               });
             })
