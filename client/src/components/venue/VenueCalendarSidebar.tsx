@@ -22,7 +22,7 @@ export function VenueCalendarSidebar({
 
   // Fetch venue availability data
   const { data: availabilityData } = useQuery({
-    queryKey: ['/api/venues/availability', venue?.id],
+    queryKey: [`/api/venues/${venue?.id}/availability`],
     enabled: !!venue?.id,
     retry: false
   });
