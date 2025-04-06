@@ -20,10 +20,13 @@ const VenueMapView = ({ venue, onTourClick }: VenueMapViewProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [map, setMap] = useState<any>(null);
   const [tours, setTours] = useState<Tour[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch Google Maps API key
-  const { data: mapsApiData, isLoading: isLoadingApiKey } = useQuery<{ apiKey: string }>({
+  const { data: mapsApiData, isLoading: isLoadingApiKey, isError } = useQuery<{ apiKey: string }>({
     queryKey: ['/api/maps/api-key'],
+    retry: 2,
+    onError: () => setError("Failed to load Maps API key"),
   });
 
   const initializeMap = useCallback(() => {
@@ -165,6 +168,15 @@ const VenueMapView = ({ venue, onTourClick }: VenueMapViewProps) => {
       }
     });
   }, [map, tours, onTourClick]);
+
+  if (error || isError) {
+    return (
+      <div className="h-full w-full flex flex-col items-center justify-center text-center p-4">
+        <p className="text-red-500 mb-2">Failed to load map</p>
+        <p className="text-sm text-muted-foreground">Please check your API key configuration</p>
+      </div>
+    );
+  }
 
   if (isLoading || isLoadingApiKey) {
     return (
