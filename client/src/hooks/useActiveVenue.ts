@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Venue } from "@shared/schema";
 
 export const useActiveVenue = () => {
@@ -10,10 +10,16 @@ export const useActiveVenue = () => {
   // Store active venue in state so it can be changed
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   
-  // Initialize with first venue if none selected
-  if (venues && venues.length > 0 && !selectedVenue) {
-    setSelectedVenue(venues[0]);
-  }
+  // Initialize with Bug Jar venue (ID 27) for venue dashboard
+  useEffect(() => {
+    if (venues && venues.length > 0 && !selectedVenue) {
+      // Find Bug Jar venue (ID 27) 
+      const bugJarVenue = venues.find(venue => venue.name === "Bug Jar" && venue.id === 27);
+      
+      // Use Bug Jar if found, otherwise use first venue
+      setSelectedVenue(bugJarVenue || venues[0]);
+    }
+  }, [venues, selectedVenue]);
 
   // Get the active venue (from state or default to first)
   const activeVenue = selectedVenue || (venues && venues.length > 0 ? venues[0] : null);

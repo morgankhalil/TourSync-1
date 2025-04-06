@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronRight, Calendar as CalendarIcon, MapPin, Users, Music, PieChart, Clock, Ticket } from "lucide-react";
 import { Link } from "wouter";
 import { format, addDays, isToday, parseISO, isSameDay } from "date-fns";
-import { PastPerformance } from "@/types/pastPerformance";
+import { PastPerformance, PastPerformancesByYear } from "@/types/pastPerformance";
 import SimpleVenueMap from "@/components/maps/SimpleVenueMap";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -25,19 +25,23 @@ const VenueDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
-  // Example scheduled dates - in production these would come from your API
-  const scheduledDates = [new Date(), addDays(new Date(), 5), addDays(new Date(), 12)];
+  // Scheduled dates - in a real app these would come from a confirmed bookings API
+  const scheduledDates = [
+    addDays(new Date(), 3), 
+    addDays(new Date(), 7), 
+    addDays(new Date(), 14)
+  ];
 
-  // Fetch past performances for this venue
+  // Fetch past performances for Bug Jar venue
   const { data: pastPerformances = [], isLoading: isPerformancesLoading } = useQuery<PastPerformance[]>({
-    queryKey: ["/api/venues", activeVenue?.id, "performances"],
-    enabled: !!activeVenue?.id,
+    queryKey: ["/api/venues", 27, "performances"], // Hard-coded to Bug Jar's ID (27)
+    enabled: true, // Always fetch, regardless of active venue
   });
 
   // Fetch venue availability
   const { data: availabilityList = [], isLoading: isAvailabilityLoading } = useQuery<any[]>({
-    queryKey: activeVenue ? [`/api/venues/${activeVenue.id}/availability`] : [],
-    enabled: !!activeVenue,
+    queryKey: [`/api/venues/27/availability`], // Hard-coded to Bug Jar's ID (27)
+    enabled: true, // Always fetch
   });
 
   // Automatically open sidebar on desktop
@@ -52,7 +56,10 @@ const VenueDashboard = () => {
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
   // Process performances in a single pass
-  const { upcoming, recent } = pastPerformances.reduce((acc, perf) => {
+  const { upcoming, recent } = pastPerformances.reduce<{
+    upcoming: PastPerformance[];
+    recent: PastPerformance[];
+  }>((acc, perf) => {
     const perfDate = new Date(perf.date);
     if (perfDate >= now) {
       acc.upcoming.push(perf);
@@ -74,15 +81,9 @@ const VenueDashboard = () => {
         <div className="p-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold">Venue Dashboard</h1>
+              <h1 className="text-3xl font-bold">Bug Jar Dashboard</h1>
               <p className="text-muted-foreground">
-                {isVenueLoading ? (
-                  <Skeleton className="h-4 w-48" />
-                ) : activeVenue ? (
-                  `Manage your venue: ${activeVenue.name}`
-                ) : (
-                  "No active venue selected"
-                )}
+                Welcome back! Manage your venue operations and track performance metrics.
               </p>
             </div>
 
