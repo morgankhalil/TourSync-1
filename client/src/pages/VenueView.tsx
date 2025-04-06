@@ -48,63 +48,61 @@ const VenueView = () => {
   return (
     <div className="h-full grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
       {/* Left Column - Venue Details */}
-      <div className="lg:col-span-2 space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">{venue.name}</CardTitle>
-            <div className="flex items-center text-muted-foreground">
-              <MapPin className="w-4 h-4 mr-2" />
-              {venue.address}, {venue.city}, {venue.state}
+      <Card className="h-fit">
+        <CardHeader>
+          <CardTitle className="text-2xl">{venue.name}</CardTitle>
+          <div className="flex items-center text-muted-foreground">
+            <MapPin className="w-4 h-4 mr-2" />
+            {venue.address}, {venue.city}, {venue.state}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="flex items-center">
+              <Users className="w-4 h-4 mr-2 text-primary" />
+              <span>Capacity: {venue.capacity}</span>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4 mb-4">
+            {venue.dealType && (
               <div className="flex items-center">
-                <Users className="w-4 h-4 mr-2 text-primary" />
-                <span>Capacity: {venue.capacity}</span>
+                <Tag className="w-4 h-4 mr-2 text-primary" />
+                <span>Deal: {venue.dealType}</span>
               </div>
-              {venue.dealType && (
-                <div className="flex items-center">
-                  <Tag className="w-4 h-4 mr-2 text-primary" />
-                  <span>Deal: {venue.dealType}</span>
-                </div>
-              )}
-              {venue.genre && (
-                <div className="flex items-center col-span-2">
-                  <Music className="w-4 h-4 mr-2 text-primary" />
-                  <Badge variant="secondary">{venue.genre}</Badge>
-                </div>
-              )}
+            )}
+            {venue.genre && (
+              <div className="flex items-center col-span-2">
+                <Music className="w-4 h-4 mr-2 text-primary" />
+                <Badge variant="secondary">{venue.genre}</Badge>
+              </div>
+            )}
+          </div>
+          
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-semibold mb-2">Description</h3>
+              <p className="text-muted-foreground">{venue.description || "No description available."}</p>
             </div>
             
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold mb-2">Description</h3>
-                <p className="text-muted-foreground">{venue.description || "No description available."}</p>
-              </div>
-              
-              <div>
-                <h3 className="font-semibold mb-2">Contact Information</h3>
-                <div className="space-y-1 text-sm">
-                  {venue.contactName && <p>Contact: {venue.contactName}</p>}
-                  {venue.contactEmail && <p>Email: {venue.contactEmail}</p>}
-                  {venue.contactPhone && <p>Phone: {venue.contactPhone}</p>}
-                </div>
+            <div>
+              <h3 className="font-semibold mb-2">Contact Information</h3>
+              <div className="space-y-1 text-sm">
+                {venue.contactName && <p>Contact: {venue.contactName}</p>}
+                {venue.contactEmail && <p>Email: {venue.contactEmail}</p>}
+                {venue.contactPhone && <p>Phone: {venue.contactPhone}</p>}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* Map View */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Location</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[400px]">
-            <VenueMapView venue={venue} onTourClick={handleTourClick} />
-          </CardContent>
-        </Card>
-      </div>
+      {/* Middle Column - Map */}
+      <Card className="h-[calc(100vh-7rem)]">
+        <CardHeader>
+          <CardTitle>Location</CardTitle>
+        </CardHeader>
+        <CardContent className="h-[calc(100%-5rem)]">
+          <VenueMapView venue={venue} onTourClick={handleTourClick} />
+        </CardContent>
+      </Card>
 
       {/* Right Column - Availability & Tours */}
       <div className="space-y-6">
