@@ -44,7 +44,7 @@ const TourPlanningWizard = () => {
   const [currentBandId, setCurrentBandId] = useState<number | null>(null);
 
   // Fetch bands to get current band
-  const { data: bands = [] as Band[] } = useQuery({
+  const { data: bands = [] as Band[] } = useQuery<Band[]>({
     queryKey: ['/api/bands'],
   });
 
@@ -80,7 +80,7 @@ const TourPlanningWizard = () => {
   });
 
   // Fetch venues for dropdowns and suggestions
-  const { data: venues = [] as Venue[] } = useQuery({
+  const { data: venues = [] as Venue[] } = useQuery<Venue[]>({
     queryKey: ['/api/venues'],
   });
 
@@ -220,7 +220,7 @@ const TourPlanningWizard = () => {
     
     // In a real app, this would be a backend call to find venues with availability
     // For now, we'll filter venues by city/state
-    const filteredVenues = venues.filter((venue: Venue) => 
+    const filteredVenues = venues.filter(venue => 
       venue.city.toLowerCase().includes(city.toLowerCase()) ||
       venue.state.toLowerCase().includes(state.toLowerCase())
     );
@@ -564,7 +564,7 @@ const TourPlanningWizard = () => {
   };
 
   return (
-    <div className="container py-8 max-w-4xl">
+    <div className="container py-8 max-w-4xl h-screen overflow-y-auto pb-32">
       <div className="space-y-2 mb-8">
         <h1 className="text-3xl font-bold tracking-tight">Tour Planning Wizard</h1>
         <p className="text-muted-foreground">Create and manage your tour in a few easy steps.</p>
@@ -573,7 +573,7 @@ const TourPlanningWizard = () => {
       <div className="space-y-6">
         <div className="border rounded-md p-4 bg-muted/50">
           <div className="flex justify-between">
-            <div className="flex space-x-8">
+            <div className="flex space-x-4 md:space-x-8">
               <div className={`flex flex-col items-center ${currentStep >= 1 ? 'text-primary' : 'text-muted-foreground'}`}>
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
                   1
@@ -596,7 +596,9 @@ const TourPlanningWizard = () => {
           </div>
         </div>
         
-        {renderStep()}
+        <div className="pb-20">
+          {renderStep()}
+        </div>
       </div>
       
       <Dialog open={showVenueDialog} onOpenChange={setShowVenueDialog}>
