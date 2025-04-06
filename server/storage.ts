@@ -6,53 +6,6 @@ import {
   venueAvailability, type VenueAvailability, type InsertVenueAvailability
 } from "@shared/schema";
 
-export interface IStorage {
-  // Band operations
-  getBand(id: number): Promise<Band | undefined>;
-  getBands(): Promise<Band[]>;
-  createBand(band: InsertBand): Promise<Band>;
-  updateBand(id: number, band: Partial<InsertBand>): Promise<Band | undefined>;
-  deleteBand(id: number): Promise<boolean>;
-  
-  // Venue operations
-  getVenue(id: number): Promise<Venue | undefined>;
-  getVenues(): Promise<Venue[]>;
-  getVenuesByLocation(lat: number, lng: number, radius: number): Promise<Venue[]>;
-  createVenue(venue: InsertVenue): Promise<Venue>;
-  updateVenue(id: number, venue: Partial<InsertVenue>): Promise<Venue | undefined>;
-  deleteVenue(id: number): Promise<boolean>;
-  
-  // Tour operations
-  getTour(id: number): Promise<Tour | undefined>;
-  getTours(bandId?: number): Promise<Tour[]>;
-  createTour(tour: InsertTour): Promise<Tour>;
-  updateTour(id: number, tour: Partial<InsertTour>): Promise<Tour | undefined>;
-  deleteTour(id: number): Promise<boolean>;
-  
-  // Tour date operations
-  getTourDate(id: number): Promise<TourDate | undefined>;
-  getTourDates(tourId: number): Promise<TourDate[]>;
-  createTourDate(tourDate: InsertTourDate): Promise<TourDate>;
-  updateTourDate(id: number, tourDate: Partial<InsertTourDate>): Promise<TourDate | undefined>;
-  deleteTourDate(id: number): Promise<boolean>;
-  
-  // Venue availability operations
-  getVenueAvailability(venueId: number): Promise<VenueAvailability[]>;
-  createVenueAvailability(venueAvailability: InsertVenueAvailability): Promise<VenueAvailability>;
-  updateVenueAvailability(id: number, venueAvailability: Partial<InsertVenueAvailability>): Promise<VenueAvailability | undefined>;
-  deleteVenueAvailability(id: number): Promise<boolean>;
-  
-  // Specialized operations
-  findAvailableVenuesBetweenDates(startDate: Date, endDate: Date, startLat: number, startLng: number, endLat: number, endLng: number, radius: number): Promise<Venue[]>;
-  findVenuesAlongRoute(waypoints: {lat: number, lng: number}[], radius: number): Promise<Venue[]>;
-  getTourStats(tourId: number): Promise<{totalShows: number, confirmed: number, pending: number, openDates: number}>;
-  
-  // Tour optimization operations
-  findVenuesNearExistingVenue(venueId: number, radius: number, excludeVenueIds?: number[]): Promise<Venue[]>;
-  findTourGaps(tourId: number, minGapDays: number): Promise<{startDate: Date, endDate: Date, durationDays: number}[]>;
-  findVenuesForTourGap(tourId: number, gapStartDate: Date, gapEndDate: Date, radius: number): Promise<Venue[]>;
-}
-
 // Helper to calculate distance between two points using haversine formula
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 3958.8; // Earth's radius in miles
@@ -64,6 +17,53 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
     Math.sin(dLon/2) * Math.sin(dLon/2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   return R * c;
+}
+
+export interface IStorage {
+  // Band operations
+  getBand(id: number): Promise<Band | undefined>;
+  getBands(): Promise<Band[]>;
+  createBand(band: InsertBand): Promise<Band>;
+  updateBand(id: number, band: Partial<InsertBand>): Promise<Band | undefined>;
+  deleteBand(id: number): Promise<boolean>;
+
+  // Venue operations
+  getVenue(id: number): Promise<Venue | undefined>;
+  getVenues(): Promise<Venue[]>;
+  getVenuesByLocation(lat: number, lng: number, radius: number): Promise<Venue[]>;
+  createVenue(venue: InsertVenue): Promise<Venue>;
+  updateVenue(id: number, venue: Partial<InsertVenue>): Promise<Venue | undefined>;
+  deleteVenue(id: number): Promise<boolean>;
+
+  // Tour operations
+  getTour(id: number): Promise<Tour | undefined>;
+  getTours(bandId?: number): Promise<Tour[]>;
+  createTour(tour: InsertTour): Promise<Tour>;
+  updateTour(id: number, tour: Partial<InsertTour>): Promise<Tour | undefined>;
+  deleteTour(id: number): Promise<boolean>;
+
+  // Tour date operations
+  getTourDate(id: number): Promise<TourDate | undefined>;
+  getTourDates(tourId: number): Promise<TourDate[]>;
+  createTourDate(tourDate: InsertTourDate): Promise<TourDate>;
+  updateTourDate(id: number, tourDate: Partial<InsertTourDate>): Promise<TourDate | undefined>;
+  deleteTourDate(id: number): Promise<boolean>;
+
+  // Venue availability operations
+  getVenueAvailability(venueId: number): Promise<VenueAvailability[]>;
+  createVenueAvailability(venueAvailability: InsertVenueAvailability): Promise<VenueAvailability>;
+  updateVenueAvailability(id: number, venueAvailability: Partial<InsertVenueAvailability>): Promise<VenueAvailability | undefined>;
+  deleteVenueAvailability(id: number): Promise<boolean>;
+
+  // Specialized operations
+  findAvailableVenuesBetweenDates(startDate: Date, endDate: Date, startLat: number, startLng: number, endLat: number, endLng: number, radius: number): Promise<Venue[]>;
+  findVenuesAlongRoute(waypoints: {lat: number, lng: number}[], radius: number): Promise<Venue[]>;
+  getTourStats(tourId: number): Promise<{totalShows: number, confirmed: number, pending: number, openDates: number}>;
+
+  // Tour optimization operations
+  findVenuesNearExistingVenue(venueId: number, radius: number, excludeVenueIds?: number[]): Promise<Venue[]>;
+  findTourGaps(tourId: number, minGapDays: number): Promise<{startDate: Date, endDate: Date, durationDays: number}[]>;
+  findVenuesForTourGap(tourId: number, gapStartDate: Date, gapEndDate: Date, radius: number): Promise<Venue[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -89,8 +89,6 @@ export class MemStorage implements IStorage {
     this.tourIdCounter = 1;
     this.tourDateIdCounter = 1;
     this.venueAvailabilityIdCounter = 1;
-
-    // Initialize with sample data for demo purposes
     this.initializeSampleData();
   }
 
@@ -1187,8 +1185,12 @@ export class MemStorage implements IStorage {
 // Import the DatabaseStorage implementation
 import { DatabaseStorage } from './storage/database';
 
-// Export an instance of DatabaseStorage
+// Create and initialize storage instance
+const memStorage = new MemStorage();
+
+// Export the initialized storage instance
 export const storage = new DatabaseStorage();
+
 const bugJarPerformances = [
   {
     id: "perf_" + Date.now() + "_1",
@@ -1224,10 +1226,8 @@ const bugJarPerformances = [
 
 // Add performances to Bug Jar's past performers
 // Initialize sample venues first
-this.initializeSampleData();
-
 // Now add performances to Bug Jar after initialization
-const bugJarVenue = Array.from(this.venuesData.values()).find(v => v.name === "Bug Jar");
+const bugJarVenue = Array.from(memStorage.venuesData.values()).find(v => v.name === "Bug Jar");
 if (bugJarVenue) {
   bugJarVenue.pastPerformers = bugJarPerformances;
 }
