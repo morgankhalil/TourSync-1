@@ -18,17 +18,15 @@ import { Band, Tour, Venue } from '@shared/schema';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 import { VenueCalendarSidebar } from '@/components/venue/VenueCalendarSidebar';
 
-// Mock match percentage calculation - in a real app this would use complex algorithms
-const calculateMatchPercentage = (band: Band) => {
-  // Generate a match percentage between 65 and 98
-  return Math.floor(Math.random() * (98 - 65) + 65);
-};
+// Import our real matching algorithm
+import { calculateBandVenueMatch } from '@/utils/matchingAlgorithm';
 
 // Interface for band with match percentage
-interface BandWithMatch extends Band {
+interface BandWithMatch extends Omit<Band, 'drawSize'> {
   matchPercentage: number;
   genres: string[];
-  drawSize: string;
+  drawSizeCategory: string;
+  drawSize?: number | null;
 }
 
 // Google Maps container style
@@ -71,18 +69,34 @@ export function OpportunityDiscovery() {
   
   // Process bands with match percentage
   const processedBands: BandWithMatch[] = React.useMemo(() => {
-    if (!bands) return [];
+    if (!bands || !activeVenue) return [];
     
     return bands.map((band: Band) => {
+      // Calculate real match percentage using our algorithm
+      const matchPercent = activeVenue ? calculateBandVenueMatch(band, activeVenue) : 70;
+      
+      // Determine draw size category based on actual draw size
+      let drawSizeCategory = 'Unknown';
+      if (band.drawSize) {
+        if (band.drawSize < 100) drawSizeCategory = 'Small (0-100)';
+        else if (band.drawSize < 300) drawSizeCategory = 'Medium (100-300)';
+        else drawSizeCategory = 'Large (300+)';
+      }
+      
+      // Extract genres from band data or use defaults
+      const genreList = band.genre 
+        ? band.genre.split(',').map(g => g.trim()) 
+        : ['Rock', 'Indie', 'Alternative'].slice(0, Math.floor(Math.random() * 3) + 1);
+      
       // Add match percentage and other attributes we'll use for filtering
       return {
         ...band,
-        matchPercentage: calculateMatchPercentage(band),
-        genres: ['Rock', 'Indie', 'Alternative'].slice(0, Math.floor(Math.random() * 3) + 1),
-        drawSize: ['Small (0-100)', 'Medium (100-300)', 'Large (300+)'][Math.floor(Math.random() * 3)]
+        matchPercentage: matchPercent,
+        genres: genreList,
+        drawSizeCategory: drawSizeCategory
       };
     }).sort((a: BandWithMatch, b: BandWithMatch) => b.matchPercentage - a.matchPercentage);
-  }, [bands]);
+  }, [bands, activeVenue]);
   
   // Filter bands based on selected filters
   const filteredBands = React.useMemo(() => {
@@ -93,7 +107,7 @@ export function OpportunityDiscovery() {
       }
       
       // Filter by draw size
-      if (drawSizeFilter && band.drawSize !== drawSizeFilter) {
+      if (drawSizeFilter && band.drawSizeCategory !== drawSizeFilter) {
         return false;
       }
       
@@ -374,7 +388,7 @@ export function OpportunityDiscovery() {
                           ))}
                         </div>
                         <div className="flex items-center justify-between mt-2">
-                          <span className="text-sm">{selectedMarker.drawSize} draw</span>
+                          <span className="text-sm">{selectedMarker.drawSizeCategory} draw</span>
                           <div className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
                             {selectedMarker.matchPercentage}% match
                           </div>
@@ -404,7 +418,7 @@ export function OpportunityDiscovery() {
                     </div>
                   </div>
                   <CardDescription>
-                    {selectedBand.genres.join(', ')} • {selectedBand.drawSize} draw
+                    {selectedBand.genres.join(', ')} • {selectedBand.drawSizeCategory} draw
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -473,7 +487,7 @@ export function OpportunityDiscovery() {
                         {band.genres.map(genre => (
                           <Badge key={genre} variant="outline">{genre}</Badge>
                         ))}
-                        <Badge variant="secondary">{band.drawSize}</Badge>
+                        <Badge variant="secondary">{band.drawSizeCategory}</Badge>
                       </div>
                     </CardHeader>
                     <CardContent className="pb-2">

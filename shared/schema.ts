@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, date, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, date, boolean, jsonb, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -10,7 +10,15 @@ export const bands = pgTable("bands", {
   contactEmail: text("contact_email").notNull(),
   contactPhone: text("contact_phone"),
   genre: text("genre"),
-  social: jsonb("social")
+  social: jsonb("social"),
+  drawSize: integer("draw_size"), // Estimated audience size
+  pastVenues: jsonb("past_venues"), // History of past venues
+  technicalRequirements: jsonb("technical_requirements"), // Audio/staging needs
+  mediaLinks: jsonb("media_links"), // Photos, videos, audio
+  lastTourDate: date("last_tour_date"), // Last date they toured
+  avgTicketPrice: integer("avg_ticket_price"), // Average ticket price in cents
+  pressKit: text("press_kit"), // Link to press kit
+  preferredVenueTypes: jsonb("preferred_venue_types") // Types of venues they prefer
 });
 
 export const insertBandSchema = createInsertSchema(bands).omit({
@@ -30,10 +38,19 @@ export const venues = pgTable("venues", {
   contactEmail: text("contact_email"),
   contactPhone: text("contact_phone"),
   description: text("description"),
-  genre: text("genre"),
+  genre: text("genre"), // Preferred genres
   dealType: text("deal_type"),
   latitude: text("latitude").notNull(),
-  longitude: text("longitude").notNull()
+  longitude: text("longitude").notNull(),
+  technicalSpecs: jsonb("technical_specs"), // Sound system, stage dimensions, etc.
+  venueType: text("venue_type"), // Club, theater, arena, etc.
+  amenities: jsonb("amenities"), // Green room, parking, etc.
+  pastPerformers: jsonb("past_performers"), // List of notable past performers
+  photoGallery: jsonb("photo_gallery"), // Venue photos
+  loadingInfo: text("loading_info"), // Loading dock details
+  accommodations: text("accommodations"), // Nearby hotels, etc.
+  preferredGenres: jsonb("preferred_genres"), // Genres the venue prefers to book
+  priceRange: jsonb("price_range") // Typical price range for shows
 });
 
 export const insertVenueSchema = createInsertSchema(venues).omit({

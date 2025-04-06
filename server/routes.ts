@@ -6,6 +6,7 @@ import { insertBandSchema, insertTourSchema, insertTourDateSchema, insertVenueSc
 import { fromZodError } from "zod-validation-error";
 import { registerTouringRoutes } from "./routes/touring";
 import { registerBandsintownRoutes } from "./routes/bandsintown";
+import { registerConfigRoutes } from "./routes/config";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register touring routes from dedicated module
@@ -14,10 +15,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register Bandsintown integration routes
   registerBandsintownRoutes(app);
   
-  // Provide Google Maps API key to the frontend
-  app.get("/api/config/maps-api-key", (_req, res) => {
-    res.json({ apiKey: process.env.GOOGLE_MAPS_API_KEY || "" });
-  });
+  // Register configuration routes
+  registerConfigRoutes(app);
   
   // Band routes
   app.get("/api/bands", async (_req, res) => {
