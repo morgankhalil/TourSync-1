@@ -53,6 +53,12 @@ const Header = () => {
               Opportunities
             </span>
           </Link>
+          <Link href="/dashboard">
+            <span className="font-inter font-medium cursor-pointer hover:underline flex items-center">
+              <Calendar size={16} className="mr-1" />
+              Venue Dashboard
+            </span>
+          </Link>
           {activeVenue && (
             <span className="font-inter font-medium text-accent-foreground">
               {activeVenue.name}

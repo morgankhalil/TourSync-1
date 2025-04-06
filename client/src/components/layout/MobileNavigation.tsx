@@ -38,10 +38,10 @@ const MobileNavigation = () => {
         </span>
       </Link>
 
-      <Link href="/opportunity-discovery">
-        <span className={`p-2 flex flex-col items-center cursor-pointer ${isActive("/opportunity-discovery") ? "text-primary" : "text-gray-500"}`}>
-          <Compass size={20} />
-          <span className="text-xs mt-1">Opps</span>
+      <Link href="/dashboard">
+        <span className={`p-2 flex flex-col items-center cursor-pointer ${isActive("/dashboard") ? "text-primary" : "text-gray-500"}`}>
+          <CalendarDays size={20} />
+          <span className="text-xs mt-1">Dashboard</span>
         </span>
       </Link>
 
