@@ -740,6 +740,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get the venue if specified
       const venue = venueId ? await storage.getVenue(venueId) : undefined;
       
+      // For demo purposes, if no venue is specified, use a default venue (Bug Jar)
+      const defaultVenue = venue || {
+        latitude: "43.1548",
+        longitude: "-77.5975",
+        name: "Default Location"
+      };
+      
       // Create a touring band list with additional data
       const touringBands = bands.map(band => {
         // Find the tour for this band
@@ -752,44 +759,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Use the first active tour for simplicity
         const activeTour = bandTours[0];
         
-        // Random location near the venue if provided
-        let latitude = 0;
-        let longitude = 0;
-        let distance = 0;
+        // Generate a random point within the radius for demo purposes
+        const venueLat = parseFloat(defaultVenue.latitude);
+        const venueLng = parseFloat(defaultVenue.longitude);
         
-        if (venue) {
-          // Generate a random point within the radius (for demo purposes)
-          const venueLat = parseFloat(venue.latitude);
-          const venueLng = parseFloat(venue.longitude);
-          
-          // Random angle
-          const angle = Math.random() * Math.PI * 2;
-          // Random distance within radius
-          const randomDistance = Math.random() * radius;
-          // Convert to lat/lng (very rough approximation)
-          const latOffset = randomDistance * Math.cos(angle) / 69;
-          const lngOffset = randomDistance * Math.sin(angle) / (69 * Math.cos(venueLat * Math.PI / 180));
-          
-          latitude = venueLat + latOffset;
-          longitude = venueLng + lngOffset;
-          distance = randomDistance;
-        }
+        // Random angle
+        const angle = Math.random() * Math.PI * 2;
+        // Random distance within radius
+        const randomDistance = Math.random() * radius;
+        // Convert to lat/lng (very rough approximation)
+        const latOffset = randomDistance * Math.cos(angle) / 69;
+        const lngOffset = randomDistance * Math.sin(angle) / (69 * Math.cos(venueLat * Math.PI / 180));
+        
+        const latitude = venueLat + latOffset;
+        const longitude = venueLng + lngOffset;
+        const distance = randomDistance;
         
         // Add a random touring path (for demo)
         const routePoints = [];
-        if (venue) {
-          // Add some random points to simulate a tour route
-          for (let i = 0; i < 3; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            const randomDistance = Math.random() * radius * 2;
-            const latOffset = randomDistance * Math.cos(angle) / 69;
-            const lngOffset = randomDistance * Math.sin(angle) / (69 * Math.cos(parseFloat(venue.latitude) * Math.PI / 180));
-            
-            routePoints.push({
-              lat: parseFloat(venue.latitude) + latOffset,
-              lng: parseFloat(venue.longitude) + lngOffset
-            });
-          }
+        // Add some random points to simulate a tour route
+        for (let i = 0; i < 3; i++) {
+          const routeAngle = Math.random() * Math.PI * 2;
+          const routeDistance = Math.random() * radius * 2;
+          const routeLatOffset = routeDistance * Math.cos(routeAngle) / 69;
+          const routeLngOffset = routeDistance * Math.sin(routeAngle) / (69 * Math.cos(venueLat * Math.PI / 180));
+          
+          routePoints.push({
+            lat: venueLat + routeLatOffset,
+            lng: venueLng + routeLngOffset
+          });
         }
         
         // Add draw size attribute for demo (would come from real data)
