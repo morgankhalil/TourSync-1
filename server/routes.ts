@@ -414,6 +414,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all tours
       const tours = await storage.getTours();
       
+      if (!tours || tours.length === 0) {
+        return res.json([]);
+      }
+      
       // Get dates for each tour and combine them
       const allDatePromises = tours.map(tour => {
         // Ensure we have a valid tour id
@@ -432,7 +436,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(allDates);
     } catch (error) {
       console.error("Error fetching all tour dates:", error);
-      res.status(500).json({ message: "Error fetching tour" });
+      res.status(500).json({ message: "Error fetching all tour dates" });
     }
   });
   
