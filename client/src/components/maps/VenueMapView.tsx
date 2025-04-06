@@ -16,7 +16,8 @@ interface VenueMapViewProps {
   selectedDate?: Date;
 }
 
-const VenueMapView = ({ venue, onTourClick }: VenueMapViewProps) => {
+const VenueMapView = (props: VenueMapViewProps) => {
+  const { venue, onTourClick } = props;
   const mapRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [map, setMap] = useState<any>(null);
@@ -24,11 +25,16 @@ const VenueMapView = ({ venue, onTourClick }: VenueMapViewProps) => {
   const [error, setError] = useState<string | null>(null);
 
   // Fetch Google Maps API key
-  const { data: mapsApiData, isLoading: isLoadingApiKey, isError } = useQuery<{ apiKey: string }>({
+  const { data: mapsApiData, isLoading: isLoadingApiKey, isError } = useQuery({
     queryKey: ['/api/config/maps-api-key'],
     retry: 2,
+    onSuccess: (data: any) => {
+      if (!data || !data.apiKey) {
+        setError("API key not found in response");
+      }
+    },
     onError: () => setError("Failed to load Maps API key"),
-  });
+  } as any);
 
   const initializeMap = useCallback(() => {
     if (!mapRef.current) {
@@ -76,25 +82,58 @@ const VenueMapView = ({ venue, onTourClick }: VenueMapViewProps) => {
 
   // Load Google Maps API
   useEffect(() => {
-    if (!window.google && mapsApiData?.apiKey) {
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${mapsApiData.apiKey}&libraries=places&callback=initMap&loading=async`;
-      script.async = true;
-      window.initMap = () => {
-        initializeMap();
-        delete window.initMap;
-      };
-      document.head.appendChild(script);
-
-      return () => {
-        if (document.head.contains(script)) {
-          document.head.removeChild(script);
-        }
-      };
-    } else if (window.google) {
-      initializeMap();
+    // Wait until we have the data from the query
+    if (!mapsApiData) {
+      console.log("Waiting for API key data...");
+      return;
     }
-  }, [mapsApiData, initializeMap]);
+    
+    // Type guard for the API key
+    const apiKey = typeof mapsApiData === 'object' && mapsApiData !== null && 'apiKey' in mapsApiData 
+      ? (mapsApiData as any).apiKey 
+      : null;
+      
+    if (!apiKey) {
+      console.error("API key not found in response data");
+      setError("API key not found in response");
+      return;
+    }
+    
+    console.log("API key available, setting up map");
+    
+    // Check if mapRef is ready before proceeding
+    if (!mapRef.current) {
+      console.log("Map container not ready yet");
+      return;
+    }
+
+    const loadGoogleMaps = () => {
+      if (!window.google) {
+        console.log("Loading Google Maps API script");
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+        script.async = true;
+        script.defer = true;
+        
+        script.onload = () => {
+          console.log("Google Maps API loaded, initializing map");
+          setTimeout(initializeMap, 100); // Small delay to ensure DOM is ready
+        };
+        
+        document.head.appendChild(script);
+        return () => {
+          if (document.head.contains(script)) {
+            document.head.removeChild(script);
+          }
+        };
+      } else {
+        console.log("Google Maps already loaded, initializing map directly");
+        initializeMap();
+      }
+    };
+    
+    loadGoogleMaps();
+  }, [mapsApiData, mapRef, initializeMap]);
 
   // Fetch nearby tours
   useEffect(() => {
@@ -136,8 +175,8 @@ const VenueMapView = ({ venue, onTourClick }: VenueMapViewProps) => {
     const existingMarkers = document.querySelectorAll('.gm-style img[src*="data:image/svg"]');
     existingMarkers.forEach(marker => marker.remove());
 
-    // Filter tours by selected date if provided
-    const selectedDateStr = selectedDate?.toISOString().split('T')[0];
+    // Filter tours by selected date from props if provided
+    const selectedDateStr = props.selectedDate?.toISOString().split('T')[0];
 
     tours.forEach(async (tour) => {
       try {
@@ -151,7 +190,7 @@ const VenueMapView = ({ venue, onTourClick }: VenueMapViewProps) => {
 
           // Skip if date doesn't match selected date
           const tourDateStr = new Date(date.date).toISOString().split('T')[0];
-          if (selectedDate && tourDateStr !== selectedDateStr) return;
+          if (props.selectedDate && tourDateStr !== selectedDateStr) return;
 
           // Fetch venue details
           fetch(`/api/venues/${date.venueId}`)
@@ -195,7 +234,7 @@ const VenueMapView = ({ venue, onTourClick }: VenueMapViewProps) => {
         console.error('Error fetching tour dates:', error);
       }
     });
-  }, [map, tours, onTourClick]);
+  }, [map, tours, onTourClick, props.selectedDate]);
 
   if (error || isError) {
     return (

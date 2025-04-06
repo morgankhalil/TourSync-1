@@ -160,7 +160,7 @@ export default function VenueProfile() {
                 </CardHeader>
                 <CardContent className="h-[400px]">
                   <VenueMapView 
-                    venue={venue}
+                    venue={venue as Venue}
                     onTourClick={() => {}}
                   />
                 </CardContent>
