@@ -1,139 +1,72 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
-interface ImportResponse {
-  artist: string;
-  success: boolean;
-  message: string;
-  band?: {
-    id: number;
-    name: string;
-    description: string;
-  };
-  tour?: {
-    id: number;
-    name: string;
-    startDate: string;
-    endDate: string;
-  };
+interface BandsintownUpdate {
+  artist: any;
+  events: any[];
+  timestamp: string;
 }
 
 export function ArtistImporter() {
   const [artistName, setArtistName] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [importedArtists, setImportedArtists] = useState<ImportResponse[]>([]);
+  const [socket, setSocket] = useState<WebSocket | null>(null);
+  const [updates, setUpdates] = useState<BandsintownUpdate[]>([]);
   const { toast } = useToast();
 
-  // Single artist import
-  const handleImportArtist = async () => {
-    if (!artistName.trim()) {
-      toast({
-        title: 'Error',
-        description: 'Please enter an artist name',
-        variant: 'destructive',
-      });
-      return;
-    }
+  useEffect(() => {
+    const ws = new WebSocket(`ws://${window.location.hostname}:8080`);
 
-    try {
-      setIsLoading(true);
-      const response = await axios.post('/api/bandsintown/import/artist', { 
-        artistName: artistName.trim() 
-      });
-      
-      const result = {
-        artist: artistName,
-        success: true,
-        message: `Successfully imported ${artistName}`,
-        band: response.data.data.band,
-        tour: response.data.data.tour
-      };
-      
-      setImportedArtists(prev => [result, ...prev]);
-      
+    ws.onopen = () => {
+      setSocket(ws);
       toast({
-        title: 'Success!',
-        description: `Imported ${artistName} successfully`,
+        title: 'Connected',
+        description: 'Real-time updates enabled',
       });
-      
-      setArtistName('');
-    } catch (error: any) {
-      console.error('Error importing artist:', error);
-      
-      const errorResponse = {
-        artist: artistName,
-        success: false,
-        message: error.response?.data?.error || 'Failed to import artist',
-      };
-      
-      setImportedArtists(prev => [errorResponse, ...prev]);
-      
-      toast({
-        title: 'Import Failed',
-        description: `Could not import ${artistName}. ${error.response?.data?.error || 'Please try again.'}`,
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
 
-  // Batch import multiple artists
-  const handleBatchImport = async () => {
-    const popularRockBands = [
-      'Every Time I Die',
-      'Less Than Jake',
-      'Joywave',
-      'The Struts',
-      'Pentimento'
-    ];
-    
-    try {
-      setIsLoading(true);
-      const response = await axios.post('/api/bandsintown/import/batch', { 
-        artistNames: popularRockBands 
-      });
-      
-      const results = response.data.data.map((result: any) => ({
-        artist: result.artistName,
-        success: result.success,
-        message: result.success 
-          ? `Successfully imported ${result.artistName}` 
-          : `Failed to import ${result.artistName}`,
-        band: result.band,
-        tour: result.tour
-      }));
-      
-      setImportedArtists(prev => [...results, ...prev]);
-      
+    ws.onmessage = (event) => {
+      const update = JSON.parse(event.data);
+      setUpdates(prev => [update, ...prev]);
+    };
+
+    ws.onclose = () => {
+      setSocket(null);
       toast({
-        title: 'Batch Import Complete',
-        description: `Imported ${response.data.data.filter((r: any) => r.success).length} out of ${popularRockBands.length} artists`,
-      });
-    } catch (error: any) {
-      console.error('Error batch importing artists:', error);
-      
-      toast({
-        title: 'Batch Import Failed',
-        description: error.response?.data?.error || 'Failed to import artists batch',
+        title: 'Disconnected',
+        description: 'Real-time updates disabled',
         variant: 'destructive',
       });
-    } finally {
-      setIsLoading(false);
-    }
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, []);
+
+  const handleSubscribe = () => {
+    if (!artistName.trim() || !socket) return;
+
+    socket.send(JSON.stringify({
+      type: 'subscribe',
+      artistName: artistName.trim()
+    }));
+
+    toast({
+      title: 'Subscribed',
+      description: `Now tracking ${artistName}`,
+    });
   };
 
   return (
     <Card className="w-full max-w-3xl mx-auto">
       <CardHeader>
-        <CardTitle>Import Artists from Bandsintown</CardTitle>
+        <CardTitle>Real-time Bandsintown Updates</CardTitle>
         <CardDescription>
-          Search for and import artists along with their tour data from Bandsintown
+          Get live updates from Bandsintown for your favorite artists
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -142,75 +75,35 @@ export function ArtistImporter() {
             placeholder="Enter artist name (e.g., Radiohead)"
             value={artistName}
             onChange={(e) => setArtistName(e.target.value)}
-            disabled={isLoading}
-            onKeyDown={(e) => e.key === 'Enter' && handleImportArtist()}
+            onKeyDown={(e) => e.key === 'Enter' && handleSubscribe()}
           />
-          <Button onClick={handleImportArtist} disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Importing...
-              </>
-            ) : (
-              'Import Artist'
-            )}
-          </Button>
-        </div>
-        
-        <div className="mb-4">
-          <Button 
-            variant="outline" 
-            onClick={handleBatchImport} 
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Importing Batch...
-              </>
-            ) : (
-              'Import Popular Rock Bands'
-            )}
+          <Button onClick={handleSubscribe} disabled={!socket}>
+            Subscribe
           </Button>
         </div>
 
         <div className="border rounded-md p-4 mt-4">
-          <h3 className="text-lg font-medium mb-2">Import Results</h3>
-          {importedArtists.length === 0 ? (
-            <p className="text-muted-foreground">No imports yet. Use the form above to import artists.</p>
-          ) : (
-            <div className="space-y-3">
-              {importedArtists.map((result, idx) => (
-                <div 
-                  key={`${result.artist}-${idx}`} 
-                  className={`p-3 rounded-md ${result.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}
-                >
-                  <div className="flex justify-between">
-                    <h4 className="font-medium">{result.artist}</h4>
-                    <span className={`px-2 py-1 text-xs rounded-full ${result.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                      {result.success ? 'Success' : 'Failed'}
-                    </span>
-                  </div>
-                  {result.band && (
-                    <p className="text-sm mt-1">
-                      Band ID: {result.band.id}, Name: {result.band.name}
-                    </p>
-                  )}
-                  {result.tour && (
-                    <p className="text-sm mt-1">
-                      Tour: {result.tour.name} ({result.tour.startDate} to {result.tour.endDate})
-                    </p>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-1">{result.message}</p>
+          <h3 className="text-lg font-medium mb-2">Live Updates</h3>
+          <div className="space-y-3">
+            {updates.map((update, idx) => (
+              <div key={idx} className="p-3 rounded-md bg-green-50 border border-green-200">
+                <div className="flex justify-between">
+                  <h4 className="font-medium">{update.artist.name}</h4>
+                  <span className="text-sm text-muted-foreground">
+                    {new Date(update.timestamp).toLocaleTimeString()}
+                  </span>
                 </div>
-              ))}
-            </div>
-          )}
+                <p className="text-sm mt-1">
+                  Upcoming shows: {update.events.length}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </CardContent>
-      <CardFooter className="flex justify-between">
+      <CardFooter>
         <p className="text-xs text-muted-foreground">
-          Powered by Bandsintown API. Imported data is saved to the database.
+          {socket ? '🟢 Connected' : '🔴 Disconnected'} - Real-time updates from Bandsintown
         </p>
       </CardFooter>
     </Card>
