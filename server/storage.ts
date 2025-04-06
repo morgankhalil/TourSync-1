@@ -596,6 +596,41 @@ export class MemStorage implements IStorage {
       {
         name: "Bug Jar",
         address: "219 Monroe Ave",
+        city: "Rochester",
+        state: "NY",
+        zipCode: "14607",
+        capacity: 150,
+        contactName: "Booking Manager",
+        contactEmail: "booking@bugjar.com",
+        contactPhone: "585-454-2966",
+        description: "Iconic Rochester venue known for indie rock, punk, and alternative shows",
+        genre: "Indie, Punk, Alternative",
+        dealType: "Door Split",
+        latitude: "43.1498",
+        longitude: "-77.5963",
+        technicalSpecs: {
+          stage: "15x10 feet",
+          sound: "House PA system",
+          lighting: "Basic stage lighting"
+        },
+        venueType: "Club",
+        amenities: {
+          greenRoom: true,
+          parking: "Street parking",
+          bar: true
+        },
+        pastPerformers: [],
+        loadingInfo: "Load in through front door",
+        accommodations: "Several hotels within walking distance",
+        preferredGenres: ["Indie Rock", "Punk", "Alternative", "Metal"],
+        priceRange: {
+          min: 10,
+          max: 20
+        }
+      },
+      {
+        name: "Bug Jar",
+        address: "219 Monroe Ave",
         city: "Rochester", 
         state: "NY",
         zipCode: "14607",
