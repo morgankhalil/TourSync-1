@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import PastPerformancesManager from "@/components/venue/PastPerformancesManager";
-import { Loader2, MapPin, Users, Info, CheckIcon } from "lucide-react";
+import { Loader2, MapPin, Users, Info, CheckIcon, Link as LinkIcon, Mail, Phone } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 // Import VenueMapView as a fallback if VenueMap is unavailable
 import SimpleVenueMap from "../components/maps/SimpleVenueMap";
@@ -124,9 +124,37 @@ export default function VenueProfile() {
                     </div>
                     <div className="md:col-span-2">
                       <h3 className="font-semibold text-sm text-muted-foreground mb-1">Contact Information</h3>
-                      <p>{venue.contactName || "No contact name provided"}</p>
-                      <p>{venue.contactEmail || "No email provided"}</p>
-                      <p>{venue.contactPhone || "No phone provided"}</p>
+                      <p className="mb-1">{venue.contactName || "No contact name provided"}</p>
+                      <div className="flex items-center mb-1">
+                        <Mail className="h-4 w-4 mr-1" />
+                        {venue.contactEmail ? (
+                          <a href={`mailto:${venue.contactEmail}`} className="text-primary hover:underline">
+                            {venue.contactEmail}
+                          </a>
+                        ) : (
+                          <span>No email provided</span>
+                        )}
+                      </div>
+                      <div className="flex items-center mb-1">
+                        <Phone className="h-4 w-4 mr-1" />
+                        {venue.contactPhone ? (
+                          <a href={`tel:${venue.contactPhone}`} className="text-primary hover:underline">
+                            {venue.contactPhone}
+                          </a>
+                        ) : (
+                          <span>No phone provided</span>
+                        )}
+                      </div>
+                      <div className="flex items-center">
+                        <LinkIcon className="h-4 w-4 mr-1" />
+                        {venue.website ? (
+                          <a href={venue.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                            {venue.website.replace(/^https?:\/\//, '')}
+                          </a>
+                        ) : (
+                          <span>No website provided</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </CardContent>

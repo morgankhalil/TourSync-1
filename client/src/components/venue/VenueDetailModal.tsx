@@ -1,5 +1,5 @@
 import { Venue, VenueAvailability } from "@/types";
-import { Users, DollarSign, MapPin, Music } from "lucide-react";
+import { Users, DollarSign, MapPin, Music, Link as LinkIcon, Phone, Mail } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -96,9 +96,39 @@ const VenueDetailModal = ({ venue, isOpen, onClose }: VenueDetailModalProps) => 
           
           <div className="mb-4">
             <h4 className="font-inter font-medium mb-2">Contact</h4>
-            <p className="text-sm">{venue.contactName || "Booking Manager"}</p>
-            <p className="text-sm">{venue.contactEmail}</p>
-            <p className="text-sm">{venue.contactPhone}</p>
+            <p className="text-sm mb-1">{venue.contactName || "Booking Manager"}</p>
+            
+            {venue.contactEmail && (
+              <div className="flex items-center text-sm mb-1">
+                <Mail className="h-4 w-4 mr-1 text-gray-500" />
+                <a href={`mailto:${venue.contactEmail}`} className="text-primary hover:underline">
+                  {venue.contactEmail}
+                </a>
+              </div>
+            )}
+            
+            {venue.contactPhone && (
+              <div className="flex items-center text-sm mb-1">
+                <Phone className="h-4 w-4 mr-1 text-gray-500" />
+                <a href={`tel:${venue.contactPhone}`} className="text-primary hover:underline">
+                  {venue.contactPhone}
+                </a>
+              </div>
+            )}
+            
+            {venue.website && (
+              <div className="flex items-center text-sm">
+                <LinkIcon className="h-4 w-4 mr-1 text-gray-500" />
+                <a 
+                  href={venue.website} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-primary hover:underline"
+                >
+                  {venue.website.replace(/^https?:\/\//, '')}
+                </a>
+              </div>
+            )}
           </div>
           
           <div className="flex space-x-3 mt-6">

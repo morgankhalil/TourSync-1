@@ -37,6 +37,7 @@ export const venues = pgTable("venues", {
   contactName: text("contact_name"),
   contactEmail: text("contact_email"),
   contactPhone: text("contact_phone"),
+  website: text("website"), // Venue website URL
   description: text("description"),
   genre: text("genre"), // Preferred genres
   dealType: text("deal_type"),

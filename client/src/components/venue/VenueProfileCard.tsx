@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { MapPin, Users, Music, Calendar, Info, Phone, Mail, Settings, Package, DollarSign } from 'lucide-react';
+import { MapPin, Users, Music, Calendar, Info, Phone, Mail, Settings, Package, DollarSign, Link as LinkIcon } from 'lucide-react';
 
 interface VenueProfileCardProps {
   venue: Venue;
@@ -22,6 +22,7 @@ export const VenueProfileCard: React.FC<VenueProfileCardProps> = ({ venue, class
     contactName,
     contactEmail,
     contactPhone,
+    website,
     description,
     genre,
     technicalSpecs = {},
@@ -153,6 +154,20 @@ export const VenueProfileCard: React.FC<VenueProfileCardProps> = ({ venue, class
             <div className="flex items-center text-sm">
               <Phone className="mr-2 h-4 w-4 text-muted-foreground" />
               <span>{contactPhone}</span>
+            </div>
+          )}
+          
+          {website && (
+            <div className="flex items-center text-sm">
+              <LinkIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+              <a 
+                href={website} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-primary hover:underline"
+              >
+                {website.replace(/^https?:\/\//, '')}
+              </a>
             </div>
           )}
         </div>
