@@ -451,15 +451,193 @@ export default function OpportunityDiscovery() {
     setSelectedDate(date);
     
     // If the map is loaded, update the display to highlight bands near this date
-    if (mapLoaded && mapRef.current) {
-      // We'll implement the highlighting logic here
+    if (mapLoaded && mapRef.current && touringBands?.length) {
+      const google = window.google;
+      const selectedDateStr = format(date, "yyyy-MM-dd");
+      
+      // Clear existing markers
+      markersRef.current.forEach(marker => marker.setMap(null));
+      markersRef.current = [];
+      bandsMapRef.current.clear();
+      
+      // Notify user
       toast({
         title: isAvailable ? "Date Available" : "Date Unavailable",
         description: `Selected ${format(date, "MMMM d, yyyy")}`,
       });
       
-      // In a real implementation, we would filter bands by proximity to this date
-      // and highlight them differently on the map
+      // Add venue marker (always show the venue)
+      if (selectedVenue) {
+        const venueMarker = new google.maps.Marker({
+          position: { 
+            lat: parseFloat(selectedVenue.latitude), 
+            lng: parseFloat(selectedVenue.longitude) 
+          },
+          map: mapRef.current,
+          title: selectedVenue.name,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            fillColor: "#3b82f6",
+            fillOpacity: 1,
+            strokeWeight: 0,
+            scale: 10,
+          },
+        });
+        markersRef.current.push(venueMarker);
+        
+        // Add radius circle
+        const circle = new google.maps.Circle({
+          strokeColor: "#3b82f6",
+          strokeOpacity: 0.2,
+          strokeWeight: 2,
+          fillColor: "#3b82f6",
+          fillOpacity: 0.1,
+          map: mapRef.current,
+          center: { 
+            lat: parseFloat(selectedVenue.latitude), 
+            lng: parseFloat(selectedVenue.longitude) 
+          },
+          radius: radius * 1609.34, // miles to meters
+        });
+        markersRef.current.push(circle);
+      }
+      
+      // Mark bands that have a show date close to the selected date (within 3 days)
+      touringBands.forEach(band => {
+        if (!band.touring || !band.touring.venues) return;
+        
+        // Check if any of this band's venue bookings are close to our selected date
+        const closeToDate = band.touring.venues.some(venueInfo => {
+          const venueDate = new Date(venueInfo.date);
+          const selectedDateObj = new Date(selectedDateStr);
+          
+          // Calculate days difference between dates
+          const diffTime = Math.abs(venueDate.getTime() - selectedDateObj.getTime());
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          
+          return diffDays <= 3; // Within 3 days of selected date
+        });
+        
+        if (closeToDate) {
+          // This band has a show near the selected date - highlight it
+          const bandMarker = new google.maps.Marker({
+            position: { 
+              lat: parseFloat(band.touring.latitude), 
+              lng: parseFloat(band.touring.longitude) 
+            },
+            map: mapRef.current,
+            title: band.name,
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              fillColor: "#10b981", // Green for bands with shows near selected date
+              fillOpacity: 0.8,
+              strokeWeight: 1,
+              strokeColor: "#ffffff",
+              scale: 8,
+            },
+            animation: google.maps.Animation.BOUNCE,
+          });
+          
+          // Add click listener
+          bandMarker.addListener("click", () => {
+            setSelectedBand(band);
+            
+            // Get venue information from the first venue in the tour
+            const venueInfo = band.touring.venues[0];
+            
+            // Open info window with more detailed information
+            infoWindowRef.current.setContent(
+              `<div class="p-3">
+                <div class="text-sm font-semibold">${band.name}</div>
+                <div class="text-xs">${band.genre || 'Unknown genre'}</div>
+                <div class="text-xs">Tour: ${band.touring.tourName}</div>
+                <div class="text-xs text-green-600 font-semibold">Show near selected date!</div>
+                ${venueInfo ? `
+                  <div class="mt-2 text-xs font-semibold">${venueInfo.name}</div>
+                  <div class="text-xs">${venueInfo.address}</div>
+                  <div class="text-xs">Concert date: ${venueInfo.date}</div>
+                ` : ''}
+              </div>`
+            );
+            infoWindowRef.current.open(mapRef.current, bandMarker);
+          });
+          
+          markersRef.current.push(bandMarker);
+          bandsMapRef.current.set(band.id, bandMarker);
+          
+          // Add route lines if available
+          if (band.touring.route && band.touring.route.length) {
+            const routePath = new google.maps.Polyline({
+              path: band.touring.route,
+              geodesic: true,
+              strokeColor: "#10b981", // Green for highlighted bands
+              strokeOpacity: 0.7,
+              strokeWeight: 3,
+            });
+            
+            routePath.setMap(mapRef.current);
+            markersRef.current.push(routePath);
+          }
+        } else {
+          // Show in pale/greyed out appearance
+          const bandMarker = new google.maps.Marker({
+            position: { 
+              lat: parseFloat(band.touring.latitude), 
+              lng: parseFloat(band.touring.longitude) 
+            },
+            map: mapRef.current,
+            title: band.name,
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              fillColor: "#9ca3af", // Gray for bands without shows near selected date
+              fillOpacity: 0.5,
+              strokeWeight: 1,
+              strokeColor: "#ffffff",
+              scale: 6,
+            },
+          });
+          
+          // Add click listener
+          bandMarker.addListener("click", () => {
+            setSelectedBand(band);
+            
+            // Get venue information from the first venue in the tour
+            const venueInfo = band.touring.venues[0];
+            
+            // Open info window with more detailed information
+            infoWindowRef.current.setContent(
+              `<div class="p-3">
+                <div class="text-sm font-semibold">${band.name}</div>
+                <div class="text-xs">${band.genre || 'Unknown genre'}</div>
+                <div class="text-xs">Tour: ${band.touring.tourName}</div>
+                ${venueInfo ? `
+                  <div class="mt-2 text-xs font-semibold">${venueInfo.name}</div>
+                  <div class="text-xs">${venueInfo.address}</div>
+                  <div class="text-xs">Concert date: ${venueInfo.date}</div>
+                ` : ''}
+              </div>`
+            );
+            infoWindowRef.current.open(mapRef.current, bandMarker);
+          });
+          
+          markersRef.current.push(bandMarker);
+          bandsMapRef.current.set(band.id, bandMarker);
+          
+          // Add route lines if available (greyed out)
+          if (band.touring.route && band.touring.route.length) {
+            const routePath = new google.maps.Polyline({
+              path: band.touring.route,
+              geodesic: true,
+              strokeColor: "#9ca3af", // Gray for bands without shows near selected date
+              strokeOpacity: 0.3,
+              strokeWeight: 2,
+            });
+            
+            routePath.setMap(mapRef.current);
+            markersRef.current.push(routePath);
+          }
+        }
+      });
     }
   };
   
