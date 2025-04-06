@@ -21,17 +21,14 @@ function Router() {
     <Switch>
       <Route path="/" component={VenueDashboard} />
       <Route path="/dashboard" component={VenueDashboard} />
-      <Route path="/bands" component={Home} />
+      <Route path="/bands" component={BandsPage} />
       <Route path="/create-tour" component={CreateTour} />
       <Route path="/tour-planning" component={TourPlanningWizard} />
       <Route path="/tour-planning/:tourId" component={TourPlanningWizard} />
-      <Route path="/tours" component={TourDashboard} />
       <Route path="/tour-dashboard" component={TourDashboard} />
       <Route path="/profile" component={Profile} />
-      <Route path="/venue" component={VenueList} />
       <Route path="/venues" component={VenueList} />
       <Route path="/venues/:id" component={VenueView} />
-      <Route path="/venue-availability" component={VenueView} />
       <Route component={NotFound} />
     </Switch>
   );
