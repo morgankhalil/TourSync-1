@@ -23,10 +23,10 @@ const Header = () => {
       </div>
       <div className="flex items-center">
         <div className="hidden md:flex space-x-6 mr-4">
-          <Link href="/dashboard">
+          <Link href="/">
             <span className="font-inter font-medium cursor-pointer hover:underline flex items-center">
-              <Calendar size={16} className="mr-1" />
-              Dashboard
+              <Compass size={16} className="mr-1" />
+              Opportunities
             </span>
           </Link>
           <Link href="/bands">

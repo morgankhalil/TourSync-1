@@ -23,7 +23,7 @@ import VenueAvailability from './pages/VenueAvailability';
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={VenueDashboard} />
+      <Route path="/" component={OpportunityDiscovery} />
       <Route path="/dashboard" component={VenueDashboard} />
       <Route path="/bands" component={BandsPage} />
       <Route path="/create-tour" component={CreateTour} />
