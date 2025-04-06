@@ -52,7 +52,9 @@ const VenueMapView = ({ venue, onTourClick }: VenueMapViewProps) => {
             setIsLoading(false);
             throw new Error('Google Maps API key not found. Please add GOOGLE_MAPS_API_KEY to your secrets.');
           }
-          console.log('Maps API key loaded successfully');
+          console.log('Maps API key loaded successfully:', data.apiKey.substring(0, 8) + '...');
+          console.log('Map container exists:', !!mapRef.current);
+          console.log('Window google exists:', !!window.google);
           
           // Set up the callback for when the API loads
           window.initMap = () => {
