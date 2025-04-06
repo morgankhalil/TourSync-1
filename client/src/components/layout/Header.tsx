@@ -1,6 +1,6 @@
 import { useSidebar } from "@/context/SidebarContext";
 import { useMediaQuery } from "@/hooks/use-mobile";
-import { Menu, User, MapPin, Calendar, Music } from "lucide-react";
+import { Menu, User, MapPin, Calendar, Music, Route } from "lucide-react";
 import { Link } from "wouter";
 import { useActiveVenue } from "@/hooks/useActiveVenue";
 
@@ -39,6 +39,12 @@ const Header = () => {
             <span className="font-inter font-medium cursor-pointer hover:underline flex items-center">
               <MapPin size={16} className="mr-1" />
               All Venues
+            </span>
+          </Link>
+          <Link href="/tour-planning">
+            <span className="font-inter font-medium cursor-pointer hover:underline flex items-center">
+              <Route size={16} className="mr-1" />
+              Plan Tour
             </span>
           </Link>
           {activeVenue && (

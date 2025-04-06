@@ -9,6 +9,7 @@ import Profile from "./pages/Profile";
 import VenueView from "./pages/VenueView";
 import VenueList from "./pages/VenueList";
 import VenueDashboard from "./pages/VenueDashboard";
+import TourPlanningWizard from "./pages/TourPlanningWizard";
 import Header from "./components/layout/Header";
 import MobileNavigation from "./components/layout/MobileNavigation";
 import { useMediaQuery } from "./hooks/use-mobile";
@@ -21,6 +22,8 @@ function Router() {
       <Route path="/dashboard" component={VenueDashboard} />
       <Route path="/bands" component={Home} />
       <Route path="/create-tour" component={CreateTour} />
+      <Route path="/tour-planning" component={TourPlanningWizard} />
+      <Route path="/tour-planning/:tourId" component={TourPlanningWizard} />
       <Route path="/profile" component={Profile} />
       <Route path="/venue" component={VenueList} />
       <Route path="/venues" component={VenueList} />
