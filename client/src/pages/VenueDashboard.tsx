@@ -24,29 +24,29 @@ const VenueDashboard = () => {
   const { activeVenue, isLoading: isVenueLoading } = useActiveVenue();
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  
+
   // Example scheduled dates - in production these would come from your API
   const scheduledDates = [new Date(), addDays(new Date(), 5), addDays(new Date(), 12)];
-  
+
   // Fetch past performances for this venue
   const { data: pastPerformances = [], isLoading: isPerformancesLoading } = useQuery<PastPerformance[]>({
     queryKey: ["/api/venues", activeVenue?.id, "performances"],
     enabled: !!activeVenue?.id,
   });
-  
+
   // Fetch venue availability
   const { data: availabilityList = [], isLoading: isAvailabilityLoading } = useQuery<any[]>({
     queryKey: activeVenue ? [`/api/venues/${activeVenue.id}/availability`] : [],
     enabled: !!activeVenue,
   });
-  
+
   // Automatically open sidebar on desktop
   useEffect(() => {
     if (!isMobile) {
       openSidebar();
     }
   }, [isMobile, openSidebar]);
-  
+
   const now = new Date();
   const thirtyDaysAgo = new Date(now);
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -69,7 +69,7 @@ const VenueDashboard = () => {
   return (
     <div className="flex flex-1 overflow-hidden">
       <Sidebar />
-      
+
       <div className="flex-1 overflow-auto">
         <div className="p-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
@@ -85,7 +85,7 @@ const VenueDashboard = () => {
                 )}
               </p>
             </div>
-            
+
             <div className="mt-4 md:mt-0 flex gap-2">
               <Link href="/venues">
                 <Button variant="outline">All Venues</Button>
@@ -100,7 +100,7 @@ const VenueDashboard = () => {
               </Link>
             </div>
           </div>
-          
+
           <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="mb-6">
               <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -108,7 +108,7 @@ const VenueDashboard = () => {
               <TabsTrigger value="performances">Performances</TabsTrigger>
               <TabsTrigger value="opportunities">Opportunities</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="overview">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="md:col-span-2 space-y-6">
@@ -121,7 +121,7 @@ const VenueDashboard = () => {
                         <p className="text-2xl font-bold">{upcomingPerformances.length}</p>
                       </CardContent>
                     </Card>
-                    
+
                     <Card>
                       <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full">
                         <Music className="h-8 w-8 text-primary mb-2" />
@@ -129,7 +129,7 @@ const VenueDashboard = () => {
                         <p className="text-2xl font-bold">{recentPerformances.length}</p>
                       </CardContent>
                     </Card>
-                    
+
                     <Card>
                       <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full">
                         <Users className="h-8 w-8 text-primary mb-2" />
@@ -137,7 +137,7 @@ const VenueDashboard = () => {
                         <p className="text-2xl font-bold">{activeVenue?.capacity || "--"}</p>
                       </CardContent>
                     </Card>
-                    
+
                     <Card>
                       <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full">
                         <Ticket className="h-8 w-8 text-primary mb-2" />
@@ -151,7 +151,7 @@ const VenueDashboard = () => {
                       </CardContent>
                     </Card>
                   </div>
-                  
+
                   {/* Next 7 Days Card */}
                   <Card>
                     <CardHeader>
@@ -166,18 +166,18 @@ const VenueDashboard = () => {
                         {Array.from({ length: 7 }, (_, i) => {
                           const date = addDays(new Date(), i);
                           const dateStr = format(date, "yyyy-MM-dd");
-                          
+
                           // Find if there's a performance on this day
                           const performance = pastPerformances.find(p => {
                             const perfDate = new Date(p.date);
                             return perfDate.toDateString() === date.toDateString();
                           });
-                          
+
                           // Check if date is available (based on availability list)
                           const isAvailable = availabilityList?.some(
                             a => isSameDay(new Date(a.date), date) && a.isAvailable
                           );
-                          
+
                           return (
                             <div 
                               key={dateStr}
@@ -216,7 +216,7 @@ const VenueDashboard = () => {
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   {/* Recent Performances */}
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -247,7 +247,7 @@ const VenueDashboard = () => {
                                 <div>
                                   <p className="font-semibold">{performance.artistName}</p>
                                   <p className="text-sm text-muted-foreground">
-                                    {format(new Date(performance.date), "MMMM d, yyyy")}
+                                    {performance.date ? format(new Date(performance.date), "MMMM d, yyyy") : 'Date not available'}
                                   </p>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -274,7 +274,7 @@ const VenueDashboard = () => {
                     </CardContent>
                   </Card>
                 </div>
-                
+
                 {/* Sidebar Cards */}
                 <div className="space-y-6">
                   {/* Venue Info Card */}
@@ -301,21 +301,21 @@ const VenueDashboard = () => {
                               {activeVenue.zipCode || ''}
                             </p>
                           </div>
-                          
+
                           <div className="h-32">
                             <SimpleVenueMap venue={activeVenue} />
                           </div>
-                          
+
                           <div>
                             <h3 className="font-semibold text-sm text-muted-foreground mb-1">Venue Type</h3>
                             <p>{activeVenue.venueType || "Not specified"}</p>
                           </div>
-                          
+
                           <div>
                             <h3 className="font-semibold text-sm text-muted-foreground mb-1">Preferred Genres</h3>
                             <p>{activeVenue.genre || "All genres"}</p>
                           </div>
-                          
+
                           <div className="pt-2">
                             <Link href={`/venues/${activeVenue.id}`}>
                               <Button variant="outline" className="w-full">
@@ -329,7 +329,7 @@ const VenueDashboard = () => {
                       )}
                     </CardContent>
                   </Card>
-                  
+
                   {/* Find Opportunities Card */}
                   <Card className="bg-primary/5 border-primary/20">
                     <CardHeader>
@@ -355,7 +355,7 @@ const VenueDashboard = () => {
                 </div>
               </div>
             </TabsContent>
-            
+
             <TabsContent value="calendar">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="md:col-span-2">
@@ -389,7 +389,7 @@ const VenueDashboard = () => {
                           />
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center justify-center space-x-4 mt-6">
                         <div className="flex items-center space-x-2">
                           <div className="w-4 h-4 rounded-full bg-blue-500"></div>
@@ -404,7 +404,7 @@ const VenueDashboard = () => {
                           <span className="text-sm">Unavailable</span>
                         </div>
                       </div>
-                      
+
                       <div className="mt-6 flex justify-between">
                         <Link href="/venue-availability">
                           <Button variant="outline">
@@ -420,7 +420,7 @@ const VenueDashboard = () => {
                     </CardContent>
                   </Card>
                 </div>
-                
+
                 <div>
                   <Card>
                     <CardHeader>
@@ -504,7 +504,7 @@ const VenueDashboard = () => {
                               )}
                             </div>
                           )}
-                          
+
                           <div className="mt-2">
                             <Link href="/venue-availability">
                               <Button variant="outline" size="sm" className="w-full">
@@ -519,7 +519,7 @@ const VenueDashboard = () => {
                 </div>
               </div>
             </TabsContent>
-            
+
             <TabsContent value="performances">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="md:col-span-2">
@@ -562,7 +562,7 @@ const VenueDashboard = () => {
                                   <div>
                                     <h3 className="font-semibold text-lg">{performance.artistName}</h3>
                                     <p className="text-muted-foreground">
-                                      {format(new Date(performance.date), "MMMM d, yyyy")}
+                                      {performance.date ? format(new Date(performance.date), "MMMM d, yyyy") : 'Date not available'}
                                     </p>
                                   </div>
                                   <div className="flex flex-col items-end">
@@ -585,7 +585,7 @@ const VenueDashboard = () => {
                                     </div>
                                   </div>
                                 </div>
-                                
+
                                 <div className="mt-2 flex flex-wrap gap-2">
                                   {performance.genre && (
                                     <Badge variant="secondary">
@@ -598,7 +598,7 @@ const VenueDashboard = () => {
                                     </Badge>
                                   )}
                                 </div>
-                                
+
                                 {performance.notes && (
                                   <p className="mt-2 text-sm text-muted-foreground">
                                     {performance.notes}
@@ -612,7 +612,7 @@ const VenueDashboard = () => {
                     </CardContent>
                   </Card>
                 </div>
-                
+
                 <div>
                   <Card className="mb-6">
                     <CardHeader>
@@ -635,7 +635,7 @@ const VenueDashboard = () => {
                               pastPerformances.filter(p => p.drawSize).length)}
                             </p>
                           </div>
-                          
+
                           <div className="p-3 rounded-md bg-accent/50">
                             <h3 className="font-medium text-sm text-muted-foreground mb-1">Average Ticket Price</h3>
                             <p className="text-2xl font-bold">
@@ -643,7 +643,7 @@ const VenueDashboard = () => {
                               pastPerformances.filter(p => p.ticketPrice).length / 100).toFixed(2)}
                             </p>
                           </div>
-                          
+
                           <div className="p-3 rounded-md bg-accent/50">
                             <h3 className="font-medium text-sm text-muted-foreground mb-1">Top Genres</h3>
                             <div className="flex flex-wrap gap-1 mt-1">
@@ -654,7 +654,7 @@ const VenueDashboard = () => {
                                 ))}
                             </div>
                           </div>
-                          
+
                           <div className="p-3 rounded-md bg-accent/50">
                             <h3 className="font-medium text-sm text-muted-foreground mb-1">Sold Out Shows</h3>
                             <p className="text-2xl font-bold">
@@ -665,7 +665,7 @@ const VenueDashboard = () => {
                       )}
                     </CardContent>
                   </Card>
-                  
+
                   <Link href={`/venues/${activeVenue?.id}`}>
                     <Button className="w-full">
                       Manage Past Performances
@@ -674,7 +674,7 @@ const VenueDashboard = () => {
                 </div>
               </div>
             </TabsContent>
-            
+
             <TabsContent value="opportunities">
               <div className="space-y-6">
                 <Card>
@@ -697,11 +697,11 @@ const VenueDashboard = () => {
                         </Button>
                       </Link>
                     </div>
-                    
+
                     <div className="h-[400px]">
                       <BandMapView />
                     </div>
-                    
+
                     <p className="text-center text-sm text-muted-foreground mt-4">
                       The map shows bands currently touring near your venue location
                     </p>
