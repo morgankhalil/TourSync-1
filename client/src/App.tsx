@@ -30,6 +30,7 @@ function Router() {
       <Route path="/venue" component={VenueList} />
       <Route path="/venues" component={VenueList} />
       <Route path="/venues/:id" component={VenueView} />
+      <Route path="/venue-availability" component={VenueView} />
       <Route component={NotFound} />
     </Switch>
   );
