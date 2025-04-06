@@ -1223,6 +1223,10 @@ const bugJarPerformances = [
 ];
 
 // Add performances to Bug Jar's past performers
+// Initialize sample venues first
+this.initializeSampleData();
+
+// Now add performances to Bug Jar after initialization
 const bugJarVenue = Array.from(this.venuesData.values()).find(v => v.name === "Bug Jar");
 if (bugJarVenue) {
   bugJarVenue.pastPerformers = bugJarPerformances;
