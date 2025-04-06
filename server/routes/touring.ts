@@ -5,7 +5,7 @@ export function registerTouringRoutes(app: Express): void {
   // to bypass database issues
   app.get("/api/bands/touring", (_req: Request, res: Response) => {
     try {
-      // Using hardcoded data for this demo feature
+      // Using real venue coordinates for accuracy
       const mockBands = [
         {
           id: 1,
@@ -22,13 +22,14 @@ export function registerTouringRoutes(app: Express): void {
             tourName: "Summer Vibes Tour",
             startDate: "2025-03-15",
             endDate: "2025-06-01",
-            latitude: "43.16480",
-            longitude: "-77.58750",
+            // Mercury Lounge NYC coordinates
+            latitude: "40.7222",
+            longitude: "-73.9875",
             distance: 12,
             route: [
-              { lat: 43.15, lng: -77.58 },
-              { lat: 43.17, lng: -77.59 },
-              { lat: 43.14, lng: -77.57 }
+              { lat: 40.7222, lng: -73.9875 }, // Mercury Lounge
+              { lat: 42.3513, lng: -71.1304 }, // Paradise Rock Club
+              { lat: 41.5085, lng: -81.5799 }  // Grog Shop
             ]
           }
         },
@@ -47,13 +48,14 @@ export function registerTouringRoutes(app: Express): void {
             tourName: "Blues Highway Tour",
             startDate: "2025-03-20",
             endDate: "2025-05-15",
-            latitude: "43.16980",
-            longitude: "-77.59750",
+            // Paradise Rock Club coordinates
+            latitude: "42.3513",
+            longitude: "-71.1304",
             distance: 8,
             route: [
-              { lat: 43.16, lng: -77.60 },
-              { lat: 43.17, lng: -77.61 },
-              { lat: 43.15, lng: -77.59 }
+              { lat: 42.3513, lng: -71.1304 }, // Paradise Rock Club
+              { lat: 40.7222, lng: -73.9875 }, // Mercury Lounge
+              { lat: 41.5085, lng: -81.5799 }  // Grog Shop
             ]
           }
         },
@@ -72,13 +74,14 @@ export function registerTouringRoutes(app: Express): void {
             tourName: "Digital Horizons Tour",
             startDate: "2025-04-01",
             endDate: "2025-06-30",
-            latitude: "43.14480",
-            longitude: "-77.57750",
+            // Empty Bottle coordinates
+            latitude: "41.9007",
+            longitude: "-87.6869",
             distance: 15,
             route: [
-              { lat: 43.13, lng: -77.57 },
-              { lat: 43.15, lng: -77.58 },
-              { lat: 43.14, lng: -77.56 }
+              { lat: 41.9007, lng: -87.6869 }, // Empty Bottle
+              { lat: 43.0389, lng: -87.9065 }, // The Garage
+              { lat: 41.5085, lng: -81.5799 }  // Grog Shop
             ]
           }
         },
@@ -97,13 +100,14 @@ export function registerTouringRoutes(app: Express): void {
             tourName: "Thunder Road Tour",
             startDate: "2025-04-15",
             endDate: "2025-05-20",
-            latitude: "43.15480",
-            longitude: "-77.60750",
+            // Grog Shop coordinates
+            latitude: "41.5085",
+            longitude: "-81.5799",
             distance: 5,
             route: [
-              { lat: 43.15, lng: -77.61 },
-              { lat: 43.16, lng: -77.60 },
-              { lat: 43.15, lng: -77.59 }
+              { lat: 41.5085, lng: -81.5799 }, // Grog Shop
+              { lat: 41.9007, lng: -87.6869 }, // Empty Bottle
+              { lat: 40.7222, lng: -73.9875 }  // Mercury Lounge
             ]
           }
         },
@@ -122,13 +126,14 @@ export function registerTouringRoutes(app: Express): void {
             tourName: "Acoustic Adventures Tour",
             startDate: "2025-04-10",
             endDate: "2025-05-25",
-            latitude: "43.17480",
-            longitude: "-77.61750",
+            // The Garage coordinates
+            latitude: "43.0389",
+            longitude: "-87.9065",
             distance: 22,
             route: [
-              { lat: 43.17, lng: -77.62 },
-              { lat: 43.18, lng: -77.61 },
-              { lat: 43.16, lng: -77.60 }
+              { lat: 43.0389, lng: -87.9065 }, // The Garage
+              { lat: 41.9007, lng: -87.6869 }, // Empty Bottle
+              { lat: 42.3513, lng: -71.1304 }  // Paradise Rock Club
             ]
           }
         },
@@ -147,18 +152,20 @@ export function registerTouringRoutes(app: Express): void {
             tourName: "East Coast Noise Tour",
             startDate: "2025-04-03",
             endDate: "2025-04-28",
-            latitude: "43.18480",
-            longitude: "-77.62750",
+            // Mercury Lounge coordinates (different route)
+            latitude: "40.7222",
+            longitude: "-73.9875",
             distance: 18,
             route: [
-              { lat: 43.18, lng: -77.63 },
-              { lat: 43.19, lng: -77.62 },
-              { lat: 43.17, lng: -77.61 }
+              { lat: 40.7222, lng: -73.9875 }, // Mercury Lounge
+              { lat: 41.5085, lng: -81.5799 }, // Grog Shop
+              { lat: 43.0389, lng: -87.9065 }  // The Garage
             ]
           }
         }
       ];
       
+      // Return the data
       res.json(mockBands);
     } catch (error) {
       console.error("Error fetching touring bands:", error);
