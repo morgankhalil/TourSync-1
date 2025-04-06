@@ -1,976 +1,494 @@
-import { useEffect, useState, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Slider } from "@/components/ui/slider";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
-import { DatePicker } from "../components/ui/date-picker";
-import { useActiveVenue } from "@/hooks/useActiveVenue";
-import { useVenues } from "@/hooks/useVenues";
-import { Separator } from "@/components/ui/separator";
-import { VenueCalendarSidebar } from "@/components/venue/VenueCalendarSidebar";
-import { 
-  Building2, 
-  Calendar, 
-  CalendarDays, 
-  ChevronDown, 
-  Compass, 
-  Contact, 
-  Map, 
-  MessageCircle, 
-  Music 
-} from "lucide-react";
-import { Venue } from "@shared/schema";
-import { apiRequest } from "@/lib/queryClient";
-import { format, addDays } from "date-fns";
+import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Calendar } from '@/components/ui/calendar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MapPin, Calendar as CalendarIcon, Filter, Music, Users, Clock } from 'lucide-react';
+import { format } from 'date-fns';
+import { Band, Tour, Venue } from '@shared/schema';
+import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
+import { VenueCalendarSidebar } from '@/components/venue/VenueCalendarSidebar';
 
-type TouringBand = {
-  id: number;
-  name: string;
-  description: string | null;
-  contactEmail: string;
-  contactPhone: string | null;
-  genre: string | null;
-  social: any;
-  touring: {
-    tourId: number;
-    tourName: string;
-    startDate: string;
-    endDate: string;
-    latitude: string;
-    longitude: string;
-    distance: number;
-    routeColor?: string;
-    venues?: Array<{
-      name: string;
-      address: string;
-      date: string;
-    }>;
-    route: Array<{lat: number, lng: number}>;
-  };
-  drawSize: string;
-  matchScore: number;
+// Mock match percentage calculation - in a real app this would use complex algorithms
+const calculateMatchPercentage = (band: Band) => {
+  // Generate a match percentage between 65 and 98
+  return Math.floor(Math.random() * (98 - 65) + 65);
 };
 
-export default function OpportunityDiscovery() {
-  const { toast } = useToast();
-  const { activeVenue, setActiveVenue } = useActiveVenue();
-  const { venues } = useVenues();
-  const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
-  const [radius, setRadius] = useState<number>(50);
-  const [mapLoaded, setMapLoaded] = useState<boolean>(false);
-  const [selectedBand, setSelectedBand] = useState<TouringBand | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [showCalendarSidebar, setShowCalendarSidebar] = useState<boolean>(true);
-  const [dateRange, setDateRange] = useState<{start: Date | undefined, end: Date | undefined}>({
-    start: new Date(),
-    end: addDays(new Date(), 30)
-  });
-  
-  // Filter states
+// Interface for band with match percentage
+interface BandWithMatch extends Band {
+  matchPercentage: number;
+  genres: string[];
+  drawSize: string;
+}
+
+// Google Maps container style
+const mapContainerStyle = {
+  width: '100%',
+  height: '500px',
+  borderRadius: '0.5rem'
+};
+
+// Default map center (adjust based on venue location)
+const center = {
+  lat: 40.7128, // New York City coordinates as default
+  lng: -74.006
+};
+
+export function OpportunityDiscovery() {
+  const [activeTab, setActiveTab] = useState('map-view');
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [distanceFilter, setDistanceFilter] = useState([50]); // Miles
   const [genreFilters, setGenreFilters] = useState<string[]>([]);
-  const [drawSizeFilter, setDrawSizeFilter] = useState<string>("");
-  const [minMatchScore, setMinMatchScore] = useState<number>(70);
+  const [drawSizeFilter, setDrawSizeFilter] = useState<string>('');
+  const [showAvailableOnly, setShowAvailableOnly] = useState(true);
+  const [selectedBand, setSelectedBand] = useState<BandWithMatch | null>(null);
+  const [mapCenter, setMapCenter] = useState(center);
+  const [selectedMarker, setSelectedMarker] = useState<BandWithMatch | null>(null);
+  const [activeVenue, setActiveVenue] = useState<Venue | null>(null);
   
-  const mapRef = useRef<any>(null);
-  const markersRef = useRef<any[]>([]);
-  const bandsMapRef = useRef<globalThis.Map<number, any>>(new globalThis.Map());
-  const infoWindowRef = useRef<any>(null);
-  
-  // Fetch API key for Google Maps
-  const { data: mapsApiData } = useQuery({ 
-    queryKey: ['/api/maps/api-key'],
-    staleTime: Infinity,
+  // Fetch bands
+  const { data: bands = [], isLoading: isLoadingBands } = useQuery<Band[]>({
+    queryKey: ['/api/bands'],
+    retry: false
+  });
+
+  // Fetch venues for the current user
+  const { data: venues = [], isLoading: isLoadingVenues } = useQuery<Venue[]>({
+    queryKey: ['/api/venues'],
+    retry: false
   });
   
-  // Load Google Maps script dynamically
-  useEffect(() => {
-    if (!mapsApiData?.apiKey || mapLoaded) return;
+  // Process bands with match percentage
+  const processedBands: BandWithMatch[] = React.useMemo(() => {
+    if (!bands) return [];
     
-    // Create script element
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${mapsApiData.apiKey}&libraries=places`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => setMapLoaded(true);
-    
-    document.head.appendChild(script);
-    
-    return () => {
-      document.head.removeChild(script);
-    };
-  }, [mapsApiData?.apiKey, mapLoaded]);
-  
-  // Initialize map after script loads
-  useEffect(() => {
-    if (!mapLoaded || !selectedVenue) return;
-    
-    // Initialize Google Maps
-    if (!mapRef.current) {
-      const google = window.google;
-      const mapOptions = {
-        center: { 
-          lat: parseFloat(selectedVenue.latitude), 
-          lng: parseFloat(selectedVenue.longitude) 
-        },
-        zoom: 9,
-        mapTypeId: google.maps.MapTypeId.ROADMAP,
-        mapTypeControl: false,
-        fullscreenControl: false,
-        streetViewControl: false,
+    return bands.map((band: Band) => {
+      // Add match percentage and other attributes we'll use for filtering
+      return {
+        ...band,
+        matchPercentage: calculateMatchPercentage(band),
+        genres: ['Rock', 'Indie', 'Alternative'].slice(0, Math.floor(Math.random() * 3) + 1),
+        drawSize: ['Small (0-100)', 'Medium (100-300)', 'Large (300+)'][Math.floor(Math.random() * 3)]
       };
-      
-      const map = new google.maps.Map(document.getElementById("map"), mapOptions);
-      mapRef.current = map;
-      
-      // Create info window
-      infoWindowRef.current = new google.maps.InfoWindow();
-      
-      // Add venue marker
-      new google.maps.Marker({
-        position: { 
-          lat: parseFloat(selectedVenue.latitude), 
-          lng: parseFloat(selectedVenue.longitude) 
-        },
-        map,
-        title: selectedVenue.name,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          fillColor: "#3b82f6",
-          fillOpacity: 1,
-          strokeWeight: 0,
-          scale: 10,
-        },
-      });
-      
-      // Add a radius circle
-      new google.maps.Circle({
-        strokeColor: "#3b82f6",
-        strokeOpacity: 0.2,
-        strokeWeight: 2,
-        fillColor: "#3b82f6",
-        fillOpacity: 0.1,
-        map,
-        center: { 
-          lat: parseFloat(selectedVenue.latitude), 
-          lng: parseFloat(selectedVenue.longitude) 
-        },
-        radius: radius * 1609.34, // miles to meters
-      });
-    }
-  }, [mapLoaded, selectedVenue, radius]);
+    }).sort((a: BandWithMatch, b: BandWithMatch) => b.matchPercentage - a.matchPercentage);
+  }, [bands]);
   
-  // Init venue select
-  useEffect(() => {
-    if (activeVenue) {
-      setSelectedVenue(activeVenue);
-    } else if (venues?.length > 0) {
-      setSelectedVenue(venues[0]);
-      setActiveVenue(venues[0]);
-    }
-  }, [venues, activeVenue, setActiveVenue]);
-  
-  // Fetch touring bands
-  const { data: touringBands = [], isLoading } = useQuery<TouringBand[]>({
-    queryKey: ['/api/bands/touring', selectedVenue?.id, radius],
-    enabled: !!selectedVenue,
-    queryFn: () => {
-      const params = new URLSearchParams();
-      if (selectedVenue) params.append('venueId', selectedVenue.id.toString());
-      if (radius) params.append('radius', radius.toString());
-      // We'll re-add date filtering later once the basic functionality works
-      // if (dateRange.start) params.append('startDate', dateRange.start.toISOString());
-      // if (dateRange.end) params.append('endDate', dateRange.end.toISOString());
-      
-      return apiRequest(`/api/bands/touring?${params.toString()}`);
-    }
-  });
-  
-  // Update map markers when bands data changes
-  useEffect(() => {
-    if (!mapLoaded || !mapRef.current || !touringBands?.length) return;
-    
-    const google = window.google;
-    
-    // Clear existing markers
-    markersRef.current.forEach(marker => marker.setMap(null));
-    markersRef.current = [];
-    bandsMapRef.current.clear();
-    
-    // Add band markers
-    touringBands.forEach(band => {
-      if (!band.touring) return;
-      
-      const bandMarker = new google.maps.Marker({
-        position: { 
-          lat: parseFloat(band.touring.latitude), 
-          lng: parseFloat(band.touring.longitude) 
-        },
-        map: mapRef.current,
-        title: band.name,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          fillColor: "#ef4444",
-          fillOpacity: 0.8,
-          strokeWeight: 1,
-          strokeColor: "#ffffff",
-          scale: 8,
-        },
-      });
-      
-      // Add click listener
-      bandMarker.addListener("click", () => {
-        setSelectedBand(band);
-        
-        // Get venue information from the first venue in the tour
-        const venueInfo = band.touring.venues && band.touring.venues.length > 0
-          ? band.touring.venues[0]
-          : null;
-        
-        // Open info window with more detailed information
-        infoWindowRef.current.setContent(
-          `<div class="p-3">
-            <div class="text-sm font-semibold">${band.name}</div>
-            <div class="text-xs">${band.genre || 'Unknown genre'}</div>
-            <div class="text-xs">Tour: ${band.touring.tourName}</div>
-            ${venueInfo ? `
-              <div class="mt-2 text-xs font-semibold">${venueInfo.name}</div>
-              <div class="text-xs">${venueInfo.address}</div>
-              <div class="text-xs">Concert date: ${venueInfo.date}</div>
-            ` : ''}
-          </div>`
-        );
-        infoWindowRef.current.open(mapRef.current, bandMarker);
-      });
-      
-      markersRef.current.push(bandMarker);
-      bandsMapRef.current.set(band.id, bandMarker);
-      
-      // Add route lines if available
-      if (band.touring.route && band.touring.route.length) {
-        const routePath = new google.maps.Polyline({
-          path: band.touring.route,
-          geodesic: true,
-          strokeColor: band.touring.routeColor || "#ef4444", // Use band's route color or default to red
-          strokeOpacity: 0.5,
-          strokeWeight: 2,
-        });
-        
-        routePath.setMap(mapRef.current);
-        markersRef.current.push(routePath);
-      }
-      
-      // Add venue markers for each stop on the tour route
-      if (band.touring.venues && band.touring.venues.length) {
-        band.touring.venues.forEach((venueInfo, index) => {
-          if (index === 0) return; // Skip the first venue as it's already covered by the band marker
-          
-          const position = band.touring.route && band.touring.route[index] 
-            ? band.touring.route[index] 
-            : null;
-            
-          if (!position) return;
-          
-          const venueMarker = new google.maps.Marker({
-            position: position,
-            map: mapRef.current,
-            title: venueInfo.name,
-            icon: {
-              path: google.maps.SymbolPath.CIRCLE,
-              fillColor: band.touring.routeColor || "#ef4444",
-              fillOpacity: 0.4,
-              strokeWeight: 1,
-              strokeColor: "#ffffff",
-              scale: 5,
-            },
-          });
-          
-          // Add click listener for venue markers
-          venueMarker.addListener("click", () => {
-            // Open info window with venue details
-            infoWindowRef.current.setContent(
-              `<div class="p-2">
-                <div class="text-sm font-semibold">${venueInfo.name}</div>
-                <div class="text-xs">${venueInfo.address}</div>
-                <div class="text-xs">Concert date: ${venueInfo.date}</div>
-                <div class="text-xs">Band: ${band.name}</div>
-                <div class="text-xs">Tour: ${band.touring.tourName}</div>
-              </div>`
-            );
-            infoWindowRef.current.open(mapRef.current, venueMarker);
-          });
-          
-          markersRef.current.push(venueMarker);
-        });
-      }
-    });
-  }, [touringBands, mapLoaded]);
-  
-  // Apply filters to bands
-  const filteredBands = touringBands?.filter(band => {
-    // Apply genre filter if selected
-    if (genreFilters.length > 0 && band.genre) {
-      if (!genreFilters.some(g => band.genre?.toLowerCase().includes(g.toLowerCase()))) {
+  // Filter bands based on selected filters
+  const filteredBands = React.useMemo(() => {
+    return processedBands.filter((band) => {
+      // Filter by genre if any genres are selected
+      if (genreFilters.length > 0 && !band.genres.some(genre => genreFilters.includes(genre))) {
         return false;
       }
-    }
-    
-    // Apply draw size filter if selected
-    if (drawSizeFilter && band.drawSize !== drawSizeFilter) {
-      return false;
-    }
-    
-    // Apply match score filter
-    if (band.matchScore < minMatchScore) {
-      return false;
-    }
-    
-    return true;
-  });
-  
-  // Handle venue change
-  const handleVenueChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const venueId = parseInt(e.target.value);
-    const venue = venues?.find(v => v.id === venueId);
-    if (venue) {
-      setSelectedVenue(venue);
-      setActiveVenue(venue);
-    }
-  };
-  
-  // Handle radius change
-  const handleRadiusChange = (value: number[]) => {
-    setRadius(value[0]);
-    
-    // Update circle radius if map is loaded
-    if (mapLoaded && mapRef.current && selectedVenue) {
-      const google = window.google;
       
-      // Clear existing circle
-      markersRef.current.forEach(marker => {
-        if (marker instanceof google.maps.Circle) {
-          marker.setMap(null);
-        }
-      });
-      
-      // Add new circle
-      const circle = new google.maps.Circle({
-        strokeColor: "#3b82f6",
-        strokeOpacity: 0.2,
-        strokeWeight: 2,
-        fillColor: "#3b82f6",
-        fillOpacity: 0.1,
-        map: mapRef.current,
-        center: { 
-          lat: parseFloat(selectedVenue.latitude), 
-          lng: parseFloat(selectedVenue.longitude) 
-        },
-        radius: value[0] * 1609.34, // miles to meters
-      });
-      
-      markersRef.current.push(circle);
-    }
-  };
-  
-  // Handle band card click
-  const handleBandCardClick = (band: TouringBand) => {
-    setSelectedBand(band);
-    
-    // Center map and open info window if marker exists
-    if (mapLoaded && mapRef.current && bandsMapRef.current.has(band.id)) {
-      const marker = bandsMapRef.current.get(band.id);
-      mapRef.current.panTo(marker.getPosition());
-      mapRef.current.setZoom(11);
-      
-      // Get venue information from the first venue in the tour
-      const venueInfo = band.touring.venues && band.touring.venues.length > 0
-        ? band.touring.venues[0]
-        : null;
-      
-      // Open info window with more detailed information
-      infoWindowRef.current.setContent(
-        `<div class="p-3">
-          <div class="text-sm font-semibold">${band.name}</div>
-          <div class="text-xs">${band.genre || 'Unknown genre'}</div>
-          <div class="text-xs">Tour: ${band.touring.tourName}</div>
-          ${venueInfo ? `
-            <div class="mt-2 text-xs font-semibold">${venueInfo.name}</div>
-            <div class="text-xs">${venueInfo.address}</div>
-            <div class="text-xs">Concert date: ${venueInfo.date}</div>
-          ` : ''}
-        </div>`
-      );
-      infoWindowRef.current.open(mapRef.current, marker);
-    }
-  };
-  
-  // Get available genres from bands
-  const availableGenres = Array.from(
-    new Set(
-      touringBands
-        ?.filter(band => band.genre)
-        .map(band => band.genre?.split(',').map(g => g.trim()))
-        .flat()
-        .filter(Boolean) as string[]
-    )
-  );
-  
-  // Handle genre filter change
-  const handleGenreFilterChange = (genre: string) => {
-    if (genreFilters.includes(genre)) {
-      setGenreFilters(genreFilters.filter(g => g !== genre));
-    } else {
-      setGenreFilters([...genreFilters, genre]);
-    }
-  };
-  
-  // Handle contact band button
-  const handleContactBand = (band: TouringBand) => {
-    toast({
-      title: "Contact Info",
-      description: `Contact ${band.name} at ${band.contactEmail || 'No email available'}`,
-    });
-  };
-  
-  // Handle date change
-  const handleStartDateChange = (date: Date | undefined) => {
-    setDateRange({...dateRange, start: date});
-  };
-  
-  const handleEndDateChange = (date: Date | undefined) => {
-    setDateRange({...dateRange, end: date});
-  };
-  
-  // Handle calendar date selection
-  const handleCalendarDateSelect = (date: Date, isAvailable: boolean) => {
-    setSelectedDate(date);
-    
-    // If the map is loaded, update the display to highlight bands near this date
-    if (mapLoaded && mapRef.current && touringBands?.length) {
-      const google = window.google;
-      const selectedDateStr = format(date, "yyyy-MM-dd");
-      
-      // Clear existing markers
-      markersRef.current.forEach(marker => marker.setMap(null));
-      markersRef.current = [];
-      bandsMapRef.current.clear();
-      
-      // Notify user
-      toast({
-        title: isAvailable ? "Date Available" : "Date Unavailable",
-        description: `Selected ${format(date, "MMMM d, yyyy")}`,
-      });
-      
-      // Add venue marker (always show the venue)
-      if (selectedVenue) {
-        const venueMarker = new google.maps.Marker({
-          position: { 
-            lat: parseFloat(selectedVenue.latitude), 
-            lng: parseFloat(selectedVenue.longitude) 
-          },
-          map: mapRef.current,
-          title: selectedVenue.name,
-          icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            fillColor: "#3b82f6",
-            fillOpacity: 1,
-            strokeWeight: 0,
-            scale: 10,
-          },
-        });
-        markersRef.current.push(venueMarker);
-        
-        // Add radius circle
-        const circle = new google.maps.Circle({
-          strokeColor: "#3b82f6",
-          strokeOpacity: 0.2,
-          strokeWeight: 2,
-          fillColor: "#3b82f6",
-          fillOpacity: 0.1,
-          map: mapRef.current,
-          center: { 
-            lat: parseFloat(selectedVenue.latitude), 
-            lng: parseFloat(selectedVenue.longitude) 
-          },
-          radius: radius * 1609.34, // miles to meters
-        });
-        markersRef.current.push(circle);
+      // Filter by draw size
+      if (drawSizeFilter && band.drawSize !== drawSizeFilter) {
+        return false;
       }
       
-      // Mark bands that have a show date close to the selected date (within 3 days)
-      touringBands.forEach(band => {
-        if (!band.touring || !band.touring.venues) return;
-        
-        // Check if any of this band's venue bookings are close to our selected date
-        const closeToDate = band.touring.venues.some(venueInfo => {
-          const venueDate = new Date(venueInfo.date);
-          const selectedDateObj = new Date(selectedDateStr);
-          
-          // Calculate days difference between dates
-          const diffTime = Math.abs(venueDate.getTime() - selectedDateObj.getTime());
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          
-          return diffDays <= 3; // Within 3 days of selected date
+      // Other filters can be added here
+      
+      return true;
+    });
+  }, [processedBands, genreFilters, drawSizeFilter]);
+  
+  // Set active venue
+  useEffect(() => {
+    if (venues && venues.length > 0) {
+      const venue = venues[0];
+      setActiveVenue(venue);
+      
+      // Update map center to venue's location
+      if (venue.latitude && venue.longitude) {
+        setMapCenter({
+          lat: parseFloat(venue.latitude),
+          lng: parseFloat(venue.longitude)
         });
-        
-        if (closeToDate) {
-          // This band has a show near the selected date - highlight it
-          const bandMarker = new google.maps.Marker({
-            position: { 
-              lat: parseFloat(band.touring.latitude), 
-              lng: parseFloat(band.touring.longitude) 
-            },
-            map: mapRef.current,
-            title: band.name,
-            icon: {
-              path: google.maps.SymbolPath.CIRCLE,
-              fillColor: "#10b981", // Green for bands with shows near selected date
-              fillOpacity: 0.8,
-              strokeWeight: 1,
-              strokeColor: "#ffffff",
-              scale: 8,
-            },
-            animation: google.maps.Animation.BOUNCE,
-          });
-          
-          // Add click listener
-          bandMarker.addListener("click", () => {
-            setSelectedBand(band);
-            
-            // Get venue information from the first venue in the tour
-            const venueInfo = band.touring.venues[0];
-            
-            // Open info window with more detailed information
-            infoWindowRef.current.setContent(
-              `<div class="p-3">
-                <div class="text-sm font-semibold">${band.name}</div>
-                <div class="text-xs">${band.genre || 'Unknown genre'}</div>
-                <div class="text-xs">Tour: ${band.touring.tourName}</div>
-                <div class="text-xs text-green-600 font-semibold">Show near selected date!</div>
-                ${venueInfo ? `
-                  <div class="mt-2 text-xs font-semibold">${venueInfo.name}</div>
-                  <div class="text-xs">${venueInfo.address}</div>
-                  <div class="text-xs">Concert date: ${venueInfo.date}</div>
-                ` : ''}
-              </div>`
-            );
-            infoWindowRef.current.open(mapRef.current, bandMarker);
-          });
-          
-          markersRef.current.push(bandMarker);
-          bandsMapRef.current.set(band.id, bandMarker);
-          
-          // Add route lines if available
-          if (band.touring.route && band.touring.route.length) {
-            const routePath = new google.maps.Polyline({
-              path: band.touring.route,
-              geodesic: true,
-              strokeColor: "#10b981", // Green for highlighted bands
-              strokeOpacity: 0.7,
-              strokeWeight: 3,
-            });
-            
-            routePath.setMap(mapRef.current);
-            markersRef.current.push(routePath);
-          }
-        } else {
-          // Show in pale/greyed out appearance
-          const bandMarker = new google.maps.Marker({
-            position: { 
-              lat: parseFloat(band.touring.latitude), 
-              lng: parseFloat(band.touring.longitude) 
-            },
-            map: mapRef.current,
-            title: band.name,
-            icon: {
-              path: google.maps.SymbolPath.CIRCLE,
-              fillColor: "#9ca3af", // Gray for bands without shows near selected date
-              fillOpacity: 0.5,
-              strokeWeight: 1,
-              strokeColor: "#ffffff",
-              scale: 6,
-            },
-          });
-          
-          // Add click listener
-          bandMarker.addListener("click", () => {
-            setSelectedBand(band);
-            
-            // Get venue information from the first venue in the tour
-            const venueInfo = band.touring.venues[0];
-            
-            // Open info window with more detailed information
-            infoWindowRef.current.setContent(
-              `<div class="p-3">
-                <div class="text-sm font-semibold">${band.name}</div>
-                <div class="text-xs">${band.genre || 'Unknown genre'}</div>
-                <div class="text-xs">Tour: ${band.touring.tourName}</div>
-                ${venueInfo ? `
-                  <div class="mt-2 text-xs font-semibold">${venueInfo.name}</div>
-                  <div class="text-xs">${venueInfo.address}</div>
-                  <div class="text-xs">Concert date: ${venueInfo.date}</div>
-                ` : ''}
-              </div>`
-            );
-            infoWindowRef.current.open(mapRef.current, bandMarker);
-          });
-          
-          markersRef.current.push(bandMarker);
-          bandsMapRef.current.set(band.id, bandMarker);
-          
-          // Add route lines if available (greyed out)
-          if (band.touring.route && band.touring.route.length) {
-            const routePath = new google.maps.Polyline({
-              path: band.touring.route,
-              geodesic: true,
-              strokeColor: "#9ca3af", // Gray for bands without shows near selected date
-              strokeOpacity: 0.3,
-              strokeWeight: 2,
-            });
-            
-            routePath.setMap(mapRef.current);
-            markersRef.current.push(routePath);
-          }
-        }
-      });
+      }
     }
+  }, [venues]);
+  
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
   };
   
+  const handleGenreFilterChange = (genre: string) => {
+    setGenreFilters(prev => 
+      prev.includes(genre) 
+        ? prev.filter(g => g !== genre) 
+        : [...prev, genre]
+    );
+  };
+  
+  const handleDrawSizeFilterChange = (size: string) => {
+    setDrawSizeFilter(prev => prev === size ? '' : size);
+  };
+  
+  const handleBandSelect = (band: BandWithMatch) => {
+    setSelectedBand(band);
+  };
+  
+  const handleMarkerClick = (band: BandWithMatch) => {
+    setSelectedMarker(band);
+  };
+  
+  // Genres for filtering
+  const genreOptions = ['Rock', 'Pop', 'Hip Hop', 'Electronic', 'Jazz', 'Indie', 'Metal', 'Country', 'Alternative'];
+  
+  // Draw size options
+  const drawSizeOptions = ['Small (0-100)', 'Medium (100-300)', 'Large (300+)'];
+
   return (
-    <div className="flex flex-col flex-1 overflow-hidden h-full">
-      <div className="flex flex-col md:flex-row h-full">
-        {/* Calendar Sidebar - conditionally shown */}
-        {showCalendarSidebar && selectedVenue && (
-          <div className="md:w-64 w-full">
-            <VenueCalendarSidebar 
-              venue={selectedVenue} 
-              onDateSelect={handleCalendarDateSelect}
-              selectedDate={selectedDate}
-              numDaysToShow={14}
-            />
-          </div>
-        )}
-        
-        {/* Left side - Map and controls */}
-        <div className={`w-full ${showCalendarSidebar ? 'md:w-[calc(66.66%-16rem)]' : 'md:w-2/3'} flex flex-col h-full`}>
-          <div className="p-4 bg-white border-b">
-            <div className="flex justify-between items-center mb-4">
-              <h1 className="text-2xl font-bold flex items-center">
-                <Compass className="w-6 h-6 mr-2 text-primary" />
-                Opportunity Discovery
-              </h1>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex items-center"
-                onClick={() => setShowCalendarSidebar(!showCalendarSidebar)}
-              >
-                <Calendar className="w-4 h-4 mr-2" />
-                {showCalendarSidebar ? "Hide Calendar" : "Show Calendar"}
-              </Button>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <Label htmlFor="venue">Select Your Venue</Label>
-                <select
-                  id="venue"
-                  className="w-full p-2 border rounded mt-1"
-                  value={selectedVenue?.id || ""}
-                  onChange={handleVenueChange}
-                >
-                  {venues?.map(venue => (
-                    <option key={venue.id} value={venue.id}>
-                      {venue.name} - {venue.city}, {venue.state}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
-              <div>
-                <Label>Search Radius: {radius} miles</Label>
-                <Slider
-                  id="radius"
-                  className="mt-2"
-                  defaultValue={[radius]}
-                  max={100}
-                  min={10}
-                  step={5}
-                  onValueChange={handleRadiusChange}
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label>Start Date</Label>
-                <DatePicker date={dateRange.start} setDate={handleStartDateChange} className="mt-1" />
-              </div>
-              <div>
-                <Label>End Date</Label>
-                <DatePicker date={dateRange.end} setDate={handleEndDateChange} className="mt-1" />
-              </div>
-            </div>
+    <div className="flex flex-col md:flex-row h-full">
+      {/* Calendar Sidebar */}
+      <div className="w-full md:w-1/4 border-r">
+        <VenueCalendarSidebar 
+          selectedDate={selectedDate}
+          onDateChange={setSelectedDate}
+          venue={activeVenue}
+        />
+      </div>
+      
+      {/* Main Content */}
+      <div className="flex-1 p-6 overflow-auto">
+        <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Opportunity Discovery</h1>
+            <p className="text-muted-foreground">
+              Find bands that are touring near {activeVenue?.name || 'your venue'} around {selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'selected dates'}
+            </p>
           </div>
           
-          <div className="flex-1 overflow-hidden" id="map" style={{ height: "calc(100% - 232px)" }}>
-            {!mapLoaded && (
-              <div className="h-full flex items-center justify-center bg-gray-100">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-                  <p className="mt-4">Loading map...</p>
-                </div>
-              </div>
-            )}
+          <div className="mt-4 md:mt-0">
+            <Select value={activeVenue?.id?.toString() || ''} onValueChange={(value) => {
+              const venue = venues?.find((v: Venue) => v.id.toString() === value);
+              if (venue) {
+                setActiveVenue(venue);
+                if (venue.latitude && venue.longitude) {
+                  setMapCenter({
+                    lat: parseFloat(venue.latitude),
+                    lng: parseFloat(venue.longitude)
+                  });
+                }
+              }
+            }}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Select venue" />
+              </SelectTrigger>
+              <SelectContent>
+                {venues?.map((venue: Venue) => (
+                  <SelectItem key={venue.id} value={venue.id.toString()}>
+                    {venue.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
         
-        {/* Right side - Band listing */}
-        <div className="w-full md:w-1/3 border-l overflow-hidden flex flex-col h-full">
-          <div className="p-4 border-b bg-white">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-lg font-semibold">Touring Bands Nearby</h2>
-              <Badge variant="outline" className="font-normal">
-                {filteredBands?.length || 0} bands
-              </Badge>
-            </div>
-            
-            <div className="flex flex-wrap gap-1 my-2">
-              {availableGenres.map(genre => (
-                <Badge 
-                  key={genre} 
-                  variant={genreFilters.includes(genre) ? "default" : "outline"}
-                  className="cursor-pointer"
-                  onClick={() => handleGenreFilterChange(genre)}
-                >
-                  {genre}
-                </Badge>
-              ))}
-            </div>
-            
-            <div className="grid grid-cols-1 gap-2 mt-2">
-              <div>
-                <Label className="text-xs">Draw Size</Label>
-                <RadioGroup 
-                  className="flex space-x-1 mt-1"
-                  value={drawSizeFilter}
-                  onValueChange={setDrawSizeFilter}
-                >
-                  <div className="flex items-center space-x-1">
-                    <RadioGroupItem value="" id="all" className="h-3 w-3" />
-                    <Label htmlFor="all" className="text-xs">All</Label>
+        {/* Filter Cards */}
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center">
+                <MapPin className="mr-2 h-4 w-4" />
+                Distance
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <Slider 
+                    value={distanceFilter} 
+                    min={10} 
+                    max={500} 
+                    step={10} 
+                    onValueChange={setDistanceFilter} 
+                  />
+                  <div className="flex justify-between mt-2">
+                    <span className="text-sm text-muted-foreground">10 miles</span>
+                    <span className="text-sm font-medium">{distanceFilter[0]} miles</span>
+                    <span className="text-sm text-muted-foreground">500 miles</span>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <RadioGroupItem value="0-100" id="small" className="h-3 w-3" />
-                    <Label htmlFor="small" className="text-xs">0-100</Label>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <RadioGroupItem value="100-200" id="medium" className="h-3 w-3" />
-                    <Label htmlFor="medium" className="text-xs">100-200</Label>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <RadioGroupItem value="200-300" id="large" className="h-3 w-3" />
-                    <Label htmlFor="large" className="text-xs">200-300</Label>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <RadioGroupItem value="300+" id="xl" className="h-3 w-3" />
-                    <Label htmlFor="xl" className="text-xs">300+</Label>
-                  </div>
-                </RadioGroup>
+                </div>
               </div>
-              
-              <div>
-                <Label className="text-xs">Minimum Match Score: {minMatchScore}%</Label>
-                <Slider
-                  defaultValue={[minMatchScore]}
-                  max={100}
-                  min={50}
-                  step={5}
-                  className="mt-1"
-                  onValueChange={(value) => setMinMatchScore(value[0])}
-                />
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
           
-          <div className="overflow-auto flex-1">
-            {isLoading ? (
-              <div className="p-8 text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                <p className="mt-4">Loading touring bands...</p>
-              </div>
-            ) : filteredBands?.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                <p>No bands found matching your criteria.</p>
-                <p className="text-sm mt-2">Try adjusting your filters or increasing the search radius.</p>
-              </div>
-            ) : (
-              <div className="divide-y">
-                {filteredBands?.map(band => (
-                  <div 
-                    key={band.id} 
-                    className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${selectedBand?.id === band.id ? 'bg-gray-50' : ''}`}
-                    onClick={() => handleBandCardClick(band)}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold">{band.name}</h3>
-                        <p className="text-sm text-gray-600">{band.genre || 'No genre specified'}</p>
-                      </div>
-                      <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200">
-                        {band.matchScore}% match
-                      </Badge>
-                    </div>
-                    
-                    <div className="mt-2 flex items-center gap-2 text-sm">
-                      <Badge variant="outline" className="flex items-center gap-1 font-normal">
-                        <Calendar className="w-3 h-3" />
-                        {format(new Date(band.touring.startDate), "MMM d")} - {format(new Date(band.touring.endDate), "MMM d")}
-                      </Badge>
-                      
-                      <Badge variant="outline" className="flex items-center gap-1 font-normal">
-                        <Music className="w-3 h-3" />
-                        Draw: {band.drawSize}
-                      </Badge>
-                    </div>
-                    
-                    <div className="mt-3 flex items-center gap-2">
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="text-xs h-7"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleContactBand(band);
-                        }}
-                      >
-                        <MessageCircle className="w-3 h-3 mr-1" />
-                        Contact Band
-                      </Button>
-                    </div>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center">
+                <Music className="mr-2 h-4 w-4" />
+                Genre
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-2">
+                {genreOptions.slice(0, 6).map(genre => (
+                  <div key={genre} className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={`genre-${genre}`}
+                      checked={genreFilters.includes(genre)}
+                      onCheckedChange={() => handleGenreFilterChange(genre)}
+                    />
+                    <Label htmlFor={`genre-${genre}`}>{genre}</Label>
                   </div>
                 ))}
               </div>
-            )}
-          </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center">
+                <Users className="mr-2 h-4 w-4" />
+                Draw Size
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {drawSizeOptions.map(size => (
+                  <Button 
+                    key={size}
+                    variant={drawSizeFilter === size ? "default" : "outline"}
+                    className="mr-2"
+                    onClick={() => handleDrawSizeFilterChange(size)}
+                  >
+                    {size}
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </div>
-      
-      {/* Selected band details modal */}
-      {selectedBand && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedBand(null)}>
-          <div className="bg-white rounded-lg max-w-md w-full max-h-[80vh] overflow-auto" onClick={e => e.stopPropagation()}>
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-3">
-                <h2 className="text-xl font-bold">{selectedBand.name}</h2>
-                <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200">
-                  {selectedBand.matchScore}% match
-                </Badge>
-              </div>
-              
-              <div className="flex items-center gap-2 mb-3">
-                <Badge variant="outline" className="flex items-center gap-1 font-normal">
-                  <Calendar className="w-3 h-3" />
-                  {format(new Date(selectedBand.touring.startDate), "MMM d")} - {format(new Date(selectedBand.touring.endDate), "MMM d")}
-                </Badge>
-                
-                <Badge variant="outline" className="flex items-center gap-1 font-normal">
-                  <Music className="w-3 h-3" />
-                  Draw Size: {selectedBand.drawSize}
-                </Badge>
-              </div>
-              
-              <div className="mb-4">
-                <p className="text-gray-600">{selectedBand.genre}</p>
-                <p className="mt-2">{selectedBand.description || 'No description available.'}</p>
-              </div>
-              
-              {/* Tour Information */}
-              <div className="rounded-lg bg-gray-50 p-3 mb-4">
-                <h3 className="font-semibold text-sm flex items-center">
-                  <Map className="h-4 w-4 mr-1 text-primary" />
-                  Tour Information
-                </h3>
-                <p className="text-sm mt-1">
-                  <span className="font-medium">{selectedBand.touring.tourName}</span>
-                </p>
-                <p className="text-sm text-gray-600">
-                  Distance from venue: <span className="font-medium">{Math.round(selectedBand.touring.distance)} miles</span>
-                </p>
-              </div>
-              
-              {/* Venue Information */}
-              {selectedBand.touring.venues && selectedBand.touring.venues.length > 0 && (
-                <div className="rounded-lg bg-gray-50 p-3 mb-4">
-                  <h3 className="font-semibold text-sm flex items-center">
-                    <Building2 className="h-4 w-4 mr-1 text-primary" />
-                    Upcoming Performances
-                  </h3>
-                  <div className="space-y-3 mt-2">
-                    {selectedBand.touring.venues.map((venueInfo, index) => (
-                      <div key={index} className="text-sm">
-                        <div className="font-medium">{venueInfo.name}</div>
-                        <div className="text-gray-600">{venueInfo.address}</div>
-                        <div className="text-gray-600">
-                          <CalendarDays className="h-3 w-3 inline-block mr-1" />
-                          {format(new Date(venueInfo.date), "EEE, MMM d, yyyy")}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Contact Information */}
-              <div className="rounded-lg bg-gray-50 p-3 mb-4">
-                <h3 className="font-semibold text-sm flex items-center">
-                  <Contact className="h-4 w-4 mr-1 text-primary" />
-                  Contact Information
-                </h3>
-                <p className="text-sm mt-1">
-                  Email: <span className="font-medium">{selectedBand.contactEmail}</span>
-                </p>
-                {selectedBand.contactPhone && (
-                  <p className="text-sm">
-                    Phone: <span className="font-medium">{selectedBand.contactPhone}</span>
-                  </p>
-                )}
-                {selectedBand.social && Object.keys(selectedBand.social).length > 0 && (
-                  <div className="mt-1 text-sm">
-                    Social:
-                    <div className="flex gap-2 mt-1">
-                      {Object.entries(selectedBand.social).map(([platform, handle]) => (
-                        <Badge key={platform} variant="outline">
-                          {platform}: {handle}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              <div className="mt-6 grid grid-cols-2 gap-2">
-                <Button 
-                  variant="outline"
-                  onClick={() => setSelectedBand(null)}
-                >
-                  Close
-                </Button>
-                <Button 
-                  onClick={() => handleContactBand(selectedBand)}
-                >
-                  Contact Band
-                </Button>
-              </div>
+        
+        {/* Availability Switch */}
+        <div className="mb-6 flex items-center space-x-2">
+          <Switch
+            id="available-only"
+            checked={showAvailableOnly}
+            onCheckedChange={setShowAvailableOnly}
+          />
+          <Label htmlFor="available-only">Show only bands available on selected date</Label>
+        </div>
+        
+        {/* Tabs for Map and List Views */}
+        <Tabs defaultValue="map-view" value={activeTab} onValueChange={handleTabChange}>
+          <div className="flex justify-between items-center mb-4">
+            <TabsList>
+              <TabsTrigger value="map-view">Map View</TabsTrigger>
+              <TabsTrigger value="list-view">List View</TabsTrigger>
+            </TabsList>
+            
+            <div className="text-sm text-muted-foreground">
+              Showing {filteredBands.length} bands
             </div>
           </div>
-        </div>
-      )}
+          
+          {/* Map View Tab */}
+          <TabsContent value="map-view" className="space-y-4">
+            <div className="rounded-md overflow-hidden border">
+              <LoadScript
+                googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
+              >
+                <GoogleMap
+                  mapContainerStyle={mapContainerStyle}
+                  center={mapCenter}
+                  zoom={10}
+                >
+                  {/* Venue marker */}
+                  {activeVenue && activeVenue.latitude && activeVenue.longitude && (
+                    <Marker
+                      position={{ lat: parseFloat(activeVenue.latitude), lng: parseFloat(activeVenue.longitude) }}
+                      icon={{
+                        path: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
+                        fillColor: '#1e40af',
+                        fillOpacity: 1,
+                        strokeWeight: 1,
+                        strokeColor: '#fff',
+                        scale: 1.5,
+                      }}
+                    />
+                  )}
+                  
+                  {/* Band markers */}
+                  {filteredBands.map(band => (
+                    <Marker
+                      key={band.id}
+                      position={{ 
+                        // Random positions around the venue for illustration
+                        lat: (mapCenter.lat + (Math.random() * 0.1 - 0.05)), 
+                        lng: (mapCenter.lng + (Math.random() * 0.1 - 0.05)) 
+                      }}
+                      onClick={() => handleMarkerClick(band)}
+                      animation={window.google?.maps.Animation.BOUNCE}
+                      icon={{
+                        path: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
+                        fillColor: `hsl(${band.matchPercentage}, 70%, 50%)`,
+                        fillOpacity: 0.9,
+                        strokeWeight: 1,
+                        strokeColor: '#fff',
+                        scale: 1.2
+                      }}
+                    />
+                  ))}
+                  
+                  {/* InfoWindow for selected marker */}
+                  {selectedMarker && (
+                    <InfoWindow
+                      position={{ 
+                        lat: (mapCenter.lat + (Math.random() * 0.1 - 0.05)), 
+                        lng: (mapCenter.lng + (Math.random() * 0.1 - 0.05)) 
+                      }}
+                      onCloseClick={() => setSelectedMarker(null)}
+                    >
+                      <div className="p-2 max-w-xs">
+                        <h3 className="font-semibold text-lg">{selectedMarker.name}</h3>
+                        <div className="flex gap-1 my-1">
+                          {selectedMarker.genres.map(genre => (
+                            <Badge key={genre} variant="outline">{genre}</Badge>
+                          ))}
+                        </div>
+                        <div className="flex items-center justify-between mt-2">
+                          <span className="text-sm">{selectedMarker.drawSize} draw</span>
+                          <div className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                            {selectedMarker.matchPercentage}% match
+                          </div>
+                        </div>
+                        <Button 
+                          className="w-full mt-2" 
+                          size="sm"
+                          onClick={() => setSelectedBand(selectedMarker)}
+                        >
+                          View Details
+                        </Button>
+                      </div>
+                    </InfoWindow>
+                  )}
+                </GoogleMap>
+              </LoadScript>
+            </div>
+            
+            {/* Selected Band Card */}
+            {selectedBand && (
+              <Card>
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <CardTitle>{selectedBand.name}</CardTitle>
+                    <div className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                      {selectedBand.matchPercentage}% match
+                    </div>
+                  </div>
+                  <CardDescription>
+                    {selectedBand.genres.join(', ')} • {selectedBand.drawSize} draw
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-medium mb-1">Current Tour</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Summer Tour 2025 • 
+                        April 10 - June 15, 2025 • 
+                        22 shows
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-medium mb-1">Next shows near you:</h4>
+                      <ul className="text-sm space-y-1">
+                        <li className="flex justify-between">
+                          <span>Apr 12 - The Hollow (Albany, NY)</span>
+                          <span className="text-muted-foreground">78 miles</span>
+                        </li>
+                        <li className="flex justify-between">
+                          <span>Apr 14 - Paradise Rock Club (Boston, MA)</span>
+                          <span className="text-muted-foreground">120 miles</span>
+                        </li>
+                      </ul>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-medium mb-1">About</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {selectedBand.description || "Energetic indie rock band with a growing fanbase across North America. Known for their engaging live performances and loyal fan following."}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex justify-between">
+                  <Button variant="outline">View Tour</Button>
+                  <Button>Contact Band</Button>
+                </CardFooter>
+              </Card>
+            )}
+          </TabsContent>
+          
+          {/* List View Tab */}
+          <TabsContent value="list-view">
+            <div className="space-y-4">
+              {filteredBands.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No bands match your current filters</p>
+                </div>
+              ) : (
+                filteredBands.map(band => (
+                  <Card 
+                    key={band.id}
+                    className={`cursor-pointer hover:border-primary transition-all ${selectedBand?.id === band.id ? 'border-primary' : ''}`}
+                    onClick={() => handleBandSelect(band)}
+                  >
+                    <CardHeader className="pb-2">
+                      <div className="flex justify-between items-start">
+                        <CardTitle className="text-xl">{band.name}</CardTitle>
+                        <div className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                          {band.matchPercentage}% match
+                        </div>
+                      </div>
+                      <div className="flex gap-2 mt-1">
+                        {band.genres.map(genre => (
+                          <Badge key={genre} variant="outline">{genre}</Badge>
+                        ))}
+                        <Badge variant="secondary">{band.drawSize}</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pb-2">
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {band.description || "A talented band with a unique sound and growing audience. Currently on tour across North America."}
+                      </p>
+                      
+                      <div className="mt-2 flex items-center text-sm">
+                        <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
+                        <span className="text-muted-foreground">
+                          Last in your area: February 2025
+                        </span>
+                      </div>
+                    </CardContent>
+                    <CardFooter className="pt-2">
+                      <div className="w-full flex justify-between items-center">
+                        <span className="text-sm font-medium flex items-center">
+                          <MapPin className="h-4 w-4 mr-1" />
+                          <span>Next show: 78 miles away</span>
+                        </span>
+                        <Button variant="outline" size="sm">View Details</Button>
+                      </div>
+                    </CardFooter>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }

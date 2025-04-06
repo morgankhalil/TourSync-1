@@ -5,10 +5,14 @@ import { z } from "zod";
 import { insertBandSchema, insertTourSchema, insertTourDateSchema, insertVenueSchema, insertVenueAvailabilitySchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
 import { registerTouringRoutes } from "./routes/touring";
+import { registerBandsintownRoutes } from "./routes/bandsintown";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register touring routes from dedicated module
   registerTouringRoutes(app);
+  
+  // Register Bandsintown integration routes
+  registerBandsintownRoutes(app);
   
   // Band routes
   app.get("/api/bands", async (_req, res) => {

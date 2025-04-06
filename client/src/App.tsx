@@ -12,13 +12,14 @@ import VenueList from "./pages/VenueList";
 import VenueDashboard from "./pages/VenueDashboard";
 import TourPlanningWizard from "./pages/TourPlanningWizard";
 import TourDashboard from "./pages/TourDashboard";
-import OpportunityDiscovery from "./pages/OpportunityDiscovery";
+import { OpportunityDiscovery } from "./pages/OpportunityDiscovery";
 import Header from "./components/layout/Header";
 import MobileNavigation from "./components/layout/MobileNavigation";
 import { useMediaQuery } from "./hooks/use-mobile";
 import { SidebarProvider } from "./context/SidebarContext";
 import EditVenue from './pages/EditVenue';
 import VenueAvailability from './pages/VenueAvailability';
+import { BandsintownPage } from './pages/BandsintownPage';
 
 function Router() {
   return (
@@ -36,6 +37,7 @@ function Router() {
       <Route path="/edit-venue" component={EditVenue} />
       <Route path="/venue-availability" component={VenueAvailability} />
       <Route path="/opportunities" component={OpportunityDiscovery} />
+      <Route path="/import" component={BandsintownPage} />
       <Route component={NotFound} />
     </Switch>
   );
