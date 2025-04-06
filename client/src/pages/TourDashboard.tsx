@@ -116,7 +116,7 @@ const TourDashboard = () => {
   }
 
   return (
-    <div className="container py-8">
+    <div className="container py-8 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 80px)' }}>
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">Tour Dashboard</h1>
