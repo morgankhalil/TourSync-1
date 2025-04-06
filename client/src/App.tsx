@@ -16,7 +16,8 @@ import Header from "./components/layout/Header";
 import MobileNavigation from "./components/layout/MobileNavigation";
 import { useMediaQuery } from "./hooks/use-mobile";
 import { SidebarProvider } from "./context/SidebarContext";
-import EditVenue from './pages/EditVenue'; // Added import for EditVenue component
+import EditVenue from './pages/EditVenue';
+import VenueAvailability from './pages/VenueAvailability';
 
 function Router() {
   return (
@@ -31,7 +32,8 @@ function Router() {
       <Route path="/profile" component={Profile} />
       <Route path="/venues" component={VenueList} />
       <Route path="/venues/:id" component={VenueView} />
-      <Route path="/edit-venue" component={EditVenue} /> // Added EditVenue route
+      <Route path="/edit-venue" component={EditVenue} />
+      <Route path="/venue-availability" component={VenueAvailability} />
       <Route component={NotFound} />
     </Switch>
   );
