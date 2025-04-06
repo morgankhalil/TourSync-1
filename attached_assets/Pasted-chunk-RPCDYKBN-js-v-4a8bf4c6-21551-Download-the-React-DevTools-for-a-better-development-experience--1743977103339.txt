@@ -1,0 +1,44 @@
+chunk-RPCDYKBN.js?v=4a8bf4c6:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+main.js:171 As of February 21st, 2024, google.maps.Marker is deprecated. Please use google.maps.marker.AdvancedMarkerElement instead. At this time, google.maps.Marker is not scheduled to be discontinued, but google.maps.marker.AdvancedMarkerElement is recommended over google.maps.Marker. While google.maps.Marker will continue to receive bug fixes for any major regressions, existing bugs in google.maps.Marker will not be addressed. At least 12 months notice will be given before support is discontinued. Please see https://developers.google.com/maps/deprecations for additional details and https://developers.google.com/maps/documentation/javascript/advanced-markers/migration for the migration guide.
+_.pm @ main.js:171
+dashboard:1 A soft navigation has been detected: https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/dashboard
+2chunk-6PJ6ZD5Z.js?v=4a8bf4c6:2295 Uncaught RangeError: Invalid time value
+    at format (chunk-6PJ6ZD5Z.js?v=4a8bf4c6:2295:11)
+    at VenueDashboard.tsx:564:40
+    at Array.map (<anonymous>)
+    at VenueDashboard (VenueDashboard.tsx:555:47)
+    at renderWithHooks (chunk-RPCDYKBN.js?v=4a8bf4c6:11548:26)
+    at updateFunctionComponent (chunk-RPCDYKBN.js?v=4a8bf4c6:14582:28)
+    at beginWork (chunk-RPCDYKBN.js?v=4a8bf4c6:15924:22)
+    at HTMLUnknownElement.callCallback2 (chunk-RPCDYKBN.js?v=4a8bf4c6:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-RPCDYKBN.js?v=4a8bf4c6:3699:24)
+    at invokeGuardedCallback (chunk-RPCDYKBN.js?v=4a8bf4c6:3733:39)
+chunk-RPCDYKBN.js?v=4a8bf4c6:14032 The above error occurred in the <VenueDashboard> component:
+
+    at VenueDashboard (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/pages/VenueDashboard.tsx:38:27)
+    at Route (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=4a8bf4c6:323:16)
+    at Switch (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=4a8bf4c6:379:17)
+    at Router
+    at div
+    at div
+    at MainContent (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/App.tsx?v=0QkJG3cEDqUAgYOjXJdOH:143:20)
+    at SidebarProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/context/SidebarContext.tsx:20:35)
+    at QueryClientProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=4a8bf4c6:2805:3)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+logCapturedError @ chunk-RPCDYKBN.js?v=4a8bf4c6:14032
+Show 1 more frame
+Show less
+chunk-RPCDYKBN.js?v=4a8bf4c6:9129 Uncaught RangeError: Invalid time value
+    at format (chunk-6PJ6ZD5Z.js?v=4a8bf4c6:2295:11)
+    at VenueDashboard.tsx:564:40
+    at Array.map (<anonymous>)
+    at VenueDashboard (VenueDashboard.tsx:555:47)
+    at renderWithHooks (chunk-RPCDYKBN.js?v=4a8bf4c6:11548:26)
+    at updateFunctionComponent (chunk-RPCDYKBN.js?v=4a8bf4c6:14582:28)
+    at beginWork (chunk-RPCDYKBN.js?v=4a8bf4c6:15924:22)
+    at beginWork$1 (chunk-RPCDYKBN.js?v=4a8bf4c6:19753:22)
+    at performUnitOfWork (chunk-RPCDYKBN.js?v=4a8bf4c6:19198:20)
+    at workLoopSync (chunk-RPCDYKBN.js?v=4a8bf4c6:19137:13)
