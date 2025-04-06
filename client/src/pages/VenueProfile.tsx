@@ -160,7 +160,10 @@ export default function VenueProfile() {
                 </CardHeader>
                 <CardContent className="h-[400px]">
                   <VenueMapView 
-                    venue={venue as Venue}
+                    venue={{
+                      ...venue,
+                      capacity: venue.capacity === null ? undefined : venue.capacity
+                    }}
                     onTourClick={() => {}}
                   />
                 </CardContent>
@@ -206,12 +209,22 @@ export default function VenueProfile() {
               <CardDescription>Manage dates when your venue is available for booking</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col items-center justify-center p-12">
-                <Info className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Calendar Coming Soon</h3>
-                <p className="text-center text-muted-foreground">
-                  We're working on adding a calendar feature for managing your venue's availability.
-                  Check back soon!
+              {/* Using a simplified version of VenueAvailability component */}
+              <div className="flex flex-col gap-4">
+                <div className="calendar-container border rounded-md p-4">
+                  <Calendar
+                    mode="multiple"
+                    selected={[]}
+                    className="rounded-md"
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button>
+                    Save Changes
+                  </Button>
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Note: Select dates to mark your venue as available. Currently this is a preview - full calendar functionality will be available soon.
                 </p>
               </div>
             </CardContent>
