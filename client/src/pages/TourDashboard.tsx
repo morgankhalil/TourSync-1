@@ -139,28 +139,30 @@ const TourDashboard = () => {
               <CardDescription>Select a tour to manage</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                {tours.map(tour => (
-                  <div
-                    key={tour.id}
-                    className={`p-3 rounded-md cursor-pointer ${
-                      selectedTour?.id === tour.id
-                        ? 'bg-primary/10 border border-primary/20'
-                        : 'hover:bg-muted'
-                    }`}
-                    onClick={() => handleSelectTour(tour)}
-                  >
-                    <div className="font-medium">{tour.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {format(new Date(tour.startDate), 'MMM d')} - {format(new Date(tour.endDate), 'MMM d, yyyy')}
+              <div className="max-h-[500px] overflow-y-auto pr-2">
+                <div className="space-y-2">
+                  {tours.map(tour => (
+                    <div
+                      key={tour.id}
+                      className={`p-3 rounded-md cursor-pointer ${
+                        selectedTour?.id === tour.id
+                          ? 'bg-primary/10 border border-primary/20'
+                          : 'hover:bg-muted'
+                      }`}
+                      onClick={() => handleSelectTour(tour)}
+                    >
+                      <div className="font-medium">{tour.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {format(new Date(tour.startDate), 'MMM d')} - {format(new Date(tour.endDate), 'MMM d, yyyy')}
+                      </div>
+                      {tour.isActive && (
+                        <Badge variant="outline" className="mt-1 bg-green-100 text-green-800 border-green-200">
+                          Active
+                        </Badge>
+                      )}
                     </div>
-                    {tour.isActive && (
-                      <Badge variant="outline" className="mt-1 bg-green-100 text-green-800 border-green-200">
-                        Active
-                      </Badge>
-                    )}
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -228,49 +230,51 @@ const TourDashboard = () => {
                       <CardContent>
                         <div className="space-y-4">
                           {tourDates.length > 0 ? (
-                            <div className="space-y-2">
-                              {tourDates
-                                .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-                                .map(date => (
-                                  <div 
-                                    key={date.id} 
-                                    className="flex justify-between items-center p-3 border rounded-md"
-                                  >
-                                    <div>
-                                      <div className="flex items-center">
-                                        <span className="font-medium">
-                                          {format(new Date(date.date), 'EEE, MMM d, yyyy')}
-                                        </span>
-                                        <Badge 
-                                          className={`ml-2 ${
-                                            date.status === 'confirmed' ? 'bg-green-100 text-green-800' : 
-                                            date.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                                            'bg-red-100 text-red-800'
-                                          }`}
+                            <div className="max-h-[500px] overflow-y-auto pr-2">
+                              <div className="space-y-2">
+                                {tourDates
+                                  .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                                  .map(date => (
+                                    <div 
+                                      key={date.id} 
+                                      className="flex justify-between items-center p-3 border rounded-md"
+                                    >
+                                      <div>
+                                        <div className="flex items-center">
+                                          <span className="font-medium">
+                                            {format(new Date(date.date), 'EEE, MMM d, yyyy')}
+                                          </span>
+                                          <Badge 
+                                            className={`ml-2 ${
+                                              date.status === 'confirmed' ? 'bg-green-100 text-green-800' : 
+                                              date.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                                              'bg-red-100 text-red-800'
+                                            }`}
+                                          >
+                                            {date.status.charAt(0).toUpperCase() + date.status.slice(1)}
+                                          </Badge>
+                                        </div>
+                                        <div className="text-sm text-muted-foreground">
+                                          {date.venueName ? (
+                                            `${date.venueName} • ${date.city}, ${date.state}`
+                                          ) : (
+                                            <span className="italic">No venue assigned</span>
+                                          )}
+                                        </div>
+                                      </div>
+                                      
+                                      {!date.venueId && (
+                                        <Button 
+                                          variant="outline" 
+                                          size="sm"
+                                          onClick={() => setActiveTab('optimize')}
                                         >
-                                          {date.status.charAt(0).toUpperCase() + date.status.slice(1)}
-                                        </Badge>
-                                      </div>
-                                      <div className="text-sm text-muted-foreground">
-                                        {date.venueName ? (
-                                          `${date.venueName} • ${date.city}, ${date.state}`
-                                        ) : (
-                                          <span className="italic">No venue assigned</span>
-                                        )}
-                                      </div>
+                                          Find Venue
+                                        </Button>
+                                      )}
                                     </div>
-                                    
-                                    {!date.venueId && (
-                                      <Button 
-                                        variant="outline" 
-                                        size="sm"
-                                        onClick={() => setActiveTab('optimize')}
-                                      >
-                                        Find Venue
-                                      </Button>
-                                    )}
-                                  </div>
-                                ))}
+                                  ))}
+                              </div>
                             </div>
                           ) : (
                             <div className="text-center py-8 text-muted-foreground">

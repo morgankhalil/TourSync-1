@@ -192,30 +192,32 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
               {tourGaps.length > 0 ? (
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">Available Gaps</h3>
-                  <div className="space-y-2">
-                    {tourGaps.map((gap, index) => (
-                      <Card key={index} className={cn(
-                        "cursor-pointer transition-colors hover:bg-muted/50",
-                        selectedGap === gap && "border-primary"
-                      )}
-                      onClick={() => handleSelectGap(gap)}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                              <Calendar className="h-5 w-5 text-muted-foreground" />
-                              <span>
-                                {format(gap.startDate, 'MMM d')} - {format(gap.endDate, 'MMM d, yyyy')}
-                              </span>
+                  <div className="max-h-[300px] overflow-y-auto pr-2">
+                    <div className="space-y-2">
+                      {tourGaps.map((gap, index) => (
+                        <Card key={index} className={cn(
+                          "cursor-pointer transition-colors hover:bg-muted/50",
+                          selectedGap === gap && "border-primary"
+                        )}
+                        onClick={() => handleSelectGap(gap)}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2">
+                                <Calendar className="h-5 w-5 text-muted-foreground" />
+                                <span>
+                                  {format(gap.startDate, 'MMM d')} - {format(gap.endDate, 'MMM d, yyyy')}
+                                </span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Clock className="h-5 w-5 text-muted-foreground" />
+                                <span>{gap.durationDays} days</span>
+                              </div>
                             </div>
-                            <div className="flex items-center space-x-2">
-                              <Clock className="h-5 w-5 text-muted-foreground" />
-                              <span>{gap.durationDays} days</span>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -233,21 +235,23 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
                   {isLoading ? (
                     <p className="py-4 text-center text-muted-foreground">Loading venues...</p>
                   ) : (
-                    <div className="grid grid-cols-1 gap-4 mt-4">
-                      {gapVenues.map((venue) => (
-                        <VenueItem
-                          key={venue.id}
-                          venue={venue}
-                          onClick={() => handleSelectVenue(venue)}
-                          isSelected={selectedVenue?.id === venue.id}
-                        />
-                      ))}
-                      
-                      {gapVenues.length === 0 && !isLoading && (
-                        <p className="py-4 text-center text-muted-foreground">
-                          No venues found for this gap. Try increasing the search radius.
-                        </p>
-                      )}
+                    <div className="mt-4 max-h-[400px] overflow-y-auto pr-2">
+                      <div className="grid grid-cols-1 gap-4">
+                        {gapVenues.map((venue) => (
+                          <VenueItem
+                            key={venue.id}
+                            venue={venue}
+                            onClick={() => handleSelectVenue(venue)}
+                            isSelected={selectedVenue?.id === venue.id}
+                          />
+                        ))}
+                        
+                        {gapVenues.length === 0 && !isLoading && (
+                          <p className="py-4 text-center text-muted-foreground">
+                            No venues found for this gap. Try increasing the search radius.
+                          </p>
+                        )}
+                      </div>
                     </div>
                   )}
                 </>
@@ -269,40 +273,42 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
               </div>
               
               <h3 className="text-lg font-medium">Select a confirmed venue</h3>
-              <div className="space-y-2">
-                {tourDates
-                  .filter(date => date.venueId && (date.status === 'confirmed' || date.status === 'pending'))
-                  .map((date) => (
-                    <Card 
-                      key={date.id} 
-                      className={cn(
-                        "cursor-pointer transition-colors hover:bg-muted/50",
-                        selectedTourDate?.id === date.id && "border-primary"
-                      )}
-                      onClick={() => handleSelectTourDate(date)}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex flex-col">
-                            <span className="font-medium">{date.venueName || 'Unknown Venue'}</span>
-                            <span className="text-sm text-muted-foreground">
-                              {date.city}, {date.state}
-                            </span>
+              <div className="mt-2 max-h-[300px] overflow-y-auto pr-2">
+                <div className="space-y-2">
+                  {tourDates
+                    .filter(date => date.venueId && (date.status === 'confirmed' || date.status === 'pending'))
+                    .map((date) => (
+                      <Card 
+                        key={date.id} 
+                        className={cn(
+                          "cursor-pointer transition-colors hover:bg-muted/50",
+                          selectedTourDate?.id === date.id && "border-primary"
+                        )}
+                        onClick={() => handleSelectTourDate(date)}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex flex-col">
+                              <span className="font-medium">{date.venueName || 'Unknown Venue'}</span>
+                              <span className="text-sm text-muted-foreground">
+                                {date.city}, {date.state}
+                              </span>
+                            </div>
+                            <div className="flex items-center">
+                              <CalendarIcon2 className="h-5 w-5 mr-2 text-muted-foreground" />
+                              <span>{format(new Date(date.date), 'MMM d, yyyy')}</span>
+                            </div>
                           </div>
-                          <div className="flex items-center">
-                            <CalendarIcon2 className="h-5 w-5 mr-2 text-muted-foreground" />
-                            <span>{format(new Date(date.date), 'MMM d, yyyy')}</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                  
-                {tourDates.filter(date => date.venueId && (date.status === 'confirmed' || date.status === 'pending')).length === 0 && (
-                  <p className="py-4 text-center text-muted-foreground">
-                    No confirmed venues in this tour yet.
-                  </p>
-                )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                    
+                  {tourDates.filter(date => date.venueId && (date.status === 'confirmed' || date.status === 'pending')).length === 0 && (
+                    <p className="py-4 text-center text-muted-foreground">
+                      No confirmed venues in this tour yet.
+                    </p>
+                  )}
+                </div>
               </div>
               
               {selectedTourDate && (
@@ -312,21 +318,23 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
                   {isLoading ? (
                     <p className="py-4 text-center text-muted-foreground">Loading venues...</p>
                   ) : (
-                    <div className="grid grid-cols-1 gap-4 mt-4">
-                      {nearbyVenues.map((venue) => (
-                        <VenueItem
-                          key={venue.id}
-                          venue={venue}
-                          onClick={() => handleSelectVenue(venue)}
-                          isSelected={selectedVenue?.id === venue.id}
-                        />
-                      ))}
-                      
-                      {nearbyVenues.length === 0 && !isLoading && (
-                        <p className="py-4 text-center text-muted-foreground">
-                          No venues found near this location. Try increasing the search radius.
-                        </p>
-                      )}
+                    <div className="mt-4 max-h-[400px] overflow-y-auto pr-2">
+                      <div className="grid grid-cols-1 gap-4">
+                        {nearbyVenues.map((venue) => (
+                          <VenueItem
+                            key={venue.id}
+                            venue={venue}
+                            onClick={() => handleSelectVenue(venue)}
+                            isSelected={selectedVenue?.id === venue.id}
+                          />
+                        ))}
+                        
+                        {nearbyVenues.length === 0 && !isLoading && (
+                          <p className="py-4 text-center text-muted-foreground">
+                            No venues found near this location. Try increasing the search radius.
+                          </p>
+                        )}
+                      </div>
                     </div>
                   )}
                 </>
