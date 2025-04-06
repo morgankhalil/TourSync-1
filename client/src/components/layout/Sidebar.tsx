@@ -1,4 +1,4 @@
-import { Plus, Edit, MoreVertical } from "lucide-react";
+import { Plus, Edit, MoreVertical, BarChart3 } from "lucide-react";
 import { useSidebar } from "@/context/SidebarContext";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import { X } from "lucide-react";
@@ -63,6 +63,21 @@ const Sidebar = () => {
               <p className="text-sm text-gray-500">
                 {format(new Date(activeTour.startDate), "MMM d")} - {format(new Date(activeTour.endDate), "MMM d, yyyy")}
               </p>
+              
+              <div className="mt-3 flex space-x-2">
+                <Link href={`/tour-planning/${activeTour.id}`}>
+                  <Button variant="outline" size="sm" className="flex-1">
+                    <Edit size={14} className="mr-1" />
+                    Edit
+                  </Button>
+                </Link>
+                <Link href="/tour-dashboard">
+                  <Button variant="outline" size="sm" className="flex-1">
+                    <BarChart3 size={14} className="mr-1" />
+                    Optimize
+                  </Button>
+                </Link>
+              </div>
             </div>
           ) : (
             <div className="mt-4 text-gray-500">No active tour found</div>

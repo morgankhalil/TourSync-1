@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Tour, TourDate, Band } from '../../types';
+import { Tour, TourDate, Band, Venue } from '../../types';
 import { Badge } from '../ui/badge';
 import {
   Dialog,
@@ -10,6 +10,10 @@ import {
 } from '../ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Spinner } from '../ui/spinner';
+import { Button } from '../ui/button';
+import { Link, useLocation } from 'wouter';
+import TourOptimizationPanel from '../tour/TourOptimizationPanel';
+import { useToast } from '../../hooks/use-toast';
 
 interface TourDetailModalProps {
   tour: Tour | null;
@@ -22,6 +26,8 @@ const TourDetailModal = ({ tour, isOpen, onClose }: TourDetailModalProps) => {
   const [band, setBand] = useState<Band | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('details');
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!tour) return;
@@ -80,6 +86,7 @@ const TourDetailModal = ({ tour, isOpen, onClose }: TourDetailModalProps) => {
             <TabsList className="mb-4">
               <TabsTrigger value="details">Tour Details</TabsTrigger>
               <TabsTrigger value="dates">Tour Dates</TabsTrigger>
+              <TabsTrigger value="optimize">Optimize</TabsTrigger>
               <TabsTrigger value="band">Band Info</TabsTrigger>
             </TabsList>
             
@@ -165,6 +172,103 @@ const TourDetailModal = ({ tour, isOpen, onClose }: TourDetailModalProps) => {
                     <p className="text-muted-foreground">No tour dates have been added yet.</p>
                   </div>
                 )}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="optimize">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="text-lg font-semibold">Tour Optimization</h3>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      setLocation(`/tour-dashboard`);
+                      onClose();
+                      toast({
+                        title: "Opening Tour Dashboard",
+                        description: "Redirecting you to the Tour Dashboard for more advanced optimization options."
+                      });
+                    }}
+                  >
+                    Open Full Dashboard
+                  </Button>
+                </div>
+                
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="bg-muted/20 p-4 rounded-lg space-y-3">
+                    <h4 className="font-medium">Quick Actions</h4>
+                    <div className="flex flex-col gap-2">
+                      <Button 
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setActiveTab('optimize')}
+                        disabled={openDates === 0}
+                      >
+                        Find Venues for Open Dates ({openDates})
+                      </Button>
+                      <Button 
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setActiveTab('optimize')}
+                      >
+                        Find Gaps in Tour Schedule
+                      </Button>
+                      <Button 
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setActiveTab('optimize')}
+                      >
+                        Optimize Routing
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-muted/20 p-4 rounded-lg space-y-3">
+                    <h4 className="font-medium">Tour Health</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <div className="flex justify-between text-sm mb-1">
+                          <span>Tour Completion</span>
+                          <span>{Math.round((confirmedDates / totalDates) * 100)}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-primary rounded-full h-2" 
+                            style={{ width: `${Math.round((confirmedDates / totalDates) * 100)}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <div className="flex justify-between text-sm mb-1">
+                          <span>Open Dates</span>
+                          <span>{openDates}/{totalDates}</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-red-500 rounded-full h-2" 
+                            style={{ width: `${Math.round((openDates / totalDates) * 100)}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <TourOptimizationPanel 
+                    tour={tour} 
+                    tourDates={tourDates}
+                    onSelectVenue={(venue: Venue) => {
+                      toast({
+                        title: "Venue Selected",
+                        description: `${venue.name} has been selected. You can now assign it to a date in your tour.`,
+                      });
+                      // Here you would typically open a dialog to assign the venue to a specific date
+                    }}
+                  />
+                </div>
               </div>
             </TabsContent>
             
