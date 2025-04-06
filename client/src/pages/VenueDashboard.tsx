@@ -32,16 +32,16 @@ const VenueDashboard = () => {
     addDays(new Date(), 14)
   ];
 
-  // Fetch past performances for Bug Jar venue
+  // Fetch past performances for the active venue
   const { data: pastPerformances = [], isLoading: isPerformancesLoading } = useQuery<PastPerformance[]>({
-    queryKey: ["/api/venues", 27, "performances"], // Hard-coded to Bug Jar's ID (27)
-    enabled: true, // Always fetch, regardless of active venue
+    queryKey: ["/api/venues", activeVenue?.id, "performances"],
+    enabled: !!activeVenue?.id, // Only fetch when we have an active venue
   });
 
   // Fetch venue availability
   const { data: availabilityList = [], isLoading: isAvailabilityLoading } = useQuery<any[]>({
-    queryKey: [`/api/venues/27/availability`], // Hard-coded to Bug Jar's ID (27)
-    enabled: true, // Always fetch
+    queryKey: activeVenue ? [`/api/venues/${activeVenue.id}/availability`] : [],
+    enabled: !!activeVenue?.id, // Only fetch when we have an active venue
   });
 
   // Automatically open sidebar on desktop
@@ -81,7 +81,7 @@ const VenueDashboard = () => {
         <div className="p-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold">Bug Jar Dashboard</h1>
+              <h1 className="text-3xl font-bold">{activeVenue ? `${activeVenue.name} Dashboard` : 'Venue Dashboard'}</h1>
               <p className="text-muted-foreground">
                 Welcome back! Manage your venue operations and track performance metrics.
               </p>

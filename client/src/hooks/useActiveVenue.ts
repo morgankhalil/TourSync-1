@@ -2,6 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useState, useCallback, useEffect } from "react";
 import { Venue } from "@shared/schema";
 
+// Default venue name for the dashboard - can be set in a configuration file
+const DEFAULT_VENUE_NAME = "Bug Jar";
+
 export const useActiveVenue = () => {
   const { data: venues, isLoading, error } = useQuery<Venue[]>({
     queryKey: ['/api/venues'],
@@ -10,14 +13,14 @@ export const useActiveVenue = () => {
   // Store active venue in state so it can be changed
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   
-  // Initialize with Bug Jar venue (ID 27) for venue dashboard
+  // Initialize with a specific venue for the venue dashboard
   useEffect(() => {
     if (venues && venues.length > 0 && !selectedVenue) {
-      // Find Bug Jar venue (ID 27) 
-      const bugJarVenue = venues.find(venue => venue.name === "Bug Jar" && venue.id === 27);
+      // Try to find the default venue by name
+      const defaultVenue = venues.find(venue => venue.name === DEFAULT_VENUE_NAME);
       
-      // Use Bug Jar if found, otherwise use first venue
-      setSelectedVenue(bugJarVenue || venues[0]);
+      // Use the default venue if found, otherwise use first venue
+      setSelectedVenue(defaultVenue || venues[0]);
     }
   }, [venues, selectedVenue]);
 
