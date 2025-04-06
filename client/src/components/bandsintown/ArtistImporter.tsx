@@ -86,11 +86,11 @@ export function ArtistImporter() {
   // Batch import multiple artists
   const handleBatchImport = async () => {
     const popularRockBands = [
-      'Foo Fighters', 
-      'Radiohead', 
-      'The Killers', 
-      'Arctic Monkeys', 
-      'Muse'
+      'Every Time I Die',
+      'Less Than Jake',
+      'Joywave',
+      'The Struts',
+      'Pentimento'
     ];
     
     try {
