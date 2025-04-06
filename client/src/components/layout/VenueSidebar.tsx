@@ -19,7 +19,7 @@ const VenueSidebar = () => {
 
   // Fetch venue availability
   const { data: availabilityList, isLoading: isAvailabilityLoading } = useQuery<VenueAvailability[]>({
-    queryKey: [`/api/venues/${activeVenue?.id || 27}/availability`],
+    queryKey: [`/api/venues/${activeVenue?.id || 38}/availability`], // Bug Jar's ID is 38
     enabled: true,
   });
 
