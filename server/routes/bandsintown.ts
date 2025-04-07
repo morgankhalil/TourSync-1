@@ -310,7 +310,7 @@ export function registerBandsintownRoutes(app: Express): void {
   });
 
   // Search for a venue
-  app.get('/api/bandsintown/venue/search', async (req: Request, res: Response) => {
+  app.get('/api/bandsintown/venue/search', requireAuth, async (req: Request, res: Response) => {
     try {
       const { name, location } = req.query;
       if (!name || !location) {

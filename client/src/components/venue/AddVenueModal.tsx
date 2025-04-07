@@ -14,19 +14,25 @@ export default function AddVenueModal() {
   const queryClient = useQueryClient();
 
   const handleSearch = async () => {
+    setIsLoading(true);
+
     if (!venueName || !location) {
       toast({
-        title: "Missing information",
-        description: "Please enter both venue name and location",
+        title: "Error",
+        description: "Please fill in all required fields",
         variant: "destructive"
       });
+      setIsLoading(false);
       return;
     }
 
-    setIsLoading(true);
     try {
       // First search for venue
       const searchResponse = await fetch(`/api/bandsintown/venue/search?name=${encodeURIComponent(venueName)}&location=${encodeURIComponent(location)}`);
+      if (!searchResponse.ok) {
+        const errorData = await searchResponse.json();
+        throw new Error(`Error searching for venue: ${searchResponse.status} - ${errorData.message || 'Unknown error'}`);
+      }
       const searchResult = await searchResponse.json();
 
       if (!searchResult?.id) {
@@ -35,6 +41,10 @@ export default function AddVenueModal() {
 
       // Get detailed venue info
       const detailsResponse = await fetch(`/api/bandsintown/venue/${searchResult.id}`);
+      if (!detailsResponse.ok) {
+        const errorData = await detailsResponse.json();
+        throw new Error(`Error fetching venue details: ${detailsResponse.status} - ${errorData.message || 'Unknown error'}`);
+      }
       const venueDetails = await detailsResponse.json();
 
       // Add venue to database
@@ -55,7 +65,8 @@ export default function AddVenueModal() {
       });
 
       if (!createResponse.ok) {
-        throw new Error('Failed to create venue');
+        const errorData = await createResponse.json();
+        throw new Error(`Failed to create venue: ${createResponse.status} - ${errorData.message || 'Unknown error'}`);
       }
 
       toast({

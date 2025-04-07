@@ -36,7 +36,7 @@ const VenueSelector: React.FC = () => {
       });
     }
   }, []);
-  
+
   // Fetch venues
   const { data: venues, isLoading, refetch } = useQuery({
     queryKey: ['/api/venues'],
@@ -61,19 +61,19 @@ const VenueSelector: React.FC = () => {
   // Handle venue selection with more thorough approach
   const handleVenueSelect = (venue: Venue) => {
     console.log(`Selecting venue: ${venue.name} (ID: ${venue.id})`);
-    
+
     if (venueId === venue.id) {
       console.log("Venue already selected, no change needed");
       setOpen(false);
       return;
     }
-    
+
     // Set active venue - this will handle ID updates and cache clearing internally
     setActiveVenue(venue);
-    
+
     // Close the popover
     setOpen(false);
-    
+
     // Show a toast to confirm venue change
     toast({
       title: "Venue Changed",
@@ -81,7 +81,7 @@ const VenueSelector: React.FC = () => {
       duration: 3000
     });
   };
-  
+
   // Handle manual refresh with enhanced client
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -89,13 +89,13 @@ const VenueSelector: React.FC = () => {
       // Clear API cache using the enhanced client
       const cacheResult = await EnhancedBandsintownDiscoveryClient.clearCache();
       console.log("Cache cleared:", cacheResult);
-      
+
       // Refresh venue data
       refreshVenue();
-      
+
       // Refresh venues list
       await refetch();
-      
+
       toast({
         title: "Data Refreshed",
         description: "Venue information has been refreshed",
