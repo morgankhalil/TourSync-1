@@ -99,6 +99,112 @@ export default function EnhancedArtistDiscovery() {
     }
   };
 
+  // Direct Demo Mode Implementation
+  const generateDemoResults = () => {
+    // Create several demo bands to simulate incremental results
+    const demoBands = [
+      {
+        name: "The Roadtrippers",
+        image: "https://picsum.photos/id/1/400/400",
+        genre: "Indie Rock",
+        routingScore: 15,
+        distanceToVenue: 45,
+        detourDistance: 10,
+        daysAvailable: 2,
+        originCity: "Buffalo",
+        originState: "NY",
+        destCity: "Pittsburgh", 
+        destState: "PA",
+      },
+      {
+        name: "Midnight Drivers",
+        image: "https://picsum.photos/id/25/400/400",
+        genre: "Alternative",
+        routingScore: 30,
+        distanceToVenue: 65,
+        detourDistance: 25,
+        daysAvailable: 3,
+        originCity: "Toronto",
+        originState: "ON",
+        destCity: "Cleveland", 
+        destState: "OH",
+      },
+      {
+        name: "Coast to Coast",
+        image: "https://picsum.photos/id/65/400/400",
+        genre: "Folk",
+        routingScore: 45,
+        distanceToVenue: 120,
+        detourDistance: 40,
+        daysAvailable: 4,
+        originCity: "Syracuse",
+        originState: "NY",
+        destCity: "Columbus", 
+        destState: "OH",
+      }
+    ];
+    
+    return demoBands.map((band, index) => {
+      const now = new Date();
+      const dayAfter = new Date(now);
+      dayAfter.setDate(dayAfter.getDate() + (index * 2 + 1));
+      const nextWeek = new Date(now);
+      nextWeek.setDate(nextWeek.getDate() + (index * 3 + 7));
+      
+      return {
+        name: band.name,
+        image: band.image,
+        url: "https://bandsintown.com",
+        upcomingEvents: 8 + index * 4,
+        route: {
+          origin: {
+            city: band.originCity,
+            state: band.originState,
+            date: dayAfter.toISOString().substring(0, 10),
+            lat: 42.8864 + index,
+            lng: -78.8784 - index
+          },
+          destination: {
+            city: band.destCity,
+            state: band.destState,
+            date: nextWeek.toISOString().substring(0, 10),
+            lat: 40.4406 - index,
+            lng: -79.9959 + index
+          },
+          distanceToVenue: band.distanceToVenue,
+          detourDistance: band.detourDistance,
+          daysAvailable: band.daysAvailable,
+          routingScore: band.routingScore
+        },
+        events: [{
+          id: `demo-orig-${index}`,
+          datetime: dayAfter.toISOString(),
+          venue: {
+            name: band.originCity + " Music Hall",
+            city: band.originCity,
+            region: band.originState,
+            country: "US",
+            latitude: "42.8864",
+            longitude: "-78.8784"
+          }
+        }, {
+          id: `demo-dest-${index}`,
+          datetime: nextWeek.toISOString(),
+          venue: {
+            name: band.destCity + " Arena",
+            city: band.destCity,
+            region: band.destState,
+            country: "US",
+            latitude: "40.4406",
+            longitude: "-79.9959"
+          }
+        }],
+        genre: band.genre,
+        drawSize: 150 + index * 50
+      } as DiscoveryResult;
+    });
+  };
+  
   // Handle search
   const handleSearch = async () => {
     if (!activeVenue) {
@@ -114,6 +220,53 @@ export default function EnhancedArtistDiscovery() {
     setErrorMessage(null);
     setSearchResults([]);
     setSelectedArtist(null);
+    
+    // Special handling for demo mode
+    if (useDemoMode) {
+      console.log("Using demo mode - generating immediate fake results");
+      
+      // Set a fake loading state
+      const demoResults = generateDemoResults();
+      
+      // Show first result with a slight delay
+      setTimeout(() => {
+        const first = [demoResults[0]];
+        handleIncrementalResults(first);
+        
+        // Show second result with a delay
+        setTimeout(() => {
+          const second = [demoResults[1]]; 
+          handleIncrementalResults(second);
+          
+          // Show third result with another delay
+          setTimeout(() => {
+            const third = [demoResults[2]];
+            handleIncrementalResults(third);
+            
+            // Complete the search
+            setTimeout(() => {
+              setSearchStats({
+                artistsQueried: 100,
+                artistsWithEvents: 50,
+                artistsPassingNear: 3,
+                totalEventsFound: 150,
+                elapsedTimeMs: 5000,
+                apiCacheStats: { keys: 100, hits: 50, misses: 50 }
+              });
+              
+              toast({
+                title: "Search Complete",
+                description: `Found ${demoResults.length} bands passing near ${activeVenue.name}`,
+              });
+              
+              setIsLoading(false);
+            }, 1000);
+          }, 1500);
+        }, 1500);
+      }, 1000);
+      
+      return;
+    }
 
     try {
       // Get the formatted date strings
@@ -141,7 +294,7 @@ export default function EnhancedArtistDiscovery() {
         radius,
         maxBands: maxResults,
         lookAheadDays,
-        useDemoMode: useDemoMode,
+        useDemoMode: false, // No need to use the client-side demo mode now
         onIncrementalResults: handleIncrementalResults,
       });
       
@@ -185,8 +338,11 @@ export default function EnhancedArtistDiscovery() {
         description: "Failed to complete the band search. See error message for details.",
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
+    } finally {
+      if (!useDemoMode) {
+        setIsLoading(false);
+      }
     }
   };
 
