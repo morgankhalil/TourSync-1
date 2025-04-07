@@ -113,7 +113,7 @@ const Dashboard: React.FC = () => {
               Please select a venue from the dropdown in the top navigation bar to view your venue's dashboard and analytics.
             </CardDescription>
             <div className="mt-2">
-              <Button>Select Venue</Button>
+              <VenueSelector />
             </div>
           </div>
         </Card>
