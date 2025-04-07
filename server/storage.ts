@@ -982,6 +982,57 @@ export class MemStorage implements IStorage {
     };
     const createdTour10 = { ...tour10, id: this.tourIdCounter++ };
     this.toursData.set(createdTour10.id, createdTour10);
+    
+    // Tour 11: Cross-Country Express - East to West
+    const tour11StartDate = new Date(today);
+    tour11StartDate.setDate(tour11StartDate.getDate() - 3);
+    const tour11EndDate = new Date(today);
+    tour11EndDate.setDate(tour11EndDate.getDate() + 40);
+
+    const tour11: InsertTour = {
+      name: "Cross-Country Express",
+      startDate: tour11StartDate,
+      endDate: tour11EndDate,
+      bandId: createdBands[6].id, // Jazz Fusion Experience
+      notes: "Major nationwide tour with strategic routing for mid-sized venues",
+      isActive: true
+    };
+    const createdTour11 = { ...tour11, id: this.tourIdCounter++ };
+    this.toursData.set(createdTour11.id, createdTour11);
+    
+    // Tour 12: Urban Circuit - Major Metropolitan Focus
+    const tour12StartDate = new Date(today);
+    tour12StartDate.setDate(tour12StartDate.getDate() + 2);
+    const tour12EndDate = new Date(today);
+    tour12EndDate.setDate(tour12EndDate.getDate() + 25);
+
+    const tour12: InsertTour = {
+      name: "Urban Circuit",
+      startDate: tour12StartDate,
+      endDate: tour12EndDate,
+      bandId: createdBands[7].id, // DJ Electro Vibes
+      notes: "Focused on dense urban areas with gaps for additional bookings",
+      isActive: true
+    };
+    const createdTour12 = { ...tour12, id: this.tourIdCounter++ };
+    this.toursData.set(createdTour12.id, createdTour12);
+    
+    // Tour 13: The Route 66 Revival
+    const tour13StartDate = new Date(today);
+    tour13StartDate.setDate(tour13StartDate.getDate() - 5);
+    const tour13EndDate = new Date(today);
+    tour13EndDate.setDate(tour13EndDate.getDate() + 30);
+
+    const tour13: InsertTour = {
+      name: "Route 66 Revival Tour",
+      startDate: tour13StartDate,
+      endDate: tour13EndDate,
+      bandId: createdBands[3].id, // Velvet Thunder
+      notes: "Following the historic Route 66 with multiple potential routing options",
+      isActive: true
+    };
+    const createdTour13 = { ...tour13, id: this.tourIdCounter++ };
+    this.toursData.set(createdTour13.id, createdTour13);
 
     // Create tour dates for Tour 1 (Sonic Waves)
     const tour1Dates: InsertTourDate[] = [
@@ -1378,6 +1429,141 @@ export class MemStorage implements IStorage {
         isOpenDate: false
       }
     ];
+    
+    // Create tour dates for Tour 11 (Jazz Fusion Experience - Cross-Country Express)
+    const tour11Dates: InsertTourDate[] = [
+      {
+        tourId: createdTour11.id,
+        venueId: 3,
+        date: new Date(tour11StartDate.getTime() + 5 * 24 * 60 * 60 * 1000),
+        city: "Cleveland",
+        state: "OH",
+        status: "confirmed",
+        venueName: "Grog Shop",
+        isOpenDate: false
+      },
+      {
+        tourId: createdTour11.id,
+        venueId: undefined,
+        date: new Date(tour11StartDate.getTime() + 8 * 24 * 60 * 60 * 1000),
+        city: "",
+        state: "",
+        status: "open",
+        venueName: undefined,
+        isOpenDate: true,
+        notes: "Need venue between Cleveland and Chicago"
+      },
+      {
+        tourId: createdTour11.id,
+        venueId: 4,
+        date: new Date(tour11StartDate.getTime() + 12 * 24 * 60 * 60 * 1000),
+        city: "Chicago",
+        state: "IL",
+        status: "confirmed",
+        venueName: "Empty Bottle",
+        isOpenDate: false
+      },
+      {
+        tourId: createdTour11.id,
+        venueId: 7,
+        date: new Date(tour11StartDate.getTime() + 15 * 24 * 60 * 60 * 1000),
+        city: "Madison",
+        state: "WI",
+        status: "confirmed",
+        venueName: "The Frequency",
+        isOpenDate: false
+      }
+    ];
+    
+    // Create tour dates for Tour 12 (DJ Electro Vibes - Urban Circuit)
+    const tour12Dates: InsertTourDate[] = [
+      {
+        tourId: createdTour12.id,
+        venueId: 2,
+        date: new Date(tour12StartDate.getTime() + 4 * 24 * 60 * 60 * 1000),
+        city: "New York",
+        state: "NY",
+        status: "confirmed",
+        venueName: "Mercury Lounge",
+        isOpenDate: false
+      },
+      {
+        tourId: createdTour12.id,
+        venueId: 3,
+        date: new Date(tour12StartDate.getTime() + 8 * 24 * 60 * 60 * 1000),
+        city: "Cleveland",
+        state: "OH",
+        status: "confirmed",
+        venueName: "Grog Shop",
+        isOpenDate: false
+      },
+      {
+        tourId: createdTour12.id,
+        venueId: undefined,
+        date: new Date(tour12StartDate.getTime() + 11 * 24 * 60 * 60 * 1000),
+        city: "",
+        state: "",
+        status: "open",
+        venueName: undefined,
+        isOpenDate: true,
+        notes: "Looking for electronic-friendly venue in Rochester area"
+      },
+      {
+        tourId: createdTour12.id,
+        venueId: 4,
+        date: new Date(tour12StartDate.getTime() + 15 * 24 * 60 * 60 * 1000),
+        city: "Chicago",
+        state: "IL",
+        status: "confirmed",
+        venueName: "Empty Bottle",
+        isOpenDate: false
+      }
+    ];
+    
+    // Create tour dates for Tour 13 (Velvet Thunder - Route 66 Revival)
+    const tour13Dates: InsertTourDate[] = [
+      {
+        tourId: createdTour13.id,
+        venueId: 8,
+        date: new Date(tour13StartDate.getTime() + 5 * 24 * 60 * 60 * 1000),
+        city: "Rockford",
+        state: "IL",
+        status: "confirmed",
+        venueName: "The Hideout",
+        isOpenDate: false
+      },
+      {
+        tourId: createdTour13.id,
+        venueId: 6,
+        date: new Date(tour13StartDate.getTime() + 9 * 24 * 60 * 60 * 1000),
+        city: "Milwaukee",
+        state: "WI",
+        status: "confirmed",
+        venueName: "Cactus Club",
+        isOpenDate: false
+      },
+      {
+        tourId: createdTour13.id,
+        venueId: undefined,
+        date: new Date(tour13StartDate.getTime() + 13 * 24 * 60 * 60 * 1000),
+        city: "",
+        state: "",
+        status: "open",
+        venueName: undefined,
+        isOpenDate: true,
+        notes: "Need venue in upstate New York"
+      },
+      {
+        tourId: createdTour13.id,
+        venueId: 2,
+        date: new Date(tour13StartDate.getTime() + 18 * 24 * 60 * 60 * 1000),
+        city: "New York",
+        state: "NY",
+        status: "confirmed",
+        venueName: "Mercury Lounge",
+        isOpenDate: false
+      }
+    ];
 
     // Combine all tour dates
     const allTourDates = [
@@ -1390,7 +1576,10 @@ export class MemStorage implements IStorage {
       ...tour7Dates,
       ...tour8Dates,
       ...tour9Dates,
-      ...tour10Dates
+      ...tour10Dates,
+      ...tour11Dates,
+      ...tour12Dates,
+      ...tour13Dates
     ];
 
     // Save all tour dates
