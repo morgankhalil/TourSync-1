@@ -95,29 +95,41 @@ const VenueCalendar: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [activeTab, setActiveTab] = useState("upcoming");
 
-  const { data: upcomingDates, isLoading } = useQuery({
+  const { data: upcomingDates, isLoading, error } = useQuery({
     queryKey: [`/api/venues/${venue?.id}/dates`],
     queryFn: async () => {
       if (!venue) return [];
-      const response = await axios.get(`/api/venues/${venue.id}/dates`);
-      return response.data as TourDate[];
+      console.log("Fetching venue dates for venue ID:", venue.id);
+      try {
+        const response = await axios.get(`/api/venues/${venue.id}/dates`);
+        console.log("Received venue dates:", response.data);
+        return response.data as TourDate[];
+      } catch (err) {
+        console.error("Error fetching venue dates:", err);
+        throw err;
+      }
     },
     enabled: !!venue,
   });
 
   // Filter dates based on current date
   const currentDate = new Date();
-  const upcomingShows = upcomingDates?.filter(
-    date => new Date(date.date) >= currentDate && !date.isOpenDate
-  ) || [];
+  console.log("Current date for comparison:", currentDate);
 
-  const pastShows = upcomingDates?.filter(
-    date => new Date(date.date) < currentDate && !date.isOpenDate
-  ) || [];
+  const upcomingShows = upcomingDates?.filter(date => {
+    const eventDate = new Date(date.date);
+    console.log(`Date ${date.id}: ${date.date}, parsed as:`, eventDate);
+    return eventDate >= currentDate && !date.isOpenDate;
+  }) || [];
 
-  const openDates = upcomingDates?.filter(
-    date => date.isOpenDate
-  ) || [];
+  const pastShows = upcomingDates?.filter(date => {
+    const eventDate = new Date(date.date);
+    return eventDate < currentDate && !date.isOpenDate;
+  }) || [];
+
+  const openDates = upcomingDates?.filter(date => {
+    return date.isOpenDate;
+  }) || [];
 
   // If no venue is selected, show a message
   if (!venue) {
@@ -245,6 +257,21 @@ const VenueCalendar: React.FC = () => {
             </CardContent>
           </Card>
         </Tabs>
+
+        {/* Debug information (only in development) */}
+        <div className="mt-6 border p-4 rounded-md bg-gray-50 text-xs">
+          <h3 className="font-bold mb-2">Debug Info:</h3>
+          <div className="space-y-1">
+            <p>Active Venue ID: {venue?.id}</p>
+            <p>Query Status: {isLoading ? 'Loading...' : error ? 'Error' : 'Success'}</p>
+            <p>Data Received: {upcomingDates ? 'Yes' : 'No'}</p>
+            <p>Total Dates: {upcomingDates?.length || 0}</p>
+            <p>Upcoming Shows: {upcomingShows.length}</p>
+            <p>Past Shows: {pastShows.length}</p>
+            <p>Open Dates: {openDates.length}</p>
+            {error && <p className="text-red-500">Error: {(error as Error).message}</p>}
+          </div>
+        </div>
       </div>
 
       <div className="lg:col-span-1">
