@@ -4,7 +4,7 @@
  */
 
 import { apiRequest } from '@/lib/queryClient';
-import { BandDiscoveryResult, RouteAnalysis } from '../types';
+import { BandDiscoveryResult } from '@/types';
 
 export interface BandsintownDiscoveryOptions {
   venueId: number;
@@ -30,7 +30,7 @@ export const bandsintownDiscoveryService = {
     // Format dates as ISO strings if they're Date objects
     const formattedStartDate = typeof startDate === 'string' ? startDate : startDate.toISOString();
     const formattedEndDate = typeof endDate === 'string' ? endDate : endDate.toISOString();
-    
+
     const response = await apiRequest('/api/bandsintown/discover-bands-near-venue', {
       method: 'POST',
       body: JSON.stringify({
@@ -40,16 +40,16 @@ export const bandsintownDiscoveryService = {
         radius
       })
     });
-    
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || 'Error fetching bands near venue');
     }
-    
+
     const result = await response.json();
     return result.data || [];
   },
-  
+
   /**
    * Check the status of the Bandsintown discovery service
    */
@@ -59,12 +59,12 @@ export const bandsintownDiscoveryService = {
     discoveryEnabled: boolean;
   }> {
     const response = await apiRequest('/api/bandsintown/discovery-status');
-    
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || 'Error checking Bandsintown API status');
     }
-    
+
     return await response.json();
   }
 };

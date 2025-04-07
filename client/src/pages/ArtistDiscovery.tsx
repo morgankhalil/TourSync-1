@@ -42,6 +42,12 @@ const ArtistDiscovery: React.FC = () => {
         radius
       });
       
+      // Make sure results is an array before mapping
+      if (!Array.isArray(results)) {
+        console.error('Expected array of results but got:', results);
+        return [];
+      }
+      
       // Convert to BandPassingNearby format for the UI
       return results.map(result => ({
         band: {
