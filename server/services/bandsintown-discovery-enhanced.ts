@@ -7,6 +7,7 @@
  * - Better handling of timeframes and date ranges
  */
 
+import NodeCache from 'node-cache';
 import { BandsintownApiService, ArtistWithEvents, Event } from './bandsintown-api';
 import { getArtistsToQuery } from './artists-database';
 import { Venue } from '@/types';
