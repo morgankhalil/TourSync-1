@@ -26,13 +26,16 @@ const ArtistDiscovery: React.FC = () => {
   const { data: bandsNearVenue, isLoading, error, refetch } = useQuery({
     queryKey: activeVenue ? ['find-bands-near-venue', activeVenue.id, startDate, endDate, radius] : ['skip-query'],
     queryFn: async () => {
-      if (!activeVenue) return [];
+      if (!activeVenue) {
+        throw new Error('Please select a venue first');
+      }
       if (!activeVenue.latitude || !activeVenue.longitude) {
-        throw new Error('Selected venue is missing location data. Please update the venue with valid coordinates.');
+        throw new Error(`Venue "${activeVenue.name}" is missing location data. Please update the venue coordinates in venue settings.`);
       }
       return bandsintownService.findBandsNearVenue(activeVenue.id, startDate, endDate, radius);
     },
     enabled: !!activeVenue,
+    retry: false // Don't retry on error since it's likely a data issue
   });
 
   // Function to refresh tour data from Bandsintown
