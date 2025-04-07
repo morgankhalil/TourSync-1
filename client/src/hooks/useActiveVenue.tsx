@@ -149,7 +149,7 @@ export const ActiveVenueProvider: React.FC<{ children: React.ReactNode }> = ({ c
       
       toast({
         title: "Default venue selected",
-        description: `Selected venue: ${bugJar.name}`,
+        description: `Selected venue: ${emptyBottle.name}`,
         duration: 3000
       });
     }
