@@ -2,7 +2,7 @@ import axios from 'axios';
 import { BandDiscoveryResult } from '@/types';
 
 class BandsintownDiscoveryService {
-  private apiUrl = '/api/bandsintown-discovery';
+  private apiUrl = '/api/bandsintown';
   private websocketUrl: string;
 
   constructor() {
@@ -13,10 +13,11 @@ class BandsintownDiscoveryService {
   }
 
   async checkStatus(): Promise<{
+    status: string;
     apiKeyConfigured: boolean;
     discoveryEnabled: boolean;
   }> {
-    const response = await axios.get(`${this.apiUrl}/status`);
+    const response = await axios.get(`${this.apiUrl}/discovery-status`);
     return response.data;
   }
 
@@ -24,13 +25,11 @@ class BandsintownDiscoveryService {
     venueId: number | string;
     startDate: string;
     endDate: string;
-    radius: number;
+    radius?: number;
   }): Promise<BandDiscoveryResult[]> {
     try {
-      const response = await axios.get(`${this.apiUrl}/bands-near-venue`, {
-        params
-      });
-      return response.data;
+      const response = await axios.post(`${this.apiUrl}/discover-bands-near-venue`, params);
+      return response.data.data || [];
     } catch (error) {
       console.error('Error finding bands near venue:', error);
       throw error;
