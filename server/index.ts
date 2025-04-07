@@ -3,9 +3,24 @@ import cache from "express-cache-controller";
 import { registerRoutes } from "./routes";
 import calendarRoutes from "./routes/calendar";
 import { setupVite, serveStatic, log } from "./vite";
+import { WebSocketServer } from 'ws';
 
 const app = express();
 app.use(express.json());
+
+// Create WebSocket server
+const wss = new WebSocketServer({ noServer: true });
+
+// Handle WebSocket upgrade
+const server = app.listen(5000, '0.0.0.0', () => {
+  log('Server running at http://0.0.0.0:5000');
+});
+
+server.on('upgrade', (request, socket, head) => {
+  wss.handleUpgrade(request, socket, head, (ws) => {
+    wss.emit('connection', ws, request);
+  });
+});
 app.use(cache({
   maxAge: 60 // Cache responses for 60 seconds by default
 }));

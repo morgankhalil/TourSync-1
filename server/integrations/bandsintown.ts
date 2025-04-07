@@ -124,10 +124,8 @@ export class BandsintownIntegration {
 
     private initializeWebSocketServer() {
         const wss = new WebSocketServer({ 
-            port: 8080,
-            host: '0.0.0.0',
-            clientTracking: true,
-            path: '/ws' // Adding a specific path for WebSocket connections
+            noServer: true,
+            clientTracking: true
         });
 
         wss.on('connection', (ws) => {
