@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import { useActiveVenue } from "@/hooks/useActiveVenue";
 import { apiRequest } from "@/lib/queryClient";
 import { Venue } from "@shared/schema";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
