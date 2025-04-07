@@ -16,31 +16,40 @@ async function updateTourDatesWithDemoData() {
       return;
     }
 
-    // Generate dates starting from today
-    const startDate = new Date();
-    const statuses = ['confirmed', 'pending', 'open'];
+    // Cities and states for random assignment
+    const locations = [
+      { city: 'Chicago', state: 'IL' },
+      { city: 'Milwaukee', state: 'WI' },
+      { city: 'Madison', state: 'WI' },
+      { city: 'Detroit', state: 'MI' },
+      { city: 'Cleveland', state: 'OH' },
+      { city: 'New York', state: 'NY' },
+      { city: 'Boston', state: 'MA' }
+    ];
 
-    // Update all tour dates with new demo data
+    // Update all tour dates with complete demo data
     await db.execute(sql`
       UPDATE tour_dates
       SET 
-        venue_id = CASE 
-          WHEN random() < 0.8 THEN ${sql.join(venueIds, ', ')}[floor(random() * ${venueIds.length})]::integer
-          ELSE NULL
-        END,
+        venue_id = ${sql.join(venueIds, ', ')}[floor(random() * ${venueIds.length})::integer],
         date = (CURRENT_DATE + (floor(random() * 90))::integer)::date,
-        status = CASE 
-          WHEN random() < 0.6 THEN 'confirmed'
-          WHEN random() < 0.8 THEN 'pending'
-          ELSE 'open'
-        END,
-        is_open_date = CASE 
-          WHEN venue_id IS NULL THEN true 
-          ELSE false 
-        END,
-        venue_name = CASE 
-          WHEN venue_id IS NOT NULL THEN (SELECT name FROM venues WHERE venues.id = tour_dates.venue_id)
-          ELSE NULL
+        status = (ARRAY['confirmed', 'pending', 'open'])[floor(random() * 3 + 1)],
+        city = (
+          SELECT city FROM (
+            SELECT unnest(${sql.array(locations.map(l => l.city), 'text')}) as city
+          ) AS cities OFFSET floor(random() * ${locations.length}) LIMIT 1
+        ),
+        state = (
+          SELECT state FROM (
+            SELECT unnest(${sql.array(locations.map(l => l.state), 'text')}) as state
+          ) AS states OFFSET floor(random() * ${locations.length}) LIMIT 1
+        ),
+        venue_name = (SELECT name FROM venues WHERE venues.id = tour_dates.venue_id),
+        is_open_date = false,
+        notes = CASE 
+          WHEN random() < 0.3 THEN 'Pending contract'
+          WHEN random() < 0.6 THEN 'Confirmed booking'
+          ELSE 'Ready for show'
         END
     `);
 
