@@ -15,7 +15,7 @@ const Sidebar: React.FC = () => {
   const venue = useActiveVenue();
   const activeVenue = venue.activeVenue;
   const [location] = useLocation();
-  
+
   const navItems = [
     { name: 'Dashboard', path: '/', icon: <Home className="w-5 h-5 mr-3" /> },
     { name: 'Artist Discovery', path: '/discovery', icon: <Compass className="w-5 h-5 mr-3" /> },
@@ -37,13 +37,13 @@ const Sidebar: React.FC = () => {
           </div>
         )}
       </div>
-      
+
       <nav className="flex-1 p-4">
         <ul className="space-y-1">
           {navItems.map((item) => {
             const isActive = location === item.path || 
               (item.path !== '/' && location.startsWith(item.path));
-              
+
             return (
               <li key={item.path}>
                 <Link
@@ -65,7 +65,7 @@ const Sidebar: React.FC = () => {
           })}
         </ul>
       </nav>
-      
+
       <div className="p-4 border-t">
         <div className="flex items-center">
           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
