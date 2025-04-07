@@ -29,7 +29,14 @@ export default function AddVenueModal() {
     try {
       // First search for venue
       const searchResponse = await fetch(`/api/bandsintown/venue/search?name=${encodeURIComponent(venueName)}&location=${encodeURIComponent(location)}`, {
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          // Add auth header if you have a token
+          ...(localStorage.getItem('authToken') && {
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          })
+        }
       });
       if (!searchResponse.ok) {
         const errorData = await searchResponse.json();
