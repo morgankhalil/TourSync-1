@@ -78,6 +78,28 @@ export interface DiscoveryResults {
 }
 
 export class EnhancedBandsintownDiscoveryService {
+  private readonly cache: NodeCache;
+  private readonly apiService: BandsintownApiService;
+  private readonly MAX_CONCURRENT_REQUESTS = 3;
+  private readonly REQUEST_DELAY = 1000; // 1 second between requests
+  private readonly MAX_SEARCH_RADIUS = 500; // km
+  private readonly MIN_VENUE_CAPACITY = 100;
+
+  constructor(apiKey: string) {
+    this.apiService = new BandsintownApiService(apiKey);
+    this.cache = new NodeCache({ 
+      stdTTL: 3600,
+      checkperiod: 120
+    });
+  }
+
+  /**
+   * Initialize the service and validate configuration
+   */
+  async initialize(): Promise<void> {
+    await this.apiService.validateApiKey();
+    console.log('Enhanced Bandsintown Discovery Service initialized');
+  }
   private apiService: BandsintownApiService;
 
   constructor(apiKey: string) {

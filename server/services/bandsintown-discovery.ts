@@ -215,9 +215,19 @@ export class BandsintownDiscoveryService {
     venueLat: number,
     venueLng: number,
     radius: number,
-    minDaysBetween = 1,
-    maxDetourMultiplier = 2
+    minDaysBetween = 2, // Increased minimum days between shows
+    maxDetourMultiplier = 1.5 // Reduced max detour multiplier for better efficiency
   ): RouteAnalysis | null {
+    // Validation
+    if (!events?.length || !venueLat || !venueLng) {
+      return null;
+    }
+
+    // Constants for scoring
+    const DISTANCE_WEIGHT = 0.4;
+    const TIME_WEIGHT = 0.3;
+    const ROUTING_WEIGHT = 0.3;
+    const MAX_ACCEPTABLE_DETOUR = 300; // km
     if (events.length < 2) return null;
 
     // Sort events by date

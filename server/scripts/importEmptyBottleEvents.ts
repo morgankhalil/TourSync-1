@@ -7,6 +7,31 @@ import { BandsintownApiService } from '../services/bandsintown-api';
 async function importEmptyBottleEvents() {
   try {
     console.log('Starting Empty Bottle data import...');
+    
+    // Validate required environment variables
+    if (!process.env.BANDSINTOWN_API_KEY) {
+      throw new Error('BANDSINTOWN_API_KEY environment variable is not set');
+    }
+
+    // Initialize services with retry logic
+    let retries = 0;
+    const MAX_RETRIES = 3;
+    let bandsintownApi;
+
+    while (retries < MAX_RETRIES) {
+      try {
+        bandsintownApi = new BandsintownApiService(process.env.BANDSINTOWN_API_KEY);
+        await bandsintownApi.validateApiKey();
+        break;
+      } catch (error) {
+        retries++;
+        if (retries === MAX_RETRIES) {
+          throw new Error(`Failed to initialize Bandsintown API after ${MAX_RETRIES} attempts`);
+        }
+        console.log(`Retry ${retries}/${MAX_RETRIES} initializing Bandsintown API...`);
+        await new Promise(resolve => setTimeout(resolve, 1000 * retries));
+      }
+    }
 
     // Validate API key
     const apiKey = process.env.BANDSINTOWN_API_KEY;

@@ -121,21 +121,33 @@ export class BandsintownApiService {
 
   private async validateApiKey(): Promise<void> {
     try {
-      const response = await axios.get(`${this.baseUrl}/artists/validate`, {
+      // Use a test artist to validate the API key
+      const response = await axios.get(`${this.baseUrl}/artists/Radiohead`, {
         params: { app_id: this.apiKey },
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
-        }
+        },
+        timeout: 5000 // 5 second timeout
       });
-      if (response.status !== 200) {
-        throw new Error('API key validation failed');
+
+      if (response.status === 200) {
+        console.log('Bandsintown API key validated successfully');
+        return;
       }
+      
+      throw new Error('API key validation failed');
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response?.status === 403) {
-        throw new Error('Invalid or unauthorized API key');
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 403) {
+          throw new Error('Invalid or unauthorized Bandsintown API key');
+        } else if (error.response?.status === 429) {
+          throw new Error('Rate limit exceeded - please try again later');
+        } else if (error.code === 'ECONNABORTED') {
+          throw new Error('API request timed out - please check your connection');
+        }
       }
-      throw error;
+      throw new Error('Failed to validate Bandsintown API key');
     }
   }
 
