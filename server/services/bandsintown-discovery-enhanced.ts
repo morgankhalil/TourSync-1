@@ -360,19 +360,24 @@ export class EnhancedBandsintownDiscoveryService {
     detourDistance: number,
     daysBetween: number,
     venueDrawSize: number = 0,
-    venueCapacity: number = 0
+    venueCapacity: number = 0,
+    numberOfStops: number = 1
   ): number {
-    // Enhanced distance scoring with progressive penalty
-    const distanceThreshold = Math.min(300 + (venueCapacity / 10), 500);
+    // Enhanced distance scoring with progressive penalty and multi-stop consideration
+    const distanceThreshold = Math.min(300 + (venueCapacity / 10), 500) * Math.sqrt(numberOfStops);
     const distancePenalty = distanceToVenue > distanceThreshold
       ? 100
       : Math.round((Math.pow(distanceToVenue / distanceThreshold, 1.8)) * 100);
 
-    // Dynamic detour threshold based on venue metrics
+    // Dynamic detour threshold based on venue metrics and number of stops
+    const stopMultiplier = 1 + (Math.log(numberOfStops) / Math.log(2)) * 0.2; // Logarithmic scaling
     const maxAcceptableDetour = Math.min(
-      distanceToVenue * (1.5 + (venueDrawSize / 1000) + (venueCapacity / 2000)),
+      distanceToVenue * (1.5 + (venueDrawSize / 1000) + (venueCapacity / 2000)) * stopMultiplier,
       Math.max(300, distanceThreshold * 1.2)
     );
+
+    // Multi-stop bonus (rewards efficient routing between multiple venues)
+    const multiStopBonus = numberOfStops > 1 ? Math.min(20, numberOfStops * 5) : 0;
 
     // Bonus for optimal venue size match
     const venueSizeBonus = venueDrawSize > 0 && venueCapacity > 0
@@ -394,9 +399,15 @@ export class EnhancedBandsintownDiscoveryService {
     else if (daysBetween === 5) daysPenalty = 50; // Acceptable
     else if (daysBetween > 5) daysPenalty = 50 + (daysBetween - 5) * 10; // Less ideal
 
+    // Efficiency bonus for optimal number of days between shows
+    const efficiencyBonus = daysBetween >= 1 && daysBetween <= 3 ? 15 : 0;
+
     // Overall score (0-300, lower is better)
-    // We give higher weight to distance (1.5x) and detour (1.2x) factors
-    return distancePenalty * 1.5 + detourPenalty * 1.2 + daysPenalty * 0.8;
+    // Enhanced weighting system with bonuses
+    return (
+      (distancePenalty * 1.5 + detourPenalty * 1.2 + daysPenalty * 0.8) -
+      (venueSizeBonus + multiStopBonus + efficiencyBonus)
+    );
   }
 
   async findBandsNearVenue(options: DiscoveryOptions): Promise<DiscoveryResults> {
