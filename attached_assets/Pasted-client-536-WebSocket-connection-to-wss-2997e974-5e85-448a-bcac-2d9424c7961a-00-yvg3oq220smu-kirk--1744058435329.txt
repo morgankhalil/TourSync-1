@@ -1,0 +1,56 @@
+client:536 WebSocket connection to 'wss://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/?token=6PkLRgVc_nq-' failed: Error during WebSocket handshake: Unexpected response code: 400
+setupWebSocket @ client:536
+client:536 Uncaught (in promise) DOMException: Failed to construct 'WebSocket': The URL 'wss://localhost:undefined/?token=6PkLRgVc_nq-' is invalid.
+    at setupWebSocket (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@vite/client:536:19)
+    at fallback (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@vite/client:509:16)
+    at WebSocket.<anonymous> (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@vite/client:555:7)
+chunk-RPCDYKBN.js?v=af782322:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+2@tanstack_react-query.js?v=0e8517ea:2800 Uncaught Error: No QueryClient set, use QueryClientProvider to set one
+    at useQueryClient (@tanstack_react-query.js?v=0e8517ea:2800:11)
+    at useBaseQuery (@tanstack_react-query.js?v=0e8517ea:2999:18)
+    at useQuery (@tanstack_react-query.js?v=0e8517ea:3068:10)
+    at VenueSelector (VenueSelector.tsx:41:48)
+    at renderWithHooks (chunk-RPCDYKBN.js?v=af782322:11548:26)
+    at mountIndeterminateComponent (chunk-RPCDYKBN.js?v=af782322:14926:21)
+    at beginWork (chunk-RPCDYKBN.js?v=af782322:15914:22)
+    at HTMLUnknownElement.callCallback2 (chunk-RPCDYKBN.js?v=af782322:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-RPCDYKBN.js?v=af782322:3699:24)
+    at invokeGuardedCallback (chunk-RPCDYKBN.js?v=af782322:3733:39)
+chunk-RPCDYKBN.js?v=af782322:14032 The above error occurred in the <VenueSelector> component:
+
+    at VenueSelector (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/venue/VenueSelector.tsx:40:27)
+    at div
+    at div
+    at div
+    at _c (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/ui/card.tsx:20:11)
+    at div
+    at Dashboard (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/pages/Dashboard.tsx:51:27)
+    at Route (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=af782322:191:16)
+    at Switch (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=af782322:247:17)
+    at div
+    at main
+    at div
+    at div
+    at div
+    at AppLayout (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/layout/AppLayout.tsx:27:37)
+    at SidebarProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/context/SidebarContext.tsx:35:35)
+    at ActiveVenueProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/hooks/useActiveVenue.tsx:37:39)
+    at App
+    at QueryClientProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=af782322:2805:3)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+logCapturedError @ chunk-RPCDYKBN.js?v=af782322:14032
+Show 1 more frame
+Show less
+chunk-RPCDYKBN.js?v=af782322:19413 Uncaught Error: No QueryClient set, use QueryClientProvider to set one
+    at useQueryClient (@tanstack_react-query.js?v=0e8517ea:2800:11)
+    at useBaseQuery (@tanstack_react-query.js?v=0e8517ea:2999:18)
+    at useQuery (@tanstack_react-query.js?v=0e8517ea:3068:10)
+    at VenueSelector (VenueSelector.tsx:41:48)
+    at renderWithHooks (chunk-RPCDYKBN.js?v=af782322:11548:26)
+    at mountIndeterminateComponent (chunk-RPCDYKBN.js?v=af782322:14926:21)
+    at beginWork (chunk-RPCDYKBN.js?v=af782322:15914:22)
+    at beginWork$1 (chunk-RPCDYKBN.js?v=af782322:19753:22)
+    at performUnitOfWork (chunk-RPCDYKBN.js?v=af782322:19198:20)
+    at workLoopSync (chunk-RPCDYKBN.js?v=af782322:19137:13)
