@@ -3,9 +3,12 @@ import { db } from '../db';
 import { tourDates, venues } from '../../shared/schema';
 import { BandsintownApiService } from '../services/bandsintown-api';
 import { format } from 'date-fns';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 
 async function importEmptyBottleEvents() {
   try {
+    return (
+      <Tabs defaultValue="events">
     // Get the Empty Bottle venue
     const venue = await db.query.venues.findFirst({
       where: (venues, { eq }) => eq(venues.id, 39)  // Empty Bottle ID is 39
@@ -59,4 +62,5 @@ importEmptyBottleEvents()
   .finally(() => {
     console.log('Import complete');
     process.exit(0);
+      </Tabs>
   });
