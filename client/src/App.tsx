@@ -1,4 +1,5 @@
 import { Route, Switch } from 'wouter';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from './components/ui/toaster';
 import AppLayout from './components/layout/AppLayout';
 import Dashboard from './pages/Dashboard';
@@ -12,10 +13,11 @@ import ArtistDiscovery from './pages/ArtistDiscovery';
 import BandDetailPage from './pages/BandDetailPage';
 import { SidebarProvider } from './context/SidebarContext';
 import { ActiveVenueProvider } from './hooks/useActiveVenue';
+import { queryClient } from './lib/queryClient'; // Assuming queryClient is here
 
 export default function App() {
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       <ActiveVenueProvider>
         <SidebarProvider>
           <AppLayout>
@@ -36,6 +38,6 @@ export default function App() {
         </SidebarProvider>
       </ActiveVenueProvider>
       <Toaster />
-    </>
+    </QueryClientProvider>
   );
 }
