@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { useLocation } from 'wouter';
 import TopNav from './TopNav';
-import Sidebar from './Sidebar';
+// Import the Sidebar directly from layout with its full path
+import Sidebar from '@/components/layout/Sidebar';
 import { useActiveVenue } from '@/hooks/useActiveVenue';
 import { 
   PlusCircle, 
