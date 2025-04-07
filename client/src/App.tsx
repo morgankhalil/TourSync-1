@@ -1,7 +1,7 @@
 import { Route, Switch } from 'wouter';
 import { Toaster } from './components/ui/toaster';
 import AppLayout from './components/layout/AppLayout';
-import VenueDashboard from './pages/VenueDashboard';
+import Dashboard from './pages/Dashboard';
 import VenueCalendar from './pages/VenueCalendar';
 import VenueProfile from './pages/VenueProfile';
 import TourDashboard from './pages/TourDashboard';
@@ -15,7 +15,8 @@ export default function App() {
       <AppLayout>
         <Switch>
           {/* Main dashboard - default route */}
-          <Route path="/" component={VenueDashboard} />
+          <Route path="/" component={Dashboard} />
+          <Route path="/dashboard" component={Dashboard} />
           
           {/* Other standard routes */}
           <Route path="/calendar" component={VenueCalendar} />
