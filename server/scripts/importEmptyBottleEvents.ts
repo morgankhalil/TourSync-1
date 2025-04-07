@@ -133,9 +133,9 @@ async function importEmptyBottleEvents() {
         }
 
         const [tour] = await db.insert(tours).values({
-          name: `${event.lineup[0]} ${normalizedStartDate.getFullYear()} Tour`,
-          startDate: normalizedStartDate.toISOString().split('T')[0], // Store as YYYY-MM-DD
-          endDate: normalizedEndDate.toISOString().split('T')[0],
+          name: `${event.lineup[0]} ${tourStartDate.getFullYear()} Tour`,
+          startDate: tourStartDate.toISOString().split('T')[0], // Store as YYYY-MM-DD
+          endDate: tourEndDate.toISOString().split('T')[0],
           bandId: band.id,
           notes: event.description || "Midwest Tour",
           isActive: true
