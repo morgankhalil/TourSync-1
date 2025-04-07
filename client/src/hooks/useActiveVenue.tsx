@@ -2,6 +2,39 @@ import React, { createContext, useState, useContext, ReactNode, useEffect } from
 import { useQuery } from '@tanstack/react-query';
 import { Venue } from '../types';
 
+// Mock data for development
+const MOCK_VENUE: Venue = {
+  id: 1,
+  name: "Bug Jar",
+  address: "219 Monroe Ave",
+  city: "Rochester",
+  state: "NY",
+  zipCode: "14607",
+  lat: 43.15,
+  lng: -77.59,
+  capacity: 200,
+  contactName: "Aaron Smith",
+  contactEmail: "booking@bugjar.com",
+  contactPhone: "585-555-1212",
+  description: "Iconic small music venue known for indie rock and alternative music",
+  genre: "Indie Rock, Alternative, Punk",
+  location: "Rochester, NY",
+  imageUrl: null,
+  website: "https://bugjar.com",
+  socialMedia: null,
+  paymentTerms: null,
+  minimumDraw: 50,
+  amenities: null,
+  stageDimensions: null,
+  technicalSpecs: null,
+  accessibility: null,
+  parkingInfo: null,
+  nearbyAccommodation: null,
+  foodOptions: null,
+  loadingInfo: null,
+  priceRange: null
+};
+
 interface ActiveVenueContextType {
   activeVenue: Venue | null;
   setActiveVenue: (venue: Venue | null) => void;
@@ -23,38 +56,25 @@ const defaultActiveVenueContext: ActiveVenueContextType = {
 const ActiveVenueContext = createContext<ActiveVenueContextType>(defaultActiveVenueContext);
 
 export const ActiveVenueProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [activeVenue, setActiveVenue] = useState<Venue | null>(null);
+  const [activeVenue, setActiveVenue] = useState<Venue | null>(MOCK_VENUE); // Use mock data for development
   const [venueId, setVenueId] = useState<number | null>(1); // Default to venue 1 for demo
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
   
-  // Fetch venue data from API when venueId changes
-  const { isLoading, error } = useQuery({
-    queryKey: venueId ? ['/api/venues', venueId] : ['skip-query'],
-    queryFn: async () => {
-      if (!venueId) return null;
-      const response = await fetch(`/api/venues/${venueId}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch venue');
-      }
-      return response.json();
-    },
-    enabled: !!venueId,
-    onSuccess: (data) => {
-      if (data) {
-        setActiveVenue(data);
-      }
-    }
-  });
+  // In a real app, we would fetch from API
+  // For now, we'll just use mock data for demonstration
+
+  const contextValue: ActiveVenueContextType = {
+    activeVenue, 
+    setActiveVenue, 
+    venueId, 
+    setVenueId, 
+    isLoading,
+    error
+  };
 
   return (
-    <ActiveVenueContext.Provider 
-      value={{ 
-        activeVenue, 
-        setActiveVenue, 
-        venueId, 
-        setVenueId, 
-        isLoading,
-        error
-      }}>
+    <ActiveVenueContext.Provider value={contextValue}>
       {children}
     </ActiveVenueContext.Provider>
   );

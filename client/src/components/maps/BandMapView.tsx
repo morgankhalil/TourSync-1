@@ -33,7 +33,8 @@ const BandMapView: React.FC<BandMapViewProps> = ({
     id: 'google-map-script'
   });
 
-  const { activeVenue } = useActiveVenue();
+  const venue = useActiveVenue();
+  const activeVenue = venue.activeVenue;
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [selectedMarker, setSelectedMarker] = useState<MapMarker | null>(null);
   const [markers, setMarkers] = useState<MapMarker[]>([]);
@@ -65,8 +66,8 @@ const BandMapView: React.FC<BandMapViewProps> = ({
 
     // Add tour date markers
     tourDates.forEach((date, index) => {
-      const lat = parseFloat(date.latitude || '0'); 
-      const lng = parseFloat(date.longitude || '0');
+      const lat = typeof date.latitude === 'number' ? date.latitude : parseFloat(date.latitude as string || '0'); 
+      const lng = typeof date.longitude === 'number' ? date.longitude : parseFloat(date.longitude as string || '0');
       
       if (lat && lng) {
         newMarkers.push({

@@ -1,4 +1,4 @@
-// Core Data Types
+// Core entity types
 
 export interface Band {
   id: number;
@@ -27,6 +27,8 @@ export interface Venue {
   city: string;
   state: string;
   zipCode: string;
+  lat?: number | string;
+  lng?: number | string;
   capacity: number | null;
   contactName: string | null;
   contactEmail: string | null;
@@ -77,6 +79,8 @@ export interface TourDate {
   isOpenDate: boolean | null;
   title?: string;
   bandId?: number;
+  latitude?: string | number;
+  longitude?: string | number;
 }
 
 export interface VenueAvailability {
@@ -87,8 +91,6 @@ export interface VenueAvailability {
   notes: string | null;
 }
 
-// Enhanced Types with Relationships
-
 export interface PastPerformance {
   id: string;
   bandName: string;
@@ -98,6 +100,8 @@ export interface PastPerformance {
   notes: string;
 }
 
+// Extended types with relationships
+
 export interface VenueWithPerformances extends Venue {
   pastPerformances?: PastPerformance[];
 }
@@ -106,7 +110,7 @@ export interface BandWithTourDates extends Band {
   tourDates?: TourDate[];
 }
 
-// Tour Route Analysis
+// Route and mapping types
 
 export interface RouteAnalysis {
   origin: {
@@ -133,7 +137,34 @@ export interface BandPassingNearby {
   route: RouteAnalysis;
 }
 
-// Bandsintown Integration Types
+export interface MapMarker {
+  id: string;
+  position: {
+    lat: number;
+    lng: number;
+  };
+  title: string;
+  type: 'venue' | 'tourDate' | 'origin' | 'destination' | 'detour';
+  icon?: string;
+  venue?: Venue;
+  tourDate?: TourDate;
+}
+
+export interface MapPolyline {
+  id: string;
+  path: Array<{
+    lat: number;
+    lng: number;
+  }>;
+  options?: {
+    strokeColor?: string;
+    strokeOpacity?: number;
+    strokeWeight?: number;
+    geodesic?: boolean;
+  };
+}
+
+// Bandsintown API types
 
 export interface ArtistEvent {
   id: string;
@@ -181,35 +212,6 @@ export interface ImportResult {
 export interface VenueImportResult {
   venue: Venue;
   isNew: boolean;
-}
-
-// Map & UI Types
-
-export interface MapMarker {
-  id: string;
-  position: {
-    lat: number;
-    lng: number;
-  };
-  title: string;
-  type: 'venue' | 'tourDate' | 'origin' | 'destination' | 'detour';
-  icon?: string;
-  venue?: Venue;
-  tourDate?: TourDate;
-}
-
-export interface MapPolyline {
-  id: string;
-  path: Array<{
-    lat: number;
-    lng: number;
-  }>;
-  options?: {
-    strokeColor?: string;
-    strokeOpacity?: number;
-    strokeWeight?: number;
-    geodesic?: boolean;
-  };
 }
 
 export interface DiscoveryResult {

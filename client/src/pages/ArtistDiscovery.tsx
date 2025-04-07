@@ -4,13 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button';
 import { useActiveVenue } from '@/hooks/useActiveVenue';
 import { useToast } from '@/hooks/use-toast';
-import { Band, BandPassingNearby, DiscoveryResult } from '@/types';
+import { Band, BandPassingNearby, DiscoveryResult, Venue } from '@/types';
 import { getLocationLabel, formatDate, formatDateMedium, calculateDistance } from '@/lib/utils';
 import { bandsintownService } from '@/services/bandsintown';
 import BandMapView from '@/components/maps/BandMapView';
 
 const ArtistDiscovery: React.FC = () => {
-  const { activeVenue } = useActiveVenue();
+  const venue = useActiveVenue();
+  const activeVenue = venue.activeVenue;
   const { toast } = useToast();
   const [startDate, setStartDate] = useState<string>(
     new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]

@@ -5,9 +5,11 @@ import { Button } from '@/components/ui/button';
 import { useActiveVenue } from '@/hooks/useActiveVenue';
 import { Link } from 'wouter';
 import { getLocationLabel, formatDate, formatDateMedium } from '@/lib/utils';
+import { Venue } from '@/types';
 
 const Dashboard: React.FC = () => {
-  const { activeVenue } = useActiveVenue();
+  const venue = useActiveVenue();
+  const activeVenue = venue.activeVenue;
   
   // Placeholder data - in a real implementation, these would come from API calls
   const upcomingBookings = 5;
