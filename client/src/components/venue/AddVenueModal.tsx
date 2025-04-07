@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { useQueryClient } from '@tanstack/react-query';
 
-export function AddVenueModal() {
+export default function AddVenueModal() {
   const [venueName, setVenueName] = useState('');
   const [location, setLocation] = useState('');
   const [isLoading, setIsLoading] = useState(false);
