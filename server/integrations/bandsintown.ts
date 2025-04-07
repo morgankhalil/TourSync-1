@@ -727,13 +727,24 @@ export class BandsintownIntegration {
                 const eventDate = new Date(event.datetime);
                 const venue = event.venue;
                 
-                // Check if we already have this date
-                const existingDate = existingDates.find(d => 
-                    d.tourId === tour.id &&
-                    d.city === venue.city &&
-                    d.state === venue.region &&
-                    Math.abs(new Date(d.date).getTime() - eventDate.getTime()) < 24 * 60 * 60 * 1000 // Within 24 hours
-                );
+                // Enhanced duplicate detection
+                const existingDate = existingDates.find(d => {
+                    // Check for exact match first
+                    if (d.tourId === tour.id && 
+                        d.city === venue.city && 
+                        d.state === venue.region && 
+                        d.date === eventDate.toISOString().split('T')[0]) {
+                        return true;
+                    }
+                    
+                    // Check for similar events (same tour, location, within 24h)
+                    const dateMatch = Math.abs(new Date(d.date).getTime() - eventDate.getTime()) < 24 * 60 * 60 * 1000;
+                    const locationMatch = d.city.toLowerCase() === venue.city?.toLowerCase() && 
+                                       d.state.toLowerCase() === venue.region?.toLowerCase();
+                    const tourMatch = d.tourId === tour.id;
+                    
+                    return dateMatch && locationMatch && tourMatch;
+                });
                 
                 if (existingDate) {
                     results.push(existingDate);
