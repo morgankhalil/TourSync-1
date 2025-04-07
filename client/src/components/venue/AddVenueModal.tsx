@@ -41,10 +41,13 @@ export default function AddVenueModal() {
       });
       
       if (!searchResponse.ok) {
+        console.error('Search response error:', await searchResponse.text());
         throw new Error(`Error searching for venue: ${searchResponse.status}`);
       }
       
       const searchResults = await searchResponse.json();
+      console.log('Search results:', searchResults);
+      
       if (!searchResults || !searchResults.length) {
         throw new Error('No venues found');
       }
@@ -56,7 +59,10 @@ export default function AddVenueModal() {
 
       // Get detailed venue info
       const detailsResponse = await fetch(`/api/bandsintown/venue/${searchResult.id}`, {
-        credentials: 'include'
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        }
       });
       if (!detailsResponse.ok) {
         const errorData = await detailsResponse.json();
