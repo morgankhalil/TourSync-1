@@ -14,6 +14,14 @@ import { z } from 'zod';
 const BANDSINTOWN_API_KEY = process.env.BANDSINTOWN_API_KEY;
 const discoveryService = new EnhancedBandsintownDiscoveryService(BANDSINTOWN_API_KEY || '');
 
+// Helper to set up streaming response
+const setupStreamingResponse = (res: Response) => {
+  res.setHeader('Content-Type', 'text/plain');
+  res.setHeader('Transfer-Encoding', 'chunked');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+};
+
 // Validation schema for discovery request
 const discoverRequestSchema = z.object({
   venueId: z.number().int().positive(),
@@ -29,6 +37,121 @@ const discoverRequestSchema = z.object({
 
 export function registerBandsintownDiscoveryV2Routes(router: Router) {
   /**
+   * GET /api/bandsintown-discovery-v2/discover
+   * Enhanced discovery endpoint with streaming support
+   */
+  router.get('/api/bandsintown-discovery-v2/discover', async (req: Request, res: Response) => {
+    try {
+      const validation = discoverRequestSchema.safeParse({
+        ...req.query,
+        venueId: parseInt(req.query.venueId as string, 10),
+        radius: req.query.radius ? parseInt(req.query.radius as string, 10) : undefined,
+        maxBands: req.query.maxBands ? parseInt(req.query.maxBands as string, 10) : undefined,
+        streaming: req.query.streaming === 'true'
+      });
+
+      if (!validation.success) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Invalid request parameters',
+          errors: fromZodError(validation.error)
+        });
+      }
+
+      const {
+        venueId,
+        startDate,
+        endDate,
+        radius = 100,
+        maxBands = 20,
+        lookAheadDays = 90,
+        streaming = false
+      } = validation.data;
+
+      // Set up streaming if requested
+      if (streaming) {
+        setupStreamingResponse(res);
+      }
+
+      // Configure progress reporting
+      let lastProgress = 0;
+      const onProgress = (completed: number, total: number) => {
+        const progress = Math.floor((completed / total) * 100);
+        if (progress > lastProgress + 10) {
+          lastProgress = progress;
+          console.log(`Discovery progress: ${progress}% (${completed}/${total})`);
+        }
+      };
+
+      // Track if any incremental results were sent
+      let incrementalResultsSent = false;
+
+      // Run the discovery
+      try {
+        const result = await discoveryService.findBandsNearVenue({
+          venueId,
+          startDate,
+          endDate,
+          radius,
+          maxBands,
+          lookAheadDays,
+          onProgress,
+          onIncrementalResults: streaming ? (newResults) => {
+            if (newResults && newResults.length > 0) {
+              try {
+                res.write(JSON.stringify({
+                  status: 'in-progress',
+                  results: newResults
+                }) + '\n');
+                incrementalResultsSent = true;
+              } catch (err) {
+                console.error('Error sending incremental results:', err);
+              }
+            }
+          } : undefined
+        });
+
+        // Send final response
+        if (streaming && incrementalResultsSent) {
+          res.write(JSON.stringify({
+            status: 'complete',
+            results: result.data,
+            stats: result.stats,
+            venue: result.venue
+          }) + '\n');
+          res.end();
+        } else {
+          res.json(result);
+        }
+      } catch (error) {
+        console.error('Error during discovery process:', error);
+        if (streaming && incrementalResultsSent) {
+          res.write(JSON.stringify({
+            status: 'error',
+            message: 'Discovery process failed'
+          }) + '\n');
+          res.end();
+        } else if (!res.headersSent) {
+          res.status(500).json({
+            status: 'error',
+            message: 'Discovery process failed',
+            error: error instanceof Error ? error.message : 'Unknown error'
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error in discovery endpoint:', error);
+      if (!res.headersSent) {
+        res.status(500).json({
+          status: 'error',
+          message: 'Failed to process discovery request',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    }
+  });
+
+  /**
    * GET /api/bandsintown-discovery-v2/status
    * Check the status of the Bandsintown API connection
    */
@@ -41,6 +164,28 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
       res.status(500).json({
         status: 'error',
         message: 'Failed to check Bandsintown API status',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  /**
+   * POST /api/bandsintown-discovery-v2/clear-cache
+   * Clear the API request cache
+   */
+  router.post('/api/bandsintown-discovery-v2/clear-cache', (_req: Request, res: Response) => {
+    try {
+      console.log('Clearing discovery service cache...');
+      discoveryService.clearCache();
+      res.json({
+        status: 'success',
+        message: 'Cache cleared successfully'
+      });
+    } catch (error) {
+      console.error('Error clearing cache:', error);
+      res.status(500).json({
+        status: 'error',
+        message: 'Failed to clear cache',
         error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
