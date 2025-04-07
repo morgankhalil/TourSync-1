@@ -12,8 +12,25 @@ app.use(express.json());
 const wss = new WebSocketServer({ noServer: true });
 
 // Handle WebSocket upgrade
-const server = app.listen(5000, '0.0.0.0', () => {
-  log('Server running at http://0.0.0.0:5000');
+const PORT = 5000;
+
+function shutdownGracefully() {
+  console.log('Shutting down gracefully...');
+  process.exit(0);
+}
+
+process.on('SIGTERM', shutdownGracefully);
+process.on('SIGINT', shutdownGracefully);
+
+const server = app.listen(PORT, '0.0.0.0', () => {
+  log(`Server running at http://0.0.0.0:${PORT}`);
+}).on('error', (err: any) => {
+  if (err.code === 'EADDRINUSE') {
+    log(`Port ${PORT} is busy, trying to close existing process...`);
+    shutdownGracefully();
+  } else {
+    console.error('Server error:', err);
+  }
 });
 
 server.on('upgrade', (request, socket, head) => {
