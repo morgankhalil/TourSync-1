@@ -103,8 +103,8 @@ const ArtistDiscovery: React.FC = () => {
     refetchOnWindowFocus: false
   });
 
-  // Use incremental results if available, otherwise use query results
-  const displayResults = incrementalResults.length > 0 ? incrementalResults : bandsNearVenue;
+  // Use incremental results if available, otherwise use query results, ensuring we always have an array
+  const displayResults = incrementalResults.length > 0 ? incrementalResults : (bandsNearVenue || []);
 
   // Function to check Bandsintown API status
   const checkApiStatus = async () => {
