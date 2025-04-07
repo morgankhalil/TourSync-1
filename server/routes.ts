@@ -6,8 +6,7 @@ import { insertBandSchema, insertTourSchema, insertTourDateSchema, insertVenueSc
 import { fromZodError } from "zod-validation-error";
 import { registerTouringRoutes } from "./routes/touring";
 import { registerBandsintownRoutes } from "./routes/bandsintown";
-import { registerBandsintownDiscoveryRoutes } from "./routes/bandsintown-discovery";
-import { registerBandsintownDiscoveryV2Routes } from "./routes/bandsintown-discovery-v2";
+import { registerBandsintownDiscoveryRoutes } from "./routes/bandsintown-discovery-unified";
 import { registerConfigRoutes } from "./routes/config";
 import { registerVenuePerformancesRoutes } from "./routes/venue-performances";
 import { registerEnvVarsRoutes } from "./routes/env-vars";
@@ -19,11 +18,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register Bandsintown integration routes
   registerBandsintownRoutes(app);
 
-  // Register Bandsintown discovery routes (direct API-based, no database storage)
+  // Register unified Bandsintown discovery routes
   registerBandsintownDiscoveryRoutes(app);
-
-  // Register enhanced Bandsintown discovery routes (with improved caching and expanded artist db)
-  registerBandsintownDiscoveryV2Routes(app);
 
   // Register configuration routes
   registerConfigRoutes(app);

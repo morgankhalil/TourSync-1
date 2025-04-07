@@ -7,8 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { BandDiscoveryResult, BandPassingNearby, DiscoveryResult, Venue } from '@/types';
 import { getLocationLabel, formatDate, formatDateMedium, calculateDistance, getFitDescription } from '@/lib/utils';
 import { bandsintownService } from '@/services/bandsintown';
-import { bandsintownDiscoveryService } from '@/services/bandsintown-discovery';
-import { EnhancedBandsintownDiscoveryClient } from '@/services/bandsintown-discovery-v2';
+import { BandsintownDiscoveryClient } from '@/services/bandsintown-discovery-unified';
 import MapView from '@/components/maps/MapView';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -81,8 +80,8 @@ const ArtistDiscovery: React.FC = () => {
         setIncrementalResults(prev => [...prev, ...formattedResults]);
       };
       
-      // Use the enhanced discovery service with v2 API
-      const results = await EnhancedBandsintownDiscoveryClient.findBandsNearVenue({
+      // Use the unified discovery service API
+      const results = await BandsintownDiscoveryClient.findBandsNearVenue({
         venueId: activeVenue.id,
         startDate,
         endDate,
@@ -123,7 +122,7 @@ const ArtistDiscovery: React.FC = () => {
         description: 'Verifying connection...',
       });
 
-      const status = await bandsintownDiscoveryService.checkStatus();
+      const status = await BandsintownDiscoveryClient.checkStatus();
 
       if (status.apiKeyConfigured && status.discoveryEnabled) {
         toast({
@@ -303,13 +302,13 @@ const ArtistDiscovery: React.FC = () => {
                       <div className="flex justify-between text-xs mt-2">
                         <span>
                           {result.route.origin && 
-                           `${formatDate(result.route.origin.date, { month: 'short', day: 'numeric' })} ${result.route.origin.city}`}
+                           `${formatDate(result.route.origin.date)} ${result.route.origin.city}`}
                         </span>
                         {result.route.destination ? (
                           <>
                             <span>→</span>
                             <span>
-                              {`${formatDate(result.route.destination.date, { month: 'short', day: 'numeric' })} ${result.route.destination.city}`}
+                              {`${formatDate(result.route.destination.date)} ${result.route.destination.city}`}
                             </span>
                           </>
                         ) : (
@@ -384,17 +383,17 @@ const ArtistDiscovery: React.FC = () => {
                         lng: selectedBand.route.origin?.lng || 0
                       }}
                       markers={[
-                        selectedBand.route.origin && {
+                        ...(selectedBand.route.origin ? [{
                           lat: selectedBand.route.origin.lat,
                           lng: selectedBand.route.origin.lng,
                           label: 'O'
-                        },
-                        selectedBand.route.destination && {
+                        }] : []),
+                        ...(selectedBand.route.destination ? [{
                           lat: selectedBand.route.destination.lat,
                           lng: selectedBand.route.destination.lng,
                           label: 'D'
-                        }
-                      ].filter(Boolean)}
+                        }] : [])
+                      ]}
                     />
                   </div>
                 </div>
@@ -404,7 +403,7 @@ const ArtistDiscovery: React.FC = () => {
                     <div className="text-sm text-muted-foreground">Previous Show</div>
                     <div className="font-medium">
                       {selectedBand.route.origin
-                        ? `${formatDate(selectedBand.route.origin.date, { month: 'short', day: 'numeric' })}`
+                        ? `${formatDate(selectedBand.route.origin.date)}`
                         : 'None'}
                     </div>
                     <div className="text-sm">
@@ -424,7 +423,7 @@ const ArtistDiscovery: React.FC = () => {
                     <div className="text-sm text-muted-foreground">Next Show</div>
                     <div className="font-medium">
                       {selectedBand.route.destination
-                        ? `${formatDate(selectedBand.route.destination.date, { month: 'short', day: 'numeric' })}`
+                        ? `${formatDate(selectedBand.route.destination.date)}`
                         : 'None'}
                     </div>
                     <div className="text-sm">
