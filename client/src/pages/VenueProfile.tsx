@@ -188,48 +188,55 @@ export default function VenueProfile() {
               </Card>
             </div>
 
-            <div>
-              <Card className="mb-6">
-                <CardHeader>
-                  <CardTitle>Location</CardTitle>
-                </CardHeader>
-                <CardContent className="h-[400px]">
-                  <SimpleVenueMap venue={venue} />
-                </CardContent>
-              </Card>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+  <TabsList>
+    <TabsTrigger value="info">Info</TabsTrigger>
+    <TabsTrigger value="performances">Performances</TabsTrigger>
+  </TabsList>
+  
+  <TabsContent value="info">
+    <div>
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Location</CardTitle>
+        </CardHeader>
+        <CardContent className="h-[400px]">
+          <SimpleVenueMap venue={venue} />
+        </CardContent>
+      </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Additional Information</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <Button 
-                      variant="outline" 
-                      className="w-full"
-                      onClick={() => setActiveTab("performances")}
-                    >
-                      <span className="mr-2">📊</span>
-                      View Past Performances
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="w-full"
-                      onClick={() => setActiveTab("calendar")}
-                    >
-                      <span className="mr-2">📅</span>
-                      View Availability Calendar
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Additional Information</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => setActiveTab("performances")}
+            >
+              <span className="mr-2">📊</span>
+              View Past Performances
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => setActiveTab("calendar")}
+            >
+              <span className="mr-2">📅</span>
+              View Availability Calendar
+            </Button>
           </div>
-        </TabsContent>
+        </CardContent>
+      </Card>
+    </div>
+  </TabsContent>
 
-        <TabsContent value="performances">
-          <PastPerformancesManager venueId={venueId} />
-        </TabsContent>
+  <TabsContent value="performances">
+    <PastPerformancesManager venueId={venueId} />
+  </TabsContent>
+</Tabs>ntent>
 
         <TabsContent value="calendar">
           <Card>
