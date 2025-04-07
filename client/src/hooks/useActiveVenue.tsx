@@ -107,8 +107,12 @@ export const ActiveVenueProvider: React.FC<{ children: React.ReactNode }> = ({ c
     console.log(`Setting active venue to:`, venue);
     
     if (venue) {
+      // Update both venue ID and active venue immediately
       setVenueId(venue.id);
       setActiveVenue(venue);
+      
+      // Force a navigation to the venue dashboard
+      window.location.href = `/venue/${venue.id}`;
       
       // Show toast notification
       toast({

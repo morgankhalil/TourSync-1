@@ -131,12 +131,8 @@ export default function TopNav() {
                     key={venue.id} 
                     onClick={() => {
                       setActiveVenue(venue);
-                      console.log('Selected venue:', venue);
-                      // Close dropdown after selection
-                      const dropdownTrigger = document.querySelector('[role="combobox"]');
-                      if (dropdownTrigger instanceof HTMLElement) {
-                        dropdownTrigger.click();
-                      }
+                      // Navigate to venue dashboard
+                      window.location.href = `/venue/${venue.id}`;
                     }}
                   >
                     <div className="flex items-center gap-2">
