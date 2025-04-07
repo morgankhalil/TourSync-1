@@ -34,6 +34,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register environment variables routes
   registerEnvVarsRoutes(app);
   
+  // Get all tour dates for a venue
+  app.get("/api/venues/:id/dates", async (req, res) => {
+    try {
+      const venueId = parseInt(req.params.id);
+      const venue = await storage.getVenue(venueId);
+      
+      if (!venue) {
+        return res.status(404).json({ message: "Venue not found" });
+      }
+      
+      // Get all tour dates for the venue
+      const dates = await storage.getTourDates(0); // We pass 0 to get all dates
+      const venueDates = dates.filter(date => date.venueId === venueId);
+      
+      res.json(venueDates);
+    } catch (error) {
+      console.error("Error fetching venue dates:", error);
+      res.status(500).json({ message: "Error fetching venue dates" });
+    }
+  });
+  
+  // Get venue availability
+  app.get("/api/venues/:id/availability", async (req, res) => {
+    try {
+      const venueId = parseInt(req.params.id);
+      const venue = await storage.getVenue(venueId);
+      
+      if (!venue) {
+        return res.status(404).json({ message: "Venue not found" });
+      }
+      
+      // Get venue availability
+      const availability = await storage.getVenueAvailability(venueId);
+      
+      res.json(availability);
+    } catch (error) {
+      console.error("Error fetching venue availability:", error);
+      res.status(500).json({ message: "Error fetching venue availability" });
+    }
+  });
+  
   // Band routes
   app.get("/api/bands", async (_req, res) => {
     try {

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Venue } from "@shared/schema";
+import { Venue } from "../types";
 
 export const useVenues = () => {
   // For demo purposes, we're loading all venues

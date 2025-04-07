@@ -1,45 +1,57 @@
 import React, { useState, useMemo } from 'react';
 import { useActiveVenue } from '@/hooks/useActiveVenue';
 import { useQuery } from '@tanstack/react-query';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle, 
-  CardFooter 
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { 
-  Plus, 
-  Calendar as CalendarIcon, 
-  ChevronLeft, 
-  ChevronRight,
-  Music, 
-  MapPin, 
-  ArrowRight,
-  CalendarDays,
-  Clock,
-  Check,
-  Ban,
-  Info,
-  Users,
-  Tag,
-  MessageSquare
-} from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { Calendar } from '@/components/ui/calendar';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TourDate } from '@shared/schema';
-import { format, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameMonth, isToday, eachDayOfInterval, isSameDay } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
+import { format, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, startOfWeek, endOfWeek, isToday, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { X, CalendarIcon, ChevronLeft, ChevronRight, Plus, Music, Check, Ban, CalendarDays, MapPin, Clock, Calendar, MessageSquare } from 'lucide-react';
 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { DatePicker } from '@/components/DatePicker';
 
-// Event types and utilities
 interface CalendarEvent {
   id: number;
   date: Date | string;
@@ -54,91 +66,80 @@ interface CalendarEvent {
   state?: string;
 }
 
-const statusColors: Record<string, string> = {
-  'confirmed': 'bg-green-100 text-green-800 border-green-200',
-  'pending': 'bg-amber-100 text-amber-800 border-amber-200',
-  'available': 'bg-blue-100 text-blue-800 border-blue-200',
-  'unavailable': 'bg-red-100 text-red-800 border-red-200'
-};
-
-const statusIcons: Record<string, React.ReactNode> = {
-  'confirmed': <Check className="h-4 w-4" />,
-  'pending': <Clock className="h-4 w-4" />,
-  'available': <Check className="h-4 w-4" />,
-  'unavailable': <Ban className="h-4 w-4" />
-};
-
-const VenueCalendar: React.FC = () => {
+export default function VenueCalendar() {
+  const { toast } = useToast();
   const { activeVenue } = useActiveVenue();
+  
+  // State for calendar view and navigation
+  const [view, setView] = useState<'month' | 'week' | 'day'>('month');
   const [date, setDate] = useState<Date>(new Date());
-  const [view, setView] = useState<'month' | 'week' | 'list' | 'day'>('month');
+  
+  // Event state
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [isEventDetailsOpen, setIsEventDetailsOpen] = useState(false);
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
   const [newEventDate, setNewEventDate] = useState<Date | undefined>(undefined);
   const [newEventType, setNewEventType] = useState<'show' | 'availability' | 'private'>('show');
 
-  // Sample events to display
-  const mockEvents: CalendarEvent[] = [
-    {
-      id: 1,
-      date: addDays(new Date(), 2),
-      title: 'The Electric Echoes',
-      type: 'show',
-      status: 'confirmed',
-      bandName: 'The Electric Echoes',
-      genre: 'Indie Rock',
-      notes: 'Full lineup confirmed. Opening act: The Crystal Cascade',
-      city: 'Seattle',
-      state: 'WA'
+  // The venue we're currently displaying the calendar for
+  const venue = activeVenue;
+  
+  // Fetch events from the API
+  const { data: events = [], isLoading } = useQuery<CalendarEvent[]>({
+    queryKey: ['venue-calendar-events', venue?.id],
+    queryFn: async () => {
+      if (!venue) return [];
+      
+      try {
+        // Fetch tour dates for the venue
+        const response = await fetch(`/api/venues/${venue.id}/dates`);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch events for venue ${venue.id}`);
+        }
+        
+        const tourDates = await response.json();
+        
+        // Fetch venue availability
+        const availResponse = await fetch(`/api/venues/${venue.id}/availability`);
+        let availabilityData: any[] = [];
+        
+        if (availResponse.ok) {
+          availabilityData = await availResponse.json();
+        }
+        
+        // Map tour dates to calendar events
+        const tourDateEvents = tourDates.map((date: any) => ({
+          id: date.id,
+          date: new Date(date.date),
+          title: date.venueName || (date.bandId ? `Band #${date.bandId}` : 'Unlabeled Event'),
+          type: 'show' as const,
+          status: date.status === 'confirmed' ? 'confirmed' as const : 'pending' as const,
+          bandName: date.bandId ? `Band #${date.bandId}` : undefined,
+          notes: date.notes || undefined,
+          tourId: date.tourId,
+          city: date.city,
+          state: date.state
+        }));
+        
+        // Map venue availability to calendar events
+        const availabilityEvents = availabilityData.map((avail: any) => ({
+          id: avail.id,
+          date: new Date(avail.date),
+          title: avail.isAvailable ? 'Available for Booking' : 'Unavailable',
+          type: 'availability' as const,
+          status: avail.isAvailable ? 'available' as const : 'unavailable' as const,
+          notes: avail.notes || undefined
+        }));
+        
+        // Combine both types of events
+        return [...tourDateEvents, ...availabilityEvents];
+      } catch (error) {
+        console.error("Error fetching calendar events:", error);
+        return [];
+      }
     },
-    {
-      id: 2,
-      date: addDays(new Date(), 5),
-      title: 'Violet Sunset',
-      type: 'show',
-      status: 'pending',
-      bandName: 'Violet Sunset',
-      genre: 'Alternative',
-      notes: 'Waiting for final contract approval',
-      city: 'Portland',
-      state: 'OR'
-    },
-    {
-      id: 3,
-      date: addDays(new Date(), -3),
-      title: 'Neon Horizon',
-      type: 'show',
-      status: 'confirmed',
-      bandName: 'Neon Horizon',
-      genre: 'Synthwave',
-      notes: 'Special lighting setup required',
-      city: 'Seattle',
-      state: 'WA'
-    },
-    {
-      id: 4,
-      date: addDays(new Date(), 7),
-      title: 'Venue Maintenance',
-      type: 'private',
-      status: 'unavailable',
-      notes: 'Sound system upgrade'
-    },
-    {
-      id: 5,
-      date: addDays(new Date(), 10),
-      title: 'Available for Booking',
-      type: 'availability',
-      status: 'available',
-      notes: 'Prime weekend slot'
-    }
-  ];
-
-  // Simulate API request
-  const { data: events = mockEvents, isLoading } = useQuery({
-    queryKey: ['venue-calendar-events', activeVenue?.id],
-    queryFn: async () => mockEvents,
-    enabled: !!activeVenue
+    enabled: !!venue
   });
 
   // Calculate calendar days and handle date range
@@ -215,9 +216,9 @@ const VenueCalendar: React.FC = () => {
       setDate(addDays(date, direction === 'next' ? 1 : -1));
     }
   };
-
+  
   // Empty state card when no venue is selected
-  if (!activeVenue) {
+  if (!venue) {
     return (
       <div className="p-4">
         <Card className="max-w-md mx-auto">
@@ -253,7 +254,7 @@ const VenueCalendar: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Calendar</h1>
           <p className="text-muted-foreground">
-            Manage events and availability for {activeVenue.name}
+            Manage events and availability for {venue.name}
           </p>
         </div>
         
@@ -618,57 +619,54 @@ const VenueCalendar: React.FC = () => {
                       className="p-3 border rounded-md cursor-pointer hover:bg-gray-50"
                       onClick={() => handleEventClick(event)}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="font-medium truncate">{event.title}</div>
-                        <Badge
-                          variant={event.status === 'confirmed' ? 'default' : 'outline'}
-                          className="ml-2 shrink-0 capitalize"
-                        >
-                          {event.status}
-                        </Badge>
+                      <div className="flex items-center gap-2 text-sm font-medium">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        {format(new Date(event.date), 'MMM d, yyyy')}
                       </div>
-                      <div className="text-sm text-muted-foreground mt-1">
-                        {format(new Date(event.date), 'EEE, MMM d')}
-                      </div>
+                      <div className="mt-1 font-medium">{event.title}</div>
+                      {event.type === 'show' && event.bandName && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {event.bandName}
+                        </div>
+                      )}
                     </div>
                   ))}
                 
                 {events.filter(event => new Date(event.date) >= new Date()).length === 0 && (
-                  <div className="text-center py-4 text-muted-foreground">
-                    No upcoming events
+                  <div className="text-center py-6 text-muted-foreground">
+                    No upcoming events scheduled
                   </div>
                 )}
               </div>
             </CardContent>
-            <CardFooter>
-              <Button variant="outline" className="w-full">
-                View All Events
-              </Button>
-            </CardFooter>
           </Card>
           
           <Card>
             <CardHeader>
-              <CardTitle>Legend</CardTitle>
-              <CardDescription>Event status indicators</CardDescription>
+              <CardTitle>Venue Stats</CardTitle>
+              <CardDescription>Overview for {venue.name}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <div className="flex items-center">
-                  <div className="w-4 h-4 mr-2 bg-green-100 border border-green-200 rounded"></div>
-                  <span>Confirmed</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Total events this month</span>
+                  <span className="font-medium">{events.filter(event => {
+                    const eventDate = new Date(event.date);
+                    return eventDate.getMonth() === new Date().getMonth() && 
+                           eventDate.getFullYear() === new Date().getFullYear();
+                  }).length}</span>
                 </div>
-                <div className="flex items-center">
-                  <div className="w-4 h-4 mr-2 bg-amber-100 border border-amber-200 rounded"></div>
-                  <span>Pending</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Confirmed bookings</span>
+                  <span className="font-medium">{events.filter(event => event.status === 'confirmed').length}</span>
                 </div>
-                <div className="flex items-center">
-                  <div className="w-4 h-4 mr-2 bg-blue-100 border border-blue-200 rounded"></div>
-                  <span>Available</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Pending bookings</span>
+                  <span className="font-medium">{events.filter(event => event.status === 'pending').length}</span>
                 </div>
-                <div className="flex items-center">
-                  <div className="w-4 h-4 mr-2 bg-red-100 border border-red-200 rounded"></div>
-                  <span>Unavailable</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Available dates</span>
+                  <span className="font-medium">{events.filter(event => event.status === 'available').length}</span>
                 </div>
               </div>
             </CardContent>
@@ -677,169 +675,193 @@ const VenueCalendar: React.FC = () => {
       </div>
       
       {/* Event Details Dialog */}
-      <Dialog open={isEventDetailsOpen} onOpenChange={setIsEventDetailsOpen}>
+      <Dialog 
+        open={isEventDetailsOpen} 
+        onOpenChange={setIsEventDetailsOpen}
+      >
         <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>{selectedEvent?.title}</DialogTitle>
-            <DialogDescription>
-              {selectedEvent && format(new Date(selectedEvent.date), 'EEEE, MMMM d, yyyy')}
-            </DialogDescription>
-          </DialogHeader>
-          
           {selectedEvent && (
-            <div className="py-4 space-y-4">
-              <div className="flex justify-between items-center">
-                <div className="text-sm font-medium">Status</div>
-                <Badge className={cn(
-                  "capitalize",
-                  selectedEvent.status === 'confirmed' ? 'bg-green-100 text-green-700 hover:bg-green-100' :
-                  selectedEvent.status === 'pending' ? 'bg-amber-100 text-amber-700 hover:bg-amber-100' :
-                  selectedEvent.status === 'available' ? 'bg-blue-100 text-blue-700 hover:bg-blue-100' :
-                  'bg-red-100 text-red-700 hover:bg-red-100'
-                )}>
-                  {selectedEvent.status}
-                </Badge>
-              </div>
+            <>
+              <DialogHeader>
+                <div className="flex justify-between items-start">
+                  <DialogTitle className="text-xl">{selectedEvent.title}</DialogTitle>
+                  <Badge variant={selectedEvent.status === 'confirmed' ? 'default' : 'outline'} className="capitalize">
+                    {selectedEvent.status}
+                  </Badge>
+                </div>
+                <DialogDescription>
+                  {format(new Date(selectedEvent.date), 'EEEE, MMMM d, yyyy')}
+                </DialogDescription>
+              </DialogHeader>
               
-              <div className="grid gap-4">
+              <div className="space-y-4">
                 {selectedEvent.type === 'show' && (
-                  <>
-                    <div>
-                      <Label>Band/Artist</Label>
-                      <div className="font-medium mt-1">{selectedEvent.bandName}</div>
-                    </div>
-                    
-                    <div>
-                      <Label>Genre</Label>
-                      <div className="font-medium mt-1">{selectedEvent.genre}</div>
-                    </div>
-                    
-                    {selectedEvent.city && selectedEvent.state && (
-                      <div>
-                        <Label>Location</Label>
-                        <div className="font-medium mt-1">{selectedEvent.city}, {selectedEvent.state}</div>
+                  <div className="space-y-3">
+                    {selectedEvent.bandName && (
+                      <div className="flex items-start gap-2">
+                        <Music className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div>
+                          <div className="font-medium">Band</div>
+                          <div className="text-sm text-muted-foreground">{selectedEvent.bandName}</div>
+                        </div>
                       </div>
                     )}
-                  </>
+                    
+                    {selectedEvent.genre && (
+                      <div className="flex items-start gap-2">
+                        <Music className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div>
+                          <div className="font-medium">Genre</div>
+                          <div className="text-sm text-muted-foreground">{selectedEvent.genre}</div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {selectedEvent.city && selectedEvent.state && (
+                      <div className="flex items-start gap-2">
+                        <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div>
+                          <div className="font-medium">Location</div>
+                          <div className="text-sm text-muted-foreground">{selectedEvent.city}, {selectedEvent.state}</div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )}
                 
                 {selectedEvent.notes && (
-                  <div>
-                    <Label>Notes</Label>
-                    <div className="mt-1 p-3 bg-gray-50 rounded-md text-sm">
-                      {selectedEvent.notes}
+                  <div className="flex items-start gap-2">
+                    <MessageSquare className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <div className="font-medium">Notes</div>
+                      <div className="text-sm text-muted-foreground">{selectedEvent.notes}</div>
+                    </div>
+                  </div>
+                )}
+                
+                {selectedEvent.tourId && (
+                  <div className="flex items-start gap-2">
+                    <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <div className="font-medium">Tour</div>
+                      <div className="text-sm text-muted-foreground">Part of tour #{selectedEvent.tourId}</div>
                     </div>
                   </div>
                 )}
               </div>
-            </div>
+              
+              <DialogFooter className="flex sm:justify-between">
+                <Button variant="outline" onClick={() => setIsEventDetailsOpen(false)}>
+                  Close
+                </Button>
+                
+                <div className="space-x-2">
+                  <Button variant="outline">Edit</Button>
+                  {selectedEvent.status === 'pending' && (
+                    <Button>Confirm</Button>
+                  )}
+                </div>
+              </DialogFooter>
+            </>
           )}
-          
-          <DialogFooter className="flex justify-between">
-            <Button variant="destructive" size="sm">
-              Cancel Event
-            </Button>
-            <div className="space-x-2">
-              <Button variant="outline" onClick={() => setIsEventDetailsOpen(false)}>
-                Close
-              </Button>
-              <Button>
-                Edit Event
-              </Button>
-            </div>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
       
       {/* Add Event Dialog */}
-      <Dialog open={isAddEventOpen} onOpenChange={setIsAddEventOpen}>
+      <Dialog 
+        open={isAddEventOpen} 
+        onOpenChange={setIsAddEventOpen}
+      >
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>
               {newEventType === 'show' ? 'Schedule Performance' : 
-               newEventType === 'availability' ? 'Set Availability' : 
+               newEventType === 'availability' ? 'Mark Availability' : 
                'Block Date'}
             </DialogTitle>
             <DialogDescription>
-              {newEventType === 'show' ? 'Add a new performance to your venue calendar' : 
-               newEventType === 'availability' ? 'Mark dates as available for booking' : 
-               'Block a date for private events or maintenance'}
+              {newEventType === 'show' ? 'Add a new performance to your calendar' : 
+               newEventType === 'availability' ? 'Set availability for booking' : 
+               'Block a date for private use'}
             </DialogDescription>
           </DialogHeader>
           
-          <div className="py-4 space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="event-type">Event Type</Label>
-              <Select 
-                value={newEventType} 
-                onValueChange={(value: any) => setNewEventType(value)}
-              >
-                <SelectTrigger id="event-type">
-                  <SelectValue placeholder="Select event type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="show">Performance</SelectItem>
-                  <SelectItem value="availability">Availability</SelectItem>
-                  <SelectItem value="private">Private/Block</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Date</Label>
-              <Calendar
-                mode="single"
-                selected={newEventDate}
-                onSelect={setNewEventDate}
-                className="border rounded-md p-3"
-              />
-            </div>
-            
-            {newEventType === 'show' && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="band-name">Band/Artist Name</Label>
-                  <Input id="band-name" placeholder="Enter band or artist name" />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="genre">Genre</Label>
-                  <Input id="genre" placeholder="Enter music genre" />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="status">Status</Label>
-                  <Select defaultValue="pending">
-                    <SelectTrigger id="status">
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="confirmed">Confirmed</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </>
-            )}
-            
-            {newEventType === 'availability' && (
-              <div className="space-y-2">
-                <Label htmlFor="availability">Availability</Label>
-                <Select defaultValue="available">
-                  <SelectTrigger id="availability">
-                    <SelectValue placeholder="Select availability" />
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-4 gap-4">
+              <div className="col-span-4">
+                <Label htmlFor="event-date">Date</Label>
+                <DatePicker
+                  date={newEventDate}
+                  setDate={(date) => setNewEventDate(date)}
+                />
+              </div>
+              
+              <div className="col-span-4">
+                <Label htmlFor="event-type">Event Type</Label>
+                <Select
+                  value={newEventType}
+                  onValueChange={(value: any) => setNewEventType(value)}
+                >
+                  <SelectTrigger id="event-type">
+                    <SelectValue placeholder="Select event type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="available">Available</SelectItem>
-                    <SelectItem value="unavailable">Unavailable</SelectItem>
+                    <SelectItem value="show">Performance</SelectItem>
+                    <SelectItem value="availability">Availability</SelectItem>
+                    <SelectItem value="private">Private/Blocked</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-            )}
-            
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Input id="notes" placeholder="Add additional details" />
+              
+              {newEventType === 'show' && (
+                <>
+                  <div className="col-span-4">
+                    <Label htmlFor="band">Band Name</Label>
+                    <Input id="band" placeholder="Enter band name" />
+                  </div>
+                  <div className="col-span-2">
+                    <Label htmlFor="genre">Genre</Label>
+                    <Input id="genre" placeholder="Genre" />
+                  </div>
+                  <div className="col-span-2">
+                    <Label htmlFor="status">Status</Label>
+                    <Select defaultValue="pending">
+                      <SelectTrigger id="status">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="confirmed">Confirmed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
+              
+              {newEventType === 'availability' && (
+                <div className="col-span-4">
+                  <Label htmlFor="available">Availability</Label>
+                  <Select defaultValue="available">
+                    <SelectTrigger id="available">
+                      <SelectValue placeholder="Select availability" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="available">Available</SelectItem>
+                      <SelectItem value="unavailable">Unavailable</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              
+              <div className="col-span-4">
+                <Label htmlFor="notes">Notes</Label>
+                <Textarea 
+                  id="notes" 
+                  placeholder="Additional information"
+                  className="resize-none"
+                  rows={3}
+                />
+              </div>
             </div>
           </div>
           
@@ -847,14 +869,45 @@ const VenueCalendar: React.FC = () => {
             <Button variant="outline" onClick={() => setIsAddEventOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={() => setIsAddEventOpen(false)}>
-              Add to Calendar
+            <Button onClick={() => {
+              // In a real implementation, this would send the data to the server
+              toast({
+                title: "Event added",
+                description: `Successfully added new ${newEventType} on ${newEventDate ? format(newEventDate, 'MMM d, yyyy') : 'selected date'}`,
+              });
+              setIsAddEventOpen(false);
+            }}>
+              Save Event
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
+}
+
+// Status colors for different event types
+const statusColors = {
+  confirmed: "bg-green-50 border-green-200 text-green-700",
+  pending: "bg-yellow-50 border-yellow-200 text-yellow-700",
+  available: "bg-blue-50 border-blue-200 text-blue-700",
+  unavailable: "bg-gray-50 border-gray-200 text-gray-500"
 };
 
-export default VenueCalendar;
+// Icons for different statuses
+const statusIcons = {
+  confirmed: <Check className="h-3 w-3 text-green-500" />,
+  pending: <Clock className="h-3 w-3 text-yellow-500" />,
+  available: <Check className="h-3 w-3 text-blue-500" />,
+  unavailable: <Ban className="h-3 w-3 text-gray-400" />
+};
+
+// Form label component
+const Label = ({ htmlFor, children }: { htmlFor: string, children: React.ReactNode }) => (
+  <label
+    htmlFor={htmlFor}
+    className="block text-sm font-medium text-gray-700 mb-1"
+  >
+    {children}
+  </label>
+);

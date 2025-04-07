@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Link } from 'wouter';
 import { useActiveVenue } from '@/hooks/useActiveVenue';
+import { useVenues } from '@/hooks/useVenues';
 import { 
   Calendar, 
   Search, 
@@ -26,6 +27,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 export default function TopNav() {
   const { activeVenue, setActiveVenue } = useActiveVenue();
+  const { venues, isLoading } = useVenues();
   const [searchOpen, setSearchOpen] = useState(false);
 
   return (
@@ -119,15 +121,41 @@ export default function TopNav() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Your Venues</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setActiveVenue({id: 1, name: "The Sound Garden", city: "Seattle", state: "WA"})}>
-                The Sound Garden
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setActiveVenue({id: 2, name: "Rhythm & Blues Club", city: "Chicago", state: "IL"})}>
-                Rhythm & Blues Club
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setActiveVenue({id: 3, name: "Echo Chamber", city: "Austin", state: "TX"})}>
-                Echo Chamber
-              </DropdownMenuItem>
+              {isLoading ? (
+                <DropdownMenuItem disabled>
+                  Loading venues...
+                </DropdownMenuItem>
+              ) : venues && venues.length > 0 ? (
+                venues.map(venue => {
+                  // Make sure the venue has all the fields expected by the Venue type
+                  const completeVenue: any = {
+                    ...venue,
+                    imageUrl: venue.imageUrl || null,
+                    socialMedia: venue.socialMedia || {},
+                    paymentTerms: venue.paymentTerms || {},
+                    minimumDraw: venue.minimumDraw || null,
+                    amenities: venue.amenities || {},
+                    stageDimensions: venue.stageDimensions || {},
+                    technicalSpecs: venue.technicalSpecs || {},
+                    accessibility: venue.accessibility || {},
+                    parkingInfo: venue.parkingInfo || {},
+                    nearbyAccommodation: venue.nearbyAccommodation || {},
+                    foodOptions: venue.foodOptions || {},
+                    loadingInfo: venue.loadingInfo || {},
+                    priceRange: venue.priceRange || {}
+                  };
+                  
+                  return (
+                    <DropdownMenuItem key={venue.id} onClick={() => setActiveVenue(completeVenue)}>
+                      {venue.name}
+                    </DropdownMenuItem>
+                  );
+                })
+              ) : (
+                <DropdownMenuItem disabled>
+                  No venues found
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <Link href="/venues/add">
                 <DropdownMenuItem>
