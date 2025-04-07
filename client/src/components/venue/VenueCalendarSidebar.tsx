@@ -4,7 +4,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardTitle, CardHeader, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Venue, VenueAvailability, TourDate } from '@shared/schema';
+import { Venue, VenueAvailability, TourDate } from '@/types';
 import { format, isSameDay, isToday } from 'date-fns';
 import { Calendar as CalendarIcon, Plus, Music } from 'lucide-react';
 import { cn } from '@/lib/utils';

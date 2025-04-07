@@ -51,12 +51,14 @@ export interface Venue {
   loadingInfo: any;
   priceRange: any;
   // Additional properties needed for component compatibility
-  dealType?: string;
-  venueType?: string;
+  dealType?: string | null;
+  venueType?: string | null;
   pastPerformers?: any[];
   photoGallery?: any[];
   reviews?: any[];
   bookingContact?: any;
+  accommodations?: any[];
+  preferredGenres?: string[];
 }
 
 export interface Tour {

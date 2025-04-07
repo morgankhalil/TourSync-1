@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { VenueCalendarSidebar } from '@/components/venue/VenueCalendarSidebar';
-import { TourDate } from '@shared/schema';
+import { TourDate } from '@/types';
 import axios from 'axios';
 import { formatDate } from '@/lib/utils';
 import { CalendarDays, Music, MapPin, ArrowRight } from 'lucide-react';

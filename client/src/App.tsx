@@ -3,6 +3,8 @@ import { Toaster } from './components/ui/toaster';
 import AppLayout from './components/layout/AppLayout';
 import Dashboard from './pages/Dashboard';
 import VenueCalendar from './pages/VenueCalendar';
+import VenueCalendarManage from './pages/VenueCalendarManage';
+import VenueAvailability from './pages/VenueAvailability';
 import VenueProfile from './pages/VenueProfile';
 import TourDashboard from './pages/TourDashboard';
 import CreateTour from './pages/CreateTour';
@@ -21,6 +23,8 @@ export default function App() {
               <Route path="/" component={Dashboard} />
               <Route path="/dashboard" component={Dashboard} />
               <Route path="/calendar" component={VenueCalendar} />
+              <Route path="/calendar/manage" component={VenueCalendarManage} />
+              <Route path="/venue-availability" component={VenueAvailability} />
               <Route path="/venue/:id" component={VenueProfile} />
               <Route path="/tours" component={TourDashboard} />
               <Route path="/tour/create" component={CreateTour} />
