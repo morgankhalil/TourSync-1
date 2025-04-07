@@ -1,56 +1,167 @@
 
 import React from 'react';
-import { useLocation } from 'wouter';
+import { useLocation, Link } from 'wouter';
 import { useActiveVenue } from '@/hooks/useActiveVenue';
-import { TabsList, TabsTrigger } from '../ui/tabs';
+import { TabsList, TabsTrigger, Tabs, TabsContent } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
+import { Home, Map, List, Star, Calendar, BarChart2, Settings, Users } from 'lucide-react';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbList } from '@/components/ui/breadcrumb';
 
 export default function ContextNav() {
   const [location] = useLocation();
   const { activeVenue } = useActiveVenue();
 
-  // Render different navigation items based on current route
-  const renderNavItems = () => {
+  // Get path segments for breadcrumbs
+  const pathSegments = location.split('/').filter(Boolean);
+
+  // Generate breadcrumb items dynamically
+  const getBreadcrumbItems = () => {
+    const items = [];
+    let path = '';
+
+    // Always add home
+    items.push({
+      label: 'Home',
+      path: '/',
+      icon: <Home className="h-4 w-4" />
+    });
+
+    // Add each segment
+    pathSegments.forEach((segment, index) => {
+      path += `/${segment}`;
+      
+      // Format segment for display
+      const formattedSegment = segment
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+      
+      items.push({
+        label: formattedSegment,
+        path: path,
+        icon: null
+      });
+    });
+
+    return items;
+  };
+
+  // Define section tabs based on current route
+  const getSectionTabs = () => {
+    // Venue Profile
     if (location.startsWith('/venue/')) {
-      return (
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="calendar">Calendar</TabsTrigger>
-          <TabsTrigger value="performances">Performances</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-        </TabsList>
-      );
+      return {
+        defaultValue: 'overview',
+        items: [
+          { value: 'overview', label: 'Overview', href: '/venue/' + pathSegments[1] },
+          { value: 'calendar', label: 'Calendar', href: '/venue/' + pathSegments[1] + '/calendar' },
+          { value: 'performances', label: 'Performances', href: '/venue/' + pathSegments[1] + '/performances' },
+          { value: 'analytics', label: 'Analytics', href: '/venue/' + pathSegments[1] + '/analytics' }
+        ]
+      };
     }
 
+    // Tour pages
     if (location.startsWith('/tour/')) {
-      return (
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="dates">Tour Dates</TabsTrigger>
-          <TabsTrigger value="venues">Venues</TabsTrigger>
-          <TabsTrigger value="optimize">Optimize</TabsTrigger>
-        </TabsList>
-      );
+      return {
+        defaultValue: 'overview',
+        items: [
+          { value: 'overview', label: 'Overview', href: '/tour/' + pathSegments[1] },
+          { value: 'dates', label: 'Tour Dates', href: '/tour/' + pathSegments[1] + '/dates' },
+          { value: 'venues', label: 'Venues', href: '/tour/' + pathSegments[1] + '/venues' },
+          { value: 'optimize', label: 'Optimize', href: '/tour/' + pathSegments[1] + '/optimize' }
+        ]
+      };
     }
 
-    if (location === '/discovery') {
-      return (
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="map">Map View</TabsTrigger>
-          <TabsTrigger value="list">List View</TabsTrigger>
-          <TabsTrigger value="matches">Best Matches</TabsTrigger>
-        </TabsList>
-      );
+    // Artist Discovery
+    if (location === '/artist-discovery' || location === '/discovery') {
+      return {
+        defaultValue: 'map',
+        items: [
+          { value: 'map', label: 'Map View', href: '/artist-discovery?view=map', icon: <Map className="h-4 w-4 mr-1" /> },
+          { value: 'list', label: 'List View', href: '/artist-discovery?view=list', icon: <List className="h-4 w-4 mr-1" /> },
+          { value: 'matches', label: 'Best Matches', href: '/artist-discovery?view=matches', icon: <Star className="h-4 w-4 mr-1" /> }
+        ]
+      };
     }
 
+    // Calendar
+    if (location === '/calendar') {
+      return {
+        defaultValue: 'month',
+        items: [
+          { value: 'month', label: 'Month', href: '/calendar?view=month' },
+          { value: 'week', label: 'Week', href: '/calendar?view=week' },
+          { value: 'day', label: 'Day', href: '/calendar?view=day' },
+          { value: 'list', label: 'List', href: '/calendar?view=list' }
+        ]
+      };
+    }
+    
+    // Performances
+    if (location === '/performances') {
+      return {
+        defaultValue: 'upcoming',
+        items: [
+          { value: 'upcoming', label: 'Upcoming', href: '/performances?filter=upcoming' },
+          { value: 'past', label: 'Past', href: '/performances?filter=past' },
+          { value: 'pending', label: 'Pending', href: '/performances?filter=pending' }
+        ]
+      };
+    }
+
+    // Default no tabs
     return null;
   };
 
+  const breadcrumbItems = getBreadcrumbItems();
+  const sectionTabs = getSectionTabs();
+  
   return (
-    <div className="border-b bg-muted/50">
-      <div className="container mx-auto px-4">
-        <div className="py-4">
-          {renderNavItems()}
-        </div>
+    <div className="border-b bg-card/10">
+      <div className="max-w-7xl mx-auto px-4">
+        {/* Breadcrumbs */}
+        <Breadcrumb className="py-2 text-sm">
+          <BreadcrumbList>
+            {breadcrumbItems.map((item, index) => (
+              <React.Fragment key={index}>
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild className="flex items-center">
+                    <Link href={item.path}>
+                      {item.icon && <span className="mr-1">{item.icon}</span>}
+                      {item.label}
+                    </Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                {index < breadcrumbItems.length - 1 && (
+                  <BreadcrumbSeparator />
+                )}
+              </React.Fragment>
+            ))}
+          </BreadcrumbList>
+        </Breadcrumb>
+        
+        {/* Section Tabs */}
+        {sectionTabs && (
+          <div className="py-1 overflow-x-auto scrollbar-hide">
+            <div className="flex space-x-4 pb-2">
+              {sectionTabs.items.map((tab) => (
+                <Link key={tab.value} href={tab.href}>
+                  <a className={cn(
+                    "px-3 py-2 text-sm font-medium rounded-md flex items-center whitespace-nowrap transition-colors",
+                    location.includes(tab.href) ? 
+                      "bg-primary/10 text-primary" : 
+                      "hover:bg-muted text-muted-foreground hover:text-foreground"
+                  )}>
+                    {tab.icon && tab.icon}
+                    {tab.label}
+                  </a>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

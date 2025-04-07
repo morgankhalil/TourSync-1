@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useMediaQuery } from '@/hooks/use-mobile';
 import { useLocation } from 'wouter';
 
 interface SidebarContextType {
@@ -24,7 +24,7 @@ interface SidebarProviderProps {
 }
 
 export const SidebarProvider: React.FC<SidebarProviderProps> = ({ children }) => {
-  const isMobile = useIsMobile();
+  const isMobile = useMediaQuery("(max-width: 768px)");
   const [location] = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(!isMobile);
 
