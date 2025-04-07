@@ -4,14 +4,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { bandsintownService } from "@/services/bandsintown";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
+import { useQueryClient } from '@tanstack/react-query';
 
 export function AddVenueModal() {
   const [venueName, setVenueName] = useState('');
   const [location, setLocation] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const handleSearch = async () => {
     if (!venueName || !location) {
@@ -25,31 +26,55 @@ export function AddVenueModal() {
 
     setIsLoading(true);
     try {
-      const venueData = await bandsintownService.searchVenue(venueName, location);
-      if (venueData) {
-        const details = await bandsintownService.getVenueDetails(venueData.id);
-        // Add venue to your database with the fetched details
-        // You'll need to implement this API endpoint
-        const response = await fetch('/api/venues', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            ...details,
-            bandsintownId: venueData.id
-          })
-        });
-        
-        if (response.ok) {
-          toast({
-            title: "Success",
-            description: "Venue added successfully"
-          });
-        }
+      // First search for venue
+      const searchResponse = await fetch(`/api/bandsintown/venue/search?name=${encodeURIComponent(venueName)}&location=${encodeURIComponent(location)}`);
+      const searchResult = await searchResponse.json();
+      
+      if (!searchResult?.id) {
+        throw new Error('Venue not found');
       }
+
+      // Get detailed venue info
+      const detailsResponse = await fetch(`/api/bandsintown/venue/${searchResult.id}`);
+      const venueDetails = await detailsResponse.json();
+
+      // Add venue to database
+      const createResponse = await fetch('/api/venues', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: venueDetails.name,
+          address: venueDetails.address || '',
+          city: venueDetails.city || '',
+          state: venueDetails.region || '',
+          country: venueDetails.country || 'United States',
+          postalCode: venueDetails.postal_code || '',
+          latitude: venueDetails.latitude?.toString() || null,
+          longitude: venueDetails.longitude?.toString() || null,
+          bandsintownId: searchResult.id
+        })
+      });
+
+      if (!createResponse.ok) {
+        throw new Error('Failed to create venue');
+      }
+
+      toast({
+        title: "Success",
+        description: "Venue added successfully"
+      });
+
+      // Refresh venues list
+      queryClient.invalidateQueries({ queryKey: ['/api/venues'] });
+      
+      // Reset form
+      setVenueName('');
+      setLocation('');
+      
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to fetch venue data",
+        description: error instanceof Error ? error.message : "Failed to add venue",
         variant: "destructive"
       });
     } finally {
