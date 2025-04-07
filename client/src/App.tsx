@@ -18,14 +18,13 @@ export default function App() {
         <Route>
           <AppLayout>
             <Switch>
-              <Route path="/venue/:id/dashboard" component={VenueDashboard} />
-              <Route path="/venues/:id" component={VenueDashboard} />
-              <Route path="/venue/:id/calendar" component={VenueCalendar} />
-              <Route path="/venue/:id/profile" component={VenueProfile} />
-              <Route path="/venue/:id/tours" component={TourDashboard} />
-              <Route path="/venue/:id/tour/create" component={CreateTour} />
-              <Route path="/venue/:id/discovery" component={ArtistDiscovery} />
-              <Route path="/venue/:id/band/:bandId" component={BandDetailPage} />
+              <Route path="/dashboard" component={VenueDashboard} />
+              <Route path="/calendar" component={VenueCalendar} />
+              <Route path="/profile" component={VenueProfile} />
+              <Route path="/tours" component={TourDashboard} />
+              <Route path="/tour/create" component={CreateTour} />
+              <Route path="/discovery" component={ArtistDiscovery} />
+              <Route path="/band/:bandId" component={BandDetailPage} />
             </Switch>
           </AppLayout>
         </Route>
