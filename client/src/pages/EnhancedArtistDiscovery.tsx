@@ -9,7 +9,7 @@ import { EnhancedBandsintownDiscoveryClient, DiscoveryResult, DiscoveryStats } f
 import { EnhancedBandMapView } from "../components/maps/EnhancedBandMapView";
 import { SimpleMapView } from "../components/maps/SimpleMapView";
 import { BasicMapView } from "../components/maps/BasicMapView";
-import { StaticMapView } from "../components/maps/StaticMapView";
+import { InteractiveMapView } from "../components/maps/InteractiveMapView";
 import { AlertCircle, CalendarDays, Info, MapPin, AlertTriangle, RefreshCw, Music, Zap } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -24,7 +24,7 @@ import { Separator } from "@/components/ui/separator";
 import { getFitDescription, generateRoutingDescription, getDaysDescription, getDetourDescription } from "@/lib/routing-utils";
 
 export default function EnhancedArtistDiscovery() {
-  const { activeVenue } = useActiveVenue();
+  const { venue: activeVenue } = useActiveVenue();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [searchResults, setSearchResults] = useState<DiscoveryResult[]>([]);
@@ -651,7 +651,7 @@ export default function EnhancedArtistDiscovery() {
             <Card>
               <CardContent className="p-1 h-[600px]">
                 {activeVenue && (
-                  <StaticMapView 
+                  <InteractiveMapView 
                     locations={[
                       // Venue location
                       {
@@ -846,7 +846,7 @@ export default function EnhancedArtistDiscovery() {
                       {/* Artist route map */}
                       <div className="h-[300px] mb-6 border rounded-md overflow-hidden">
                         {activeVenue && (
-                          <StaticMapView 
+                          <InteractiveMapView 
                             locations={[
                               // Venue location
                               {
@@ -943,7 +943,7 @@ export default function EnhancedArtistDiscovery() {
                               <p className="text-gray-600">
                                 {/* Try to find the venue name in the events */}
                                 {selectedArtist.events?.find(e => 
-                                  e.datetime.split('T')[0] === selectedArtist.route.origin.date)?.venue.name || 'Unknown Venue'} 
+                                  e.datetime.split('T')[0] === selectedArtist.route.origin?.date)?.venue.name || 'Unknown Venue'} 
                                 in {selectedArtist.route.origin.city}, {selectedArtist.route.origin.state}
                               </p>
                               <p className="text-sm text-gray-500 mt-1">
@@ -980,7 +980,7 @@ export default function EnhancedArtistDiscovery() {
                               <p className="text-gray-600">
                                 {/* Try to find the venue name in the events */}
                                 {selectedArtist.events?.find(e => 
-                                  e.datetime.split('T')[0] === selectedArtist.route.destination.date)?.venue.name || 'Unknown Venue'} 
+                                  e.datetime.split('T')[0] === selectedArtist.route.destination?.date)?.venue.name || 'Unknown Venue'} 
                                 in {selectedArtist.route.destination.city}, {selectedArtist.route.destination.state}
                               </p>
                             </div>
