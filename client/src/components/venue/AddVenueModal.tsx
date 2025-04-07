@@ -27,12 +27,11 @@ export default function AddVenueModal() {
     }
 
     try {
-      // First search for venue
+      // First search for venue using queryClient for proper auth handling
       const searchResponse = await fetch(`/api/bandsintown/venue/search?name=${encodeURIComponent(venueName)}&location=${encodeURIComponent(location)}`, {
-        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'X-API-KEY': import.meta.env.VITE_BANDSINTOWN_API_KEY
+          'Authorization': `Bearer ${import.meta.env.VITE_BANDSINTOWN_API_KEY}`
         }
       });
       if (!searchResponse.ok) {
