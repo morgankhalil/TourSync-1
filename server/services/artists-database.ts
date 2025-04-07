@@ -20,14 +20,28 @@ export async function getArtistsToQuery(options: ArtistQueryOptions = {}): Promi
   const { limit = 100, genres = [] } = options;
 
   try {
-    // Get artists from storage
+    // Get artists from storage with enhanced filtering
     const artists = await storage.getArtists({
       limit,
-      genres: genres.length > 0 ? genres : undefined
+      genres: genres.length > 0 ? genres : undefined,
+      orderBy: 'discoverScore',
+      includeStats: true
     });
 
-    // Filter out artists without proper names
-    const validArtists = artists.filter(artist => artist.name && artist.name.trim().length > 0);
+    // Advanced filtering
+    const validArtists = artists
+      .filter(artist => (
+        artist.name && 
+        artist.name.trim().length > 0 &&
+        (!artist.lastChecked || 
+         new Date(artist.lastChecked).getTime() < Date.now() - 24 * 60 * 60 * 1000)
+      ))
+      .sort((a, b) => {
+        // Prioritize artists that haven't been checked recently
+        const aLastChecked = a.lastChecked ? new Date(a.lastChecked).getTime() : 0;
+        const bLastChecked = b.lastChecked ? new Date(b.lastChecked).getTime() : 0;
+        return aLastChecked - bLastChecked;
+      });
 
     return validArtists;
   } catch (error) {
