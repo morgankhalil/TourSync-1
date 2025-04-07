@@ -354,6 +354,41 @@ export class BandsintownApiService {
   }
 
   /**
+   * Get events for a specific venue
+   */
+  async getVenueEvents(venueName: string, location: string): Promise<Event[]> {
+    try {
+      const cacheKey = `venue_events:${venueName}:${location}`;
+      
+      // Check cache first
+      const cachedData = API_CACHE.get<Event[]>(cacheKey);
+      if (cachedData) {
+        return cachedData;
+      }
+
+      // Make API request
+      const response = await axios.get(
+        `${API_BASE_URL}/venues/events`,
+        { 
+          params: { 
+            app_id: this.apiKey,
+            venue: venueName,
+            location: location
+          } 
+        }
+      );
+
+      // Cache the results
+      API_CACHE.set(cacheKey, response.data);
+      
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching events for venue ${venueName}:`, error);
+      return [];
+    }
+  }
+
+  /**
    * Clear all cache entries
    */
   clearCache(): void {
