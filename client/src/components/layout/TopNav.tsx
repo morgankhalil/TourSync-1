@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { Link } from 'wouter';
 import { useActiveVenue } from '@/hooks/useActiveVenue';
-import { useVenues } from '@/hooks/useVenues';
 import { 
   Calendar, 
   Search, 
@@ -10,8 +9,7 @@ import {
   Settings,
   User,
   Music,
-  MapPin,
-  Plus
+  MapPin
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,8 +24,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 export default function TopNav() {
-  const { activeVenue, setActiveVenue } = useActiveVenue();
-  const { venues, isLoading } = useVenues();
+  const { activeVenue } = useActiveVenue();
   const [searchOpen, setSearchOpen] = useState(false);
 
   return (
@@ -102,58 +99,12 @@ export default function TopNav() {
             </DropdownMenuContent>
           </DropdownMenu>
           
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-2 hidden md:flex">
-                {activeVenue ? (
-                  <>
-                    <MapPin className="h-4 w-4 text-primary" />
-                    <span className="max-w-28 truncate">{activeVenue.name}</span>
-                  </>
-                ) : (
-                  <>
-                    <MapPin className="h-4 w-4" />
-                    <span>Select Venue</span>
-                  </>
-                )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Your Venues</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {isLoading ? (
-                <DropdownMenuItem disabled>
-                  Loading venues...
-                </DropdownMenuItem>
-              ) : venues && venues.length > 0 ? (
-                venues.map(venue => (
-                  <DropdownMenuItem 
-                    key={venue.id} 
-                    onClick={() => {
-                      setActiveVenue(venue);
-                      // We don't need to manually navigate as setActiveVenue handles this
-                    }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-primary" />
-                      <span>{venue.name}</span>
-                    </div>
-                  </DropdownMenuItem>
-                ))
-              ) : (
-                <DropdownMenuItem disabled>
-                  No venues found
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuSeparator />
-              <Link href="/venues/add">
-                <DropdownMenuItem>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add New Venue
-                </DropdownMenuItem>
-              </Link>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {activeVenue && (
+            <div className="hidden md:flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-primary" />
+              <span className="font-medium text-sm">{activeVenue.name}</span>
+            </div>
+          )}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

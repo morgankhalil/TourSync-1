@@ -32,7 +32,7 @@ const ActiveVenueContext = createContext<ActiveVenueContextType>(defaultActiveVe
 export const ActiveVenueProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [venueId, setVenueId] = useState<number | null>(null);
+  const [venueId, setVenueId] = useState<number | null>(45); // Default to first venue (Empty Bottle)
   const [activeVenue, setActiveVenue] = useState<Venue | null>(null);
   
   // Function to refresh venue data
@@ -43,36 +43,16 @@ export const ActiveVenueProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   }, [venueId, queryClient]);
   
-  // Handle venueId changes with cache clearing
+  // Simplified handling of venueId changes
   const handleSetVenueId = useCallback((id: number | null) => {
     console.log(`Setting venueId from ${venueId} to ${id}`);
-    
-    // Use the enhanced client for better logging and error handling
-    EnhancedBandsintownDiscoveryClient.clearCache()
-      .then((result) => {
-        console.log("API cache cleared for venue ID change:", result);
-        
-        // After clearing the cache, invalidate related queries
-        queryClient.invalidateQueries({ queryKey: ['/api/venues'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/bandsintown-discovery-v2'] });
-        
-        // Update the venue ID after cache is cleared
-        setVenueId(id);
-      })
-      .catch((error) => {
-        console.error("Failed to clear API cache:", error);
-        // Still update the venue ID even if cache clearing fails
-        setVenueId(id);
-        // Still invalidate queries
-        queryClient.invalidateQueries({ queryKey: ['/api/venues'] });
-      });
-  }, [venueId, queryClient]);
+    setVenueId(id || 45); // Always use a default venue ID if null is passed
+  }, [venueId]);
   
-  // Fetch venue data from the API
+  // Fetch venue data from the API - always using the default venue
   const { data: venue, isLoading, error: venueError } = useQuery({
     queryKey: ['/api/venues', venueId],
     queryFn: async () => {
-      if (!venueId) return null;
       console.log(`Fetching specific venue with ID: ${venueId}`);
       const response = await fetch(`/api/venues/${venueId}`);
       if (!response.ok) {
@@ -82,27 +62,10 @@ export const ActiveVenueProvider: React.FC<{ children: React.ReactNode }> = ({ c
       console.log(`Loaded venue data:`, data);
       return data;
     },
-    enabled: !!venueId,
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
   
-  // Fetch all venues for selection
-  const { data: venues } = useQuery({
-    queryKey: ['/api/venues'],
-    queryFn: async () => {
-      console.log('Fetching all venues');
-      const response = await fetch('/api/venues');
-      if (!response.ok) {
-        throw new Error('Failed to fetch venues');
-      }
-      const data = await response.json() as Venue[];
-      console.log(`Loaded ${data.length} venues`);
-      return data;
-    },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-  });
-  
-  // Direct setter with better logging and cache management
+  // Simplified direct setter for active venue
   const handleSetActiveVenue = useCallback((venue: Venue | null) => {
     console.log(`Setting active venue to:`, venue);
     
@@ -110,59 +73,19 @@ export const ActiveVenueProvider: React.FC<{ children: React.ReactNode }> = ({ c
       // Update both venue ID and active venue immediately
       setVenueId(venue.id);
       setActiveVenue(venue);
-      
-      // Show toast notification
-      toast({
-        title: "Venue Selected",
-        description: `Selected venue: ${venue.name}`,
-        duration: 3000
-      });
-      
-      // Immediately fetch fresh venue data
-      fetch(`/api/venues/${venue.id}`)
-        .then(response => response.json())
-        .then(data => {
-          setActiveVenue(data);
-          // Invalidate related queries after successful fetch
-          queryClient.invalidateQueries({ queryKey: ['/api/venues'] });
-          queryClient.invalidateQueries({ queryKey: [`/api/venues/${venue.id}`] });
-          queryClient.invalidateQueries({ queryKey: ['/api/bandsintown-discovery-v2'] });
-          
-          // Don't use window.location.href - let components handle navigation
-        })
-        .catch(error => {
-          console.error("Failed to fetch venue data:", error);
-          toast({
-            title: "Error",
-            description: "Failed to load venue details",
-            duration: 3000,
-            variant: "destructive"
-          });
-        });
     } else {
-      setVenueId(null);
-      setActiveVenue(null);
+      // If null is passed, use default venue ID
+      setVenueId(45);
     }
-  }, [queryClient, toast]);
+  }, []);
   
   // Update activeVenue when venue data changes
   useEffect(() => {
     if (venue) {
       console.log(`Setting active venue from fetched data:`, venue);
       setActiveVenue(venue);
-    } else if (venues && venues.length > 0 && !activeVenue) {
-      const firstVenue = venues[0];
-      console.log(`Setting default venue to:`, firstVenue);
-      setActiveVenue(firstVenue);
-      setVenueId(firstVenue.id);
-      
-      toast({
-        title: "Default venue selected",
-        description: `Selected venue: ${firstVenue.name}`,
-        duration: 3000
-      });
     }
-  }, [venue, venues, activeVenue, toast]);
+  }, [venue]);
 
   // When venue ID changes, log information
   useEffect(() => {
