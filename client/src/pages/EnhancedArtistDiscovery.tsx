@@ -22,6 +22,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { getFitDescription, generateRoutingDescription, getDaysDescription, getDetourDescription } from "@/lib/routing-utils";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function EnhancedArtistDiscovery() {
   // Use the venue property from context for consistency
@@ -79,6 +80,12 @@ export default function EnhancedArtistDiscovery() {
         });
     }
   }, [activeVenue, venueId, previousVenueId, toast, queryClient]);
+  
+  // Show notification when active venue changes
+  useEffect(() => {
+    if (activeVenue) {
+      toast({
+        title: "Venue Selected",
         description: `Selected venue is now ${activeVenue.name} (ID: ${activeVenue.id})`
       });
     }
