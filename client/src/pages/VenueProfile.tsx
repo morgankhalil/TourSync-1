@@ -11,7 +11,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import PastPerformancesManager from "@/components/venue/PastPerformancesManager";
 import { Loader2, MapPin, Users, Info, CheckIcon, Link as LinkIcon, Mail, Phone } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
-import SimpleVenueMap from "../components/maps/SimpleVenueMap";
+import MapView from "@/components/maps/MapView";
 
 export default function VenueProfile() {
   const params = useParams();
@@ -213,7 +213,17 @@ export default function VenueProfile() {
                   <CardTitle>Location</CardTitle>
                 </CardHeader>
                 <CardContent className="h-[400px]">
-                  <SimpleVenueMap venue={venue} />
+                  <MapView 
+                    center={{ 
+                      lat: parseFloat(venue.latitude), 
+                      lng: parseFloat(venue.longitude) 
+                    }}
+                    markers={[{
+                      lat: parseFloat(venue.latitude),
+                      lng: parseFloat(venue.longitude),
+                      label: venue.name
+                    }]}
+                  />
                 </CardContent>
               </Card>
 
