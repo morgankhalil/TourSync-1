@@ -110,19 +110,37 @@ export const ActiveVenueProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setVenueId(venue.id);
       setActiveVenue(venue);
       
-      // Invalidate queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/venues'] });
-      queryClient.invalidateQueries({ queryKey: [`/api/venues/${venue.id}`] });
-      queryClient.invalidateQueries({ queryKey: ['/api/bandsintown-discovery-v2'] });
+      // Show toast notification
+      toast({
+        title: "Venue Selected",
+        description: `Selected venue: ${venue.name}`,
+        duration: 3000
+      });
       
-      // Clear discovery cache in background
-      EnhancedBandsintownDiscoveryClient.clearCache()
-        .catch(error => console.error("Failed to clear API cache:", error));
+      // Immediately fetch fresh venue data
+      fetch(`/api/venues/${venue.id}`)
+        .then(response => response.json())
+        .then(data => {
+          setActiveVenue(data);
+          // Invalidate related queries after successful fetch
+          queryClient.invalidateQueries({ queryKey: ['/api/venues'] });
+          queryClient.invalidateQueries({ queryKey: [`/api/venues/${venue.id}`] });
+          queryClient.invalidateQueries({ queryKey: ['/api/bandsintown-discovery-v2'] });
+        })
+        .catch(error => {
+          console.error("Failed to fetch venue data:", error);
+          toast({
+            title: "Error",
+            description: "Failed to load venue details",
+            duration: 3000,
+            variant: "destructive"
+          });
+        });
     } else {
       setVenueId(null);
       setActiveVenue(null);
     }
-  }, [venueId, queryClient]);
+  }, [queryClient, toast]);
   
   // Update activeVenue when venue data changes
   useEffect(() => {
