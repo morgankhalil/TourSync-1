@@ -22,28 +22,38 @@ interface ExtendedTourDate extends TourDate {
 const EventCard = ({ event }: { event: ExtendedTourDate }) => {
   // Use the band name or a fallback title
   const eventTitle = event.title || event.venueName || `Event on ${formatDate(event.date)}`;
+  const posterUrl = event.poster || '/default-poster.jpg';
 
   return (
     <Card key={event.id} className="overflow-hidden border">
       <CardContent className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="md:col-span-1">
-            <div className="bg-muted rounded-md p-4 text-center">
-              <div className="text-xs text-muted-foreground uppercase">
-                {formatDate(event.date, 'EEEE')}
+            {event.poster ? (
+              <div className="aspect-[3/4] rounded-md overflow-hidden">
+                <img 
+                  src={posterUrl} 
+                  alt={`Poster for ${eventTitle}`}
+                  className="w-full h-full object-cover"
+                />
               </div>
-              <div className="text-3xl font-bold">
-                {formatDate(event.date, 'd')}
+            ) : (
+              <div className="bg-muted rounded-md aspect-[3/4] flex flex-col items-center justify-center">
+                <Music className="h-12 w-12 mb-2 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">No poster yet</span>
               </div>
-              <div className="text-sm font-medium">
-                {formatDate(event.date, 'MMM yyyy')}
-              </div>
-            </div>
+            )}
           </div>
           <div className="md:col-span-2">
             <h3 className="text-lg font-semibold">
               {event.isOpenDate ? 'Open Date' : eventTitle}
             </h3>
+            <div className="flex items-center mt-1 text-muted-foreground text-sm">
+              <CalendarDays className="h-3 w-3 mr-1" />
+              <span className="font-medium">
+                {formatDate(event.date, 'EEEE, MMMM d, yyyy')}
+              </span>
+            </div>
             {event.tourId && (
               <div className="flex items-center mt-1 text-muted-foreground text-sm">
                 <Music className="h-3 w-3 mr-1" />
