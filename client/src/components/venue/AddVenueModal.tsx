@@ -28,7 +28,9 @@ export default function AddVenueModal() {
 
     try {
       // First search for venue
-      const searchResponse = await fetch(`/api/bandsintown/venue/search?name=${encodeURIComponent(venueName)}&location=${encodeURIComponent(location)}`);
+      const searchResponse = await fetch(`/api/bandsintown/venue/search?name=${encodeURIComponent(venueName)}&location=${encodeURIComponent(location)}`, {
+        credentials: 'include'
+      });
       if (!searchResponse.ok) {
         const errorData = await searchResponse.json();
         throw new Error(`Error searching for venue: ${searchResponse.status} - ${errorData.message || 'Unknown error'}`);
@@ -40,7 +42,9 @@ export default function AddVenueModal() {
       }
 
       // Get detailed venue info
-      const detailsResponse = await fetch(`/api/bandsintown/venue/${searchResult.id}`);
+      const detailsResponse = await fetch(`/api/bandsintown/venue/${searchResult.id}`, {
+        credentials: 'include'
+      });
       if (!detailsResponse.ok) {
         const errorData = await detailsResponse.json();
         throw new Error(`Error fetching venue details: ${detailsResponse.status} - ${errorData.message || 'Unknown error'}`);
