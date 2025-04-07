@@ -579,6 +579,39 @@ export class MemStorage implements IStorage {
         contactPhone: "555-890-1234",
         genre: "Electronic, EDM",
         social: { facebook: "djelectrovibes", instagram: "@dj_electro_vibes", soundcloud: "djelectrovibes" }
+      },
+      // New Chicago-focused bands
+      {
+        name: "Lakefront Rebels",
+        description: "Chicago-based garage rock band with punk influences",
+        contactEmail: "booking@lakefrontrebels.com",
+        contactPhone: "312-555-3434",
+        genre: "Garage Rock, Punk",
+        social: { instagram: "@lakefront_rebels", twitter: "@lakefrontrebels" }
+      },
+      {
+        name: "Windy City Wanderers",
+        description: "Indie folk group with Americana roots from Chicago's south side",
+        contactEmail: "contact@windycitywanderers.com",
+        contactPhone: "773-555-8181",
+        genre: "Folk, Americana",
+        social: { facebook: "windycitywanderers", instagram: "@wanderers_chicago" }
+      },
+      {
+        name: "Noise Brigade",
+        description: "Experimental noise rock quartet known for intense live performances",
+        contactEmail: "noise@noisebrigade.com",
+        contactPhone: "312-555-7676",
+        genre: "Noise Rock, Post-Punk",
+        social: { bandcamp: "noisebrigade", instagram: "@noise_brigade" }
+      },
+      {
+        name: "Heartland Drifters",
+        description: "Roots rock band featuring slide guitar and tales of midwestern life",
+        contactEmail: "info@heartlanddrifters.com",
+        contactPhone: "847-555-2525",
+        genre: "Roots Rock, Americana",
+        social: { facebook: "heartlanddrifters", instagram: "@heartland_drift" }
       }
     ];
     
@@ -881,6 +914,74 @@ export class MemStorage implements IStorage {
     };
     const createdTour6 = { ...tour6, id: this.tourIdCounter++ };
     this.toursData.set(createdTour6.id, createdTour6);
+    
+    // Tour 7: Lakefront Rebels - Midwest Small Venues Tour
+    const tour7StartDate = new Date(today);
+    tour7StartDate.setDate(tour7StartDate.getDate() - 5);
+    const tour7EndDate = new Date(today);
+    tour7EndDate.setDate(tour7EndDate.getDate() + 20);
+
+    const tour7: InsertTour = {
+      name: "Midwest Small Venues Tour",
+      startDate: tour7StartDate,
+      endDate: tour7EndDate,
+      bandId: createdBands[8].id, // Lakefront Rebels
+      notes: "Low-key tour hitting small venues in the Midwest",
+      isActive: true
+    };
+    const createdTour7 = { ...tour7, id: this.tourIdCounter++ };
+    this.toursData.set(createdTour7.id, createdTour7);
+    
+    // Tour 8: Windy City Wanderers - Americana Roadtrip
+    const tour8StartDate = new Date(today);
+    tour8StartDate.setDate(tour8StartDate.getDate() - 10);
+    const tour8EndDate = new Date(today);
+    tour8EndDate.setDate(tour8EndDate.getDate() + 30);
+
+    const tour8: InsertTour = {
+      name: "Americana Roadtrip",
+      startDate: tour8StartDate,
+      endDate: tour8EndDate,
+      bandId: createdBands[9].id, // Windy City Wanderers
+      notes: "Acoustic-focused tour of folk venues and listening rooms",
+      isActive: true
+    };
+    const createdTour8 = { ...tour8, id: this.tourIdCounter++ };
+    this.toursData.set(createdTour8.id, createdTour8);
+    
+    // Tour 9: Noise Brigade - Experimental Noise Tour
+    const tour9StartDate = new Date(today);
+    tour9StartDate.setDate(tour9StartDate.getDate() + 3);
+    const tour9EndDate = new Date(today);
+    tour9EndDate.setDate(tour9EndDate.getDate() + 25);
+
+    const tour9: InsertTour = {
+      name: "Experimental Noise Tour",
+      startDate: tour9StartDate,
+      endDate: tour9EndDate,
+      bandId: createdBands[10].id, // Noise Brigade
+      notes: "High-volume tour hitting DIY spaces and punk venues",
+      isActive: true
+    };
+    const createdTour9 = { ...tour9, id: this.tourIdCounter++ };
+    this.toursData.set(createdTour9.id, createdTour9);
+    
+    // Tour 10: Heartland Drifters - Midwest Roots Tour
+    const tour10StartDate = new Date(today);
+    tour10StartDate.setDate(tour10StartDate.getDate() - 7);
+    const tour10EndDate = new Date(today);
+    tour10EndDate.setDate(tour10EndDate.getDate() + 35);
+
+    const tour10: InsertTour = {
+      name: "Midwest Roots Tour",
+      startDate: tour10StartDate,
+      endDate: tour10EndDate,
+      bandId: createdBands[11].id, // Heartland Drifters
+      notes: "Showcasing our new album across the Midwest",
+      isActive: true
+    };
+    const createdTour10 = { ...tour10, id: this.tourIdCounter++ };
+    this.toursData.set(createdTour10.id, createdTour10);
 
     // Create tour dates for Tour 1 (Sonic Waves)
     const tour1Dates: InsertTourDate[] = [
@@ -1127,6 +1228,156 @@ export class MemStorage implements IStorage {
         isOpenDate: false
       }
     ];
+    
+    // Create tour dates for Tour 7 (Lakefront Rebels)
+    const tour7Dates: InsertTourDate[] = [
+      {
+        tourId: createdTour7.id,
+        venueId: 4,
+        date: new Date(tour7StartDate.getTime() + 4 * 24 * 60 * 60 * 1000),
+        city: "Chicago",
+        state: "IL",
+        status: "pending",
+        venueName: "Empty Bottle",
+        isOpenDate: false
+      },
+      {
+        tourId: createdTour7.id,
+        venueId: 5,
+        date: new Date(tour7StartDate.getTime() + 6 * 24 * 60 * 60 * 1000),
+        city: "Milwaukee",
+        state: "WI",
+        status: "confirmed",
+        venueName: "The Garage",
+        isOpenDate: false
+      },
+      {
+        tourId: createdTour7.id,
+        venueId: undefined,
+        date: new Date(tour7StartDate.getTime() + 9 * 24 * 60 * 60 * 1000),
+        city: "",
+        state: "",
+        status: "open",
+        venueName: undefined,
+        isOpenDate: true,
+        notes: "Looking for venue in Madison area"
+      },
+      {
+        tourId: createdTour7.id,
+        venueId: 8,
+        date: new Date(tour7StartDate.getTime() + 12 * 24 * 60 * 60 * 1000),
+        city: "Rockford",
+        state: "IL",
+        status: "confirmed",
+        venueName: "The Hideout",
+        isOpenDate: false
+      }
+    ];
+    
+    // Create tour dates for Tour 8 (Windy City Wanderers)
+    const tour8Dates: InsertTourDate[] = [
+      {
+        tourId: createdTour8.id,
+        venueId: 7,
+        date: new Date(tour8StartDate.getTime() + 14 * 24 * 60 * 60 * 1000),
+        city: "Madison",
+        state: "WI",
+        status: "confirmed",
+        venueName: "The Frequency",
+        isOpenDate: false
+      },
+      {
+        tourId: createdTour8.id,
+        venueId: 6,
+        date: new Date(tour8StartDate.getTime() + 16 * 24 * 60 * 60 * 1000),
+        city: "Milwaukee",
+        state: "WI",
+        status: "confirmed",
+        venueName: "Cactus Club",
+        isOpenDate: false
+      },
+      {
+        tourId: createdTour8.id,
+        venueId: undefined,
+        date: new Date(tour8StartDate.getTime() + 19 * 24 * 60 * 60 * 1000),
+        city: "",
+        state: "",
+        status: "open",
+        venueName: undefined,
+        isOpenDate: true,
+        notes: "Need a venue in Chicago area"
+      }
+    ];
+    
+    // Create tour dates for Tour 9 (Noise Brigade)
+    const tour9Dates: InsertTourDate[] = [
+      {
+        tourId: createdTour9.id,
+        venueId: 6,
+        date: new Date(tour9StartDate.getTime() + 5 * 24 * 60 * 60 * 1000),
+        city: "Milwaukee",
+        state: "WI",
+        status: "confirmed",
+        venueName: "Cactus Club",
+        isOpenDate: false
+      },
+      {
+        tourId: createdTour9.id,
+        venueId: undefined,
+        date: new Date(tour9StartDate.getTime() + 8 * 24 * 60 * 60 * 1000),
+        city: "",
+        state: "",
+        status: "open",
+        venueName: undefined,
+        isOpenDate: true,
+        notes: "Need venue in Chicago or surrounding area"
+      },
+      {
+        tourId: createdTour9.id,
+        venueId: 7,
+        date: new Date(tour9StartDate.getTime() + 12 * 24 * 60 * 60 * 1000),
+        city: "Madison",
+        state: "WI",
+        status: "pending",
+        venueName: "The Frequency",
+        isOpenDate: false
+      }
+    ];
+    
+    // Create tour dates for Tour 10 (Heartland Drifters)
+    const tour10Dates: InsertTourDate[] = [
+      {
+        tourId: createdTour10.id,
+        venueId: 8,
+        date: new Date(tour10StartDate.getTime() + 9 * 24 * 60 * 60 * 1000),
+        city: "Rockford",
+        state: "IL",
+        status: "confirmed",
+        venueName: "The Hideout",
+        isOpenDate: false
+      },
+      {
+        tourId: createdTour10.id,
+        venueId: undefined,
+        date: new Date(tour10StartDate.getTime() + 12 * 24 * 60 * 60 * 1000),
+        city: "",
+        state: "",
+        status: "open",
+        venueName: undefined,
+        isOpenDate: true,
+        notes: "Seeking venue in Chicago area"
+      },
+      {
+        tourId: createdTour10.id,
+        venueId: 5,
+        date: new Date(tour10StartDate.getTime() + 15 * 24 * 60 * 60 * 1000),
+        city: "Milwaukee",
+        state: "WI",
+        status: "confirmed",
+        venueName: "The Garage",
+        isOpenDate: false
+      }
+    ];
 
     // Combine all tour dates
     const allTourDates = [
@@ -1135,7 +1386,11 @@ export class MemStorage implements IStorage {
       ...tour3Dates,
       ...tour4Dates,
       ...tour5Dates,
-      ...tour6Dates
+      ...tour6Dates,
+      ...tour7Dates,
+      ...tour8Dates,
+      ...tour9Dates,
+      ...tour10Dates
     ];
 
     // Save all tour dates
