@@ -119,6 +119,20 @@ export type InsertTourDate = z.infer<typeof insertTourDateSchema>;
 export type VenueAvailability = typeof venueAvailability.$inferSelect;
 export type InsertVenueAvailability = z.infer<typeof insertVenueAvailabilitySchema>;
 
+// Artists table
+export const artists = pgTable("artists", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  genres: jsonb("genres").$type<string[]>(),
+  imageUrl: text("image_url"),
+  url: text("url"),
+  website: text("website"),
+  drawSize: integer("draw_size")
+});
+
+export const insertArtistSchema = createInsertSchema(artists);
+export type InsertArtist = z.infer<typeof insertArtistSchema>;
+
 // Artist discovery tracking
 export const artistDiscovery = pgTable("artist_discovery", {
   artistId: text("artist_id").primaryKey(),
