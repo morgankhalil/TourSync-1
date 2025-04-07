@@ -1,6 +1,9 @@
 import axios from 'axios';
 import { Band, Tour, TourDate, Venue, InsertBand, InsertTour, InsertTourDate, InsertVenue } from '@shared/schema';
 import { storage } from '../storage';
+import { createMusicBrainzApi } from '../services/musicbrainz-api';
+
+const musicBrainzApi = createMusicBrainzApi();
 import { format, isAfter, isBefore, parseISO, differenceInDays, addDays } from 'date-fns';
 import { WebSocket, WebSocketServer } from 'ws';
 import { uploadFile, downloadFile } from '../storage/object-storage';
@@ -602,12 +605,23 @@ export class BandsintownIntegration {
         if (existingBand) {
             return existingBand;
         }
+
+        // Try to get additional data from MusicBrainz
+        let mbArtist = null;
+        try {
+            const searchResults = await musicBrainzApi.searchArtist(artist.name);
+            if (searchResults.length > 0) {
+                mbArtist = await musicBrainzApi.getArtist(searchResults[0].id);
+            }
+        } catch (error) {
+            console.error('Error fetching MusicBrainz data:', error);
+        }
         
         // Create new band
         const bandData: InsertBand = {
             name: artist.name,
-            description: `Imported from Bandsintown on ${new Date().toLocaleDateString()}`,
-            genre: artist.genre || '',
+            description: `Imported from Bandsintown and MusicBrainz on ${new Date().toLocaleDateString()}`,
+            genre: artist.genre || (mbArtist?.genres?.[0]?.name) || '',
             formedYear: null,
             hometown: artist.hometown || '',
             website: artist.url || '',
