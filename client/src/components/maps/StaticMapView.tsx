@@ -22,7 +22,7 @@ interface StaticMapViewProps {
 
 // Generate a deterministic color based on a string (tourId)
 function generateTourColor(tourId: string | number | undefined): string {
-  if (!tourId) return 'red'; // Default color
+  if (!tourId) return '0xff0000'; // Default color red
   
   // Simple hash function to generate consistent colors from tour IDs
   const stringId = String(tourId);
@@ -31,15 +31,32 @@ function generateTourColor(tourId: string | number | undefined): string {
     hash = stringId.charCodeAt(i) + ((hash << 5) - hash);
   }
   
-  // List of distinguishable colors for tours
-  const colors = [
-    'red', 'green', 'purple', 'orange', 'brown',
-    'yellow', 'pink', 'black', 'gray', 'white'
+  // Use a predefined high-contrast color palette for better visibility
+  // These are optimized for Google Maps and designed to be visually distinct
+  const colorPalette = [
+    '0xD81B60', // Pink
+    '0x1E88E5', // Blue
+    '0x43A047', // Green
+    '0x8E24AA', // Purple
+    '0xE53935', // Red
+    '0xFF8F00', // Orange
+    '0x3949AB', // Indigo
+    '0x039BE5', // Light Blue
+    '0x00ACC1', // Cyan
+    '0x00897B', // Teal
+    '0x7CB342', // Light Green
+    '0xC0CA33', // Lime
+    '0xFDD835', // Yellow
+    '0xFFB300', // Amber
+    '0xF4511E', // Deep Orange
+    '0x6D4C41', // Brown
+    '0x757575', // Grey
+    '0x546E7A'  // Blue Grey
   ];
   
   // Use hash to select a color
-  const index = Math.abs(hash) % colors.length;
-  return colors[index];
+  const index = Math.abs(hash) % colorPalette.length;
+  return colorPalette[index];
 }
 
 export function StaticMapView({
@@ -93,12 +110,12 @@ export function StaticMapView({
         tourGroups.get(tourId)?.push(location);
       });
       
-      // Create venue markers with blue color
+      // Create venue markers with larger, more prominent markers
       const venueMarkers = venueLocations.map((venue, idx) => {
-        return `markers=color:blue%7Clabel:V%7C${venue.lat},${venue.lng}`;
+        return `markers=size:mid%7Ccolor:blue%7Clabel:V%7C${venue.lat},${venue.lng}`;
       }).join('&');
       
-      // Create tour-specific markers with different colors
+      // Create tour-specific markers with different colors and sizes
       let tourMarkers = '';
       let pathParams = '';
       
@@ -116,19 +133,22 @@ export function StaticMapView({
         
         // Create markers for this tour using custom icons if available
         const markerParams = sortedLocations.map((loc, idx) => {
-          const label = String.fromCharCode(65 + idx);
+          // Use custom label for better identification
+          // First letter of band name plus index for multiple locations
+          const bandInitial = loc.bandName ? loc.bandName.charAt(0).toUpperCase() : String.fromCharCode(65 + groupIndex);
+          const label = bandInitial; // Could also add numbers like: + (idx + 1)
           
           // If image URL is available, we could use it as a custom marker
           // But for simplicity with Static Maps API, we'll use standard markers with tour-specific colors
-          return `markers=color:${color}%7Clabel:${label}%7C${loc.lat},${loc.lng}`;
+          return `markers=size:mid%7Ccolor:${color}%7Clabel:${label}%7C${loc.lat},${loc.lng}`;
         }).join('&');
         
         tourMarkers += markerParams + '&';
         
-        // Create path connecting tour points if enabled
+        // Create path connecting tour points if enabled - use thicker lines
         if (showPaths && sortedLocations.length > 1) {
           const pathCoords = sortedLocations.map(loc => `${loc.lat},${loc.lng}`).join('|');
-          pathParams += `path=color:${color}%7Cweight:2%7C${pathCoords}&`;
+          pathParams += `path=color:${color}%7Cweight:3%7C${pathCoords}&`;
         }
       });
       
@@ -183,13 +203,15 @@ export function StaticMapView({
             }}
           />
           
-          {/* Enhanced Legend with Tour Grouping */}
-          <div className="absolute bottom-4 left-4 bg-white p-2 rounded-md shadow-md z-10 max-h-[300px] overflow-y-auto">
+          {/* Enhanced Legend with Tour Grouping - Larger and more prominent */}
+          <div className="absolute bottom-4 left-4 bg-white p-3 rounded-md shadow-lg z-10 max-h-[320px] overflow-y-auto min-w-[200px] border border-gray-200">
+            <h3 className="text-sm font-bold mb-2 border-b pb-1">Map Legend</h3>
+            
             {/* Venue locations */}
             {locations.filter(loc => loc.isVenue).map((venue, i) => (
-              <div key={`venue-${i}`} className="flex items-center mb-2">
-                <div className="h-3 w-3 bg-blue-600 rounded-full mr-2"></div>
-                <span className="text-xs font-semibold">{venue.name}</span>
+              <div key={`venue-${i}`} className="flex items-center mb-3">
+                <div className="h-4 w-4 bg-blue-600 rounded-full mr-2 flex-shrink-0"></div>
+                <span className="text-sm font-semibold">{venue.name}</span>
               </div>
             ))}
             
@@ -198,55 +220,59 @@ export function StaticMapView({
               <div className="border-t border-gray-200 my-2"></div>
             )}
             
-            {/* Tour groups - limited to 5 to prevent overcrowding */}
-            {Array.from(tourGroups.entries()).slice(0, 5).map(([tourId, locations], groupIndex) => {
+            {/* Label for bands section */}
+            {Array.from(tourGroups.keys()).length > 0 && (
+              <h4 className="text-xs font-semibold text-gray-500 mb-2">BANDS ON TOUR</h4>
+            )}
+            
+            {/* Tour groups - each with a distinct color-coded block */}
+            {Array.from(tourGroups.entries()).map(([tourId, locations], groupIndex) => {
               const color = generateTourColor(tourId);
               const bandName = locations[0]?.bandName || `Tour ${groupIndex + 1}`;
               
+              // Convert the hex color format to CSS-compatible format
+              const hexColor = color.replace('0x', '#');
+              
               return (
-                <div key={`tour-${tourId}`} className="mb-2">
+                <div key={`tour-${tourId}`} className="mb-3 p-2 rounded-md" style={{backgroundColor: `${hexColor}20`}}>
                   <div className="flex items-center mb-1">
                     {locations[0]?.imageUrl ? (
                       <img 
                         src={locations[0].imageUrl} 
                         alt={bandName}
-                        className="h-4 w-4 rounded-full mr-2 object-cover"
+                        className="h-6 w-6 rounded-full mr-2 object-cover border-2"
+                        style={{borderColor: hexColor}}
                       />
                     ) : (
                       <div 
-                        className="h-4 w-4 rounded-full mr-2" 
-                        style={{backgroundColor: color}}
+                        className="h-6 w-6 rounded-full mr-2 flex-shrink-0" 
+                        style={{backgroundColor: hexColor}}
                       ></div>
                     )}
-                    <span className="text-xs font-semibold">{bandName}</span>
+                    <span className="text-sm font-bold">{bandName}</span>
                   </div>
                   
-                  {/* Show first 2 locations for this tour */}
-                  <div className="pl-6">
-                    {locations.slice(0, 2).map((loc, locIndex) => (
-                      <div key={`loc-${locIndex}`} className="text-xs text-gray-600 flex items-center">
-                        <span className="mr-1">{String.fromCharCode(65 + locIndex)}:</span>
-                        <span>{loc.name}</span>
-                      </div>
-                    ))}
-                    
-                    {/* Show count if more locations */}
-                    {locations.length > 2 && (
-                      <div className="text-xs text-gray-500">
-                        + {locations.length - 2} more stops
-                      </div>
-                    )}
+                  {/* Show locations for this tour with better labeling */}
+                  <div className="pl-8 mt-1">
+                    {locations.map((loc, locIndex) => {
+                      // Get the same label we use on the map
+                      const bandInitial = loc.bandName ? loc.bandName.charAt(0).toUpperCase() : String.fromCharCode(65 + groupIndex);
+                      
+                      return (
+                        <div key={`loc-${locIndex}`} className="text-xs text-gray-700 flex items-start mb-1">
+                          <span 
+                            className="mr-1 w-4 h-4 flex items-center justify-center rounded-full flex-shrink-0 text-white font-bold" 
+                            style={{backgroundColor: hexColor}}
+                          >{bandInitial}</span>
+                          <span>{loc.name}</span>
+                          {loc.date && <span className="text-gray-500 ml-1">({new Date(loc.date).toLocaleDateString()})</span>}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               );
             })}
-            
-            {/* Show count if more than 5 tours */}
-            {Array.from(tourGroups.keys()).length > 5 && (
-              <div className="text-xs text-gray-500 mt-1">
-                + {Array.from(tourGroups.keys()).length - 5} more tours
-              </div>
-            )}
           </div>
         </>
       ) : (
