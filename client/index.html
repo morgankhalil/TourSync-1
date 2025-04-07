@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5, user-scalable=yes" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5, user-scalable=yes, viewport-fit=cover" />
     <title>TourConnect - Tour Management for Bands</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -30,10 +30,28 @@
           min-width: 44px;
           padding: 10px; /* Added padding for better touch target */
         }
+        
+        /* Fix for wrapping issues in mobile nav */
+        .mobile-nav-item {
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          overflow: hidden;
+        }
 
         /* Add bottom padding to ensure content isn't hidden behind mobile nav */
         main, .main-content {
           padding-bottom: 80px;
+        }
+        
+        /* Account for safe areas on newer devices */
+        @supports (padding: max(0px)) {
+          main, .main-content {
+            padding-bottom: max(80px, calc(80px + env(safe-area-inset-bottom, 0px)));
+          }
+          
+          .fixed-bottom {
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+          }
         }
 
         /* Make font sizes more readable on small screens */
@@ -44,6 +62,17 @@
         /* Adjust card padding for mobile */
         .card {
           padding: 12px;
+        }
+        
+        /* Fix mobile overflows */
+        .mobile-scroll {
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Prevent zoom on inputs */
+        input, select, textarea {
+          font-size: 16px !important;
         }
 
         /* Additional mobile-specific styles */

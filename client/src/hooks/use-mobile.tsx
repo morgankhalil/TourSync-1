@@ -3,31 +3,16 @@ import * as React from "react"
 const MOBILE_BREAKPOINT = 768
 
 export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState<boolean>(false)
-
-  React.useEffect(() => {
-    // Initial check
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-    
-    // Set up event listener
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-    }
-    
-    window.addEventListener("resize", handleResize)
-    
-    // Clean up
-    return () => window.removeEventListener("resize", handleResize)
-  }, [])
-
-  return isMobile
+  return useMediaQuery(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
 }
 
-// Add the useMediaQuery function that's being imported
 export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = React.useState(false);
+  const [matches, setMatches] = React.useState<boolean>(false);
 
   React.useEffect(() => {
+    // Handle SSR case where window might not be available
+    if (typeof window === 'undefined') return;
+    
     const media = window.matchMedia(query);
     
     // Initial check
@@ -38,10 +23,15 @@ export function useMediaQuery(query: string): boolean {
       setMatches(media.matches);
     };
     
-    media.addEventListener("change", listener);
-    
-    // Clean up
-    return () => media.removeEventListener("change", listener);
+    // Use the appropriate event listener method based on browser support
+    if (media.addEventListener) {
+      media.addEventListener("change", listener);
+      return () => media.removeEventListener("change", listener);
+    } else {
+      // For older browsers
+      media.addListener(listener);
+      return () => media.removeListener(listener);
+    }
   }, [query]);
 
   return matches;

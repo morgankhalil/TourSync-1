@@ -1,6 +1,7 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useLocation } from 'wouter';
 
 interface SidebarContextType {
   isSidebarOpen: boolean;
@@ -24,16 +25,28 @@ interface SidebarProviderProps {
 
 export const SidebarProvider: React.FC<SidebarProviderProps> = ({ children }) => {
   const isMobile = useIsMobile();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(!isMobile);
+  const [location] = useLocation();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Update sidebar state when screen size changes
+  // Close sidebar on mobile by default
   useEffect(() => {
-    setIsSidebarOpen(!isMobile);
+    if (isMobile) {
+      setIsSidebarOpen(false);
+    } else {
+      setIsSidebarOpen(true);
+    }
   }, [isMobile]);
 
-  const openSidebar = () => setIsSidebarOpen(true);
-  const closeSidebar = () => setIsSidebarOpen(false);
-  const toggleSidebar = () => setIsSidebarOpen(prev => !prev);
+  // Close sidebar when route changes on mobile
+  useEffect(() => {
+    if (isMobile) {
+      setIsSidebarOpen(false);
+    }
+  }, [location, isMobile]);
+
+  const openSidebar = useCallback(() => setIsSidebarOpen(true), []);
+  const closeSidebar = useCallback(() => setIsSidebarOpen(false), []);
+  const toggleSidebar = useCallback(() => setIsSidebarOpen(prev => !prev), []);
 
   return (
     <SidebarContext.Provider value={{ isSidebarOpen, openSidebar, closeSidebar, toggleSidebar }}>

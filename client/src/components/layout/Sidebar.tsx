@@ -42,8 +42,8 @@ const Sidebar = () => {
 
   // Determine the sidebar classes based on mobile and open state
   const sidebarClasses = isMobile
-    ? `${isSidebarOpen ? "fixed top-0 left-0 bottom-0 z-50" : "hidden"} bg-sidebar-bg w-[85%] max-w-xs overflow-y-auto custom-scrollbar`
-    : "hidden md:block bg-sidebar-bg w-80 border-r border-gray-200 flex-shrink-0 overflow-y-auto custom-scrollbar";
+    ? `${isSidebarOpen ? "fixed top-0 left-0 bottom-0 z-50" : "hidden"} bg-sidebar-bg w-[85%] max-w-xs h-screen overflow-y-auto custom-scrollbar`
+    : "hidden md:block bg-sidebar-bg w-full h-full border-r border-gray-200 flex-shrink-0 overflow-y-auto custom-scrollbar";
 
   // Helper to check if a navigation item is active
   const isActive = (path: string) => {

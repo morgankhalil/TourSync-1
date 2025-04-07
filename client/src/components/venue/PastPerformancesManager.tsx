@@ -250,7 +250,7 @@ export default function PastPerformancesManager({ venueId }: PastPerformancesMan
                               <Card key={performance.id} className="p-3 md:p-4 relative">
                                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                                   <div className="flex-1">
-                                    <div className="flex items-start justify-between">
+                                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
                                       <div>
                                         <h3 className="font-bold text-lg">{performance.artistName}</h3>
                                         <p className="text-sm text-muted-foreground">
@@ -261,7 +261,7 @@ export default function PastPerformancesManager({ venueId }: PastPerformancesMan
                                           })}
                                         </p>
                                       </div>
-                                      <div className="flex gap-2">
+                                      <div className="flex gap-2 mt-1 sm:mt-0">
                                         {performance.isHeadliner && (
                                           <Badge>Headliner</Badge>
                                         )}
