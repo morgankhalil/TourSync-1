@@ -1,11 +1,11 @@
 
-import React from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
 import { useActiveVenue } from "@/hooks/useActiveVenue";
-import { Venue } from "@shared/schema";
+import { Venue } from "@/types";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { MapPin, Users } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Home = () => {
   const [, setLocation] = useLocation();
@@ -18,53 +18,60 @@ const Home = () => {
 
   const handleVenueSelect = async (venue: Venue) => {
     await setActiveVenue(venue);
-    // Ensure we navigate to the venue-specific dashboard
-    setLocation(`/venue/${venue.id}`);
+    setLocation(`/venue/${venue.id}/dashboard`);
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="max-w-2xl mx-auto text-center mb-12">
-        <h1 className="text-4xl font-bold tracking-tight mb-4">Welcome to Venue Manager</h1>
-        <p className="text-xl text-muted-foreground">
-          Select a venue to get started
-        </p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto p-6">
+        <div className="max-w-2xl mx-auto text-center mb-12">
+          <h1 className="text-4xl font-bold tracking-tight mb-4">Select Your Venue</h1>
+          <p className="text-xl text-muted-foreground">
+            Choose a venue to manage shows, discover artists, and plan tours
+          </p>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-        {venues.map((venue) => (
-          <Card 
-            key={venue.id} 
-            className="cursor-pointer hover:bg-accent/50 transition-colors"
-            onClick={() => handleVenueSelect(venue)}
-          >
-            <CardHeader>
-              <CardTitle>{venue.name}</CardTitle>
-              <CardDescription className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                {venue.city}, {venue.state}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Users className="h-4 w-4" />
-                Capacity: {venue.capacity || 'Not specified'}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-
-        {isLoading && (
-          <div className="col-span-2 text-center py-12">
-            Loading venues...
-          </div>
-        )}
-
-        {!isLoading && venues.length === 0 && (
-          <div className="col-span-2 text-center py-12 text-muted-foreground">
-            No venues found. Please add a venue to get started.
-          </div>
-        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+          {isLoading ? (
+            Array(3).fill(0).map((_, i) => (
+              <Card key={i} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <Skeleton className="h-6 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-4 w-1/3" />
+                </CardContent>
+              </Card>
+            ))
+          ) : venues.length > 0 ? (
+            venues.map((venue) => (
+              <Card 
+                key={venue.id} 
+                className="cursor-pointer hover:bg-accent/50 hover:shadow-lg transition-all"
+                onClick={() => handleVenueSelect(venue)}
+              >
+                <CardHeader>
+                  <CardTitle>{venue.name}</CardTitle>
+                  <CardDescription className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    {venue.city}, {venue.state}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Users className="h-4 w-4" />
+                    Capacity: {venue.capacity || 'Not specified'}
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12">
+              <p className="text-muted-foreground">No venues found. Please add a venue to get started.</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

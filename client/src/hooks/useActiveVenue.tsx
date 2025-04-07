@@ -112,7 +112,7 @@ export const ActiveVenueProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setActiveVenue(venue);
       
       // Force a navigation to the venue dashboard
-      window.location.href = `/venue/${venue.id}`;
+      window.location.href = `/venue/${venue.id}/dashboard`;
       
       // Show toast notification
       toast({
