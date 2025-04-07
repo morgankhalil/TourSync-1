@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useEnvVars } from '../../services/env-service';
 
 interface SimpleLocation {
   lat: number;
@@ -17,10 +18,16 @@ export function StaticMapView({
   center,
   zoom = 6
 }: StaticMapViewProps) {
+  const { data: envVars, isLoading: envLoading, error: envError } = useEnvVars();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [mapUrl, setMapUrl] = useState<string>("");
   
   useEffect(() => {
+    // Don't proceed until we have environment variables
+    if (envLoading || envError || !envVars?.GOOGLE_MAPS_API_KEY) {
+      return;
+    }
+    
     try {
       if (locations.length === 0) {
         setErrorMsg("No locations to display");
@@ -30,14 +37,11 @@ export function StaticMapView({
       // If we have a center specified, use it, otherwise use the first location
       const mapCenter = center || locations[0];
       
-      // This is the direct API key from the environment (not from import.meta which might not work)
-      // We'll pass it directly, avoiding any issues with Vite's import.meta.env
-      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 
-                     (window as any).VITE_GOOGLE_MAPS_API_KEY || 
-                     document.querySelector('meta[name="google-maps-key"]')?.getAttribute('content');
+      // Use the API key from our environment variables service
+      const apiKey = envVars.GOOGLE_MAPS_API_KEY;
       
       // For debugging
-      console.log("Using maps API key:", apiKey ? "Key available" : "Key missing");
+      console.log("Using maps API key from environment service:", apiKey ? "Key available" : "Key missing");
       
       if (!apiKey) {
         setErrorMsg("Google Maps API key is missing");
@@ -63,10 +67,20 @@ export function StaticMapView({
       console.error("Error generating map URL:", err);
       setErrorMsg("Error generating map");
     }
-  }, [locations, center, zoom]);
+  }, [locations, center, zoom, envVars, envLoading, envError]);
+  
+  if (envLoading) {
+    return <div className="flex items-center justify-center h-full">Loading environment variables...</div>;
+  }
+  
+  if (envError || !envVars) {
+    return <div className="flex items-center justify-center h-full text-red-500">
+      Error loading environment variables. Maps cannot be displayed.
+    </div>;
+  }
   
   if (errorMsg) {
-    return <div className="flex items-center justify-center h-full">{errorMsg}</div>;
+    return <div className="flex items-center justify-center h-full text-amber-500">{errorMsg}</div>;
   }
   
   return (
@@ -76,7 +90,7 @@ export function StaticMapView({
           <img 
             src={mapUrl} 
             alt="Map of tour locations" 
-            className="w-full h-full object-contain"
+            className="w-full h-full object-contain border border-gray-200 rounded-md"
             onError={(e) => {
               console.error("Map image failed to load");
               setErrorMsg("Failed to load map image");
@@ -110,7 +124,9 @@ export function StaticMapView({
           )}
         </>
       ) : (
-        <div className="flex items-center justify-center h-full">Loading map...</div>
+        <div className="flex items-center justify-center h-full">
+          Loading map...
+        </div>
       )}
     </div>
   );

@@ -10,6 +10,7 @@ import { registerBandsintownDiscoveryRoutes } from "./routes/bandsintown-discove
 import { registerBandsintownDiscoveryV2Routes } from "./routes/bandsintown-discovery-v2";
 import { registerConfigRoutes } from "./routes/config";
 import { registerVenuePerformancesRoutes } from "./routes/venue-performances";
+import { registerEnvVarsRoutes } from "./routes/env-vars";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register touring routes from dedicated module
@@ -29,6 +30,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register venue performances routes
   registerVenuePerformancesRoutes(app);
+  
+  // Register environment variables routes
+  registerEnvVarsRoutes(app);
   
   // Band routes
   app.get("/api/bands", async (_req, res) => {
