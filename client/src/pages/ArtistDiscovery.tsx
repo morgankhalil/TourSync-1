@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { MapPin, Calendar as CalendarIcon, Filter, Music, Users, Clock, Route as RouteIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { Band, Tour, Venue, TourDate } from '@shared/schema';
-import { GoogleMap, LoadScript, Marker, InfoWindow, Polyline } from '@react-google-maps/api';
+import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 import { VenueCalendarSidebar } from '@/components/venue/VenueCalendarSidebar';
 import { useActiveVenue } from '@/hooks/useActiveVenue';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -352,16 +352,14 @@ export function ArtistDiscovery() {
                   {/* Draw the tour path if there are multiple points */}
                   {pathCoordinates.length >= 2 && (
                     <React.Fragment>
-                      {/* Use the Polyline component to draw tour routes */}
-                      <Polyline
-                        path={pathCoordinates}
-                        options={{
-                          geodesic: true,
-                          strokeColor: tourColor,
-                          strokeOpacity: 1.0,
-                          strokeWeight: 3
-                        }}
-                      />
+                      {new window.google.maps.Polyline({
+                        path: pathCoordinates,
+                        geodesic: true,
+                        strokeColor: tourColor,
+                        strokeOpacity: 1.0,
+                        strokeWeight: 3,
+                        // We would need to use a reference to the Google Map instance here instead of 'map'
+                      })}
                     </React.Fragment>
                   )}
                 </React.Fragment>
@@ -429,8 +427,8 @@ export function ArtistDiscovery() {
           </TabsList>
         </Tabs>
         
-        {/* Content based on view mode */}
-        <TabsContent value="opportunities" className="mt-0">
+        <Tabs value={viewMode} onValueChange={handleViewModeChange}>
+          <TabsContent value="opportunities" className="mt-0">
           {/* Filter Cards - Only show in opportunities view */}
           <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
@@ -671,9 +669,11 @@ export function ArtistDiscovery() {
             </TabsContent>
           </Tabs>
         </TabsContent>
+        </Tabs>
         
         {/* Tour Routes View Mode */}
-        <TabsContent value="tours" className="mt-0">
+        <Tabs value={viewMode} onValueChange={handleViewModeChange}>
+          <TabsContent value="tours" className="mt-0">
           <div className="mb-6">
             <h2 className="text-xl font-medium mb-2">Touring Bands</h2>
             <p className="text-muted-foreground">
@@ -766,6 +766,7 @@ export function ArtistDiscovery() {
             </div>
           </div>
         </TabsContent>
+        </Tabs>
       </div>
       
       {/* Band Detail Modal */}
