@@ -231,11 +231,16 @@ const ArtistDiscovery: React.FC = () => {
                           {result.route.origin && 
                            `${formatDate(result.route.origin.date, { month: 'short', day: 'numeric' })} ${result.route.origin.city}`}
                         </span>
-                        <span>→</span>
-                        <span>
-                          {result.route.destination && 
-                           `${formatDate(result.route.destination.date, { month: 'short', day: 'numeric' })} ${result.route.destination.city}`}
-                        </span>
+                        {result.route.destination ? (
+                          <>
+                            <span>→</span>
+                            <span>
+                              {`${formatDate(result.route.destination.date, { month: 'short', day: 'numeric' })} ${result.route.destination.city}`}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-green-500">Single show</span>
+                        )}
                       </div>
                       <div className="text-xs mt-1">
                         <span className="text-green-600 font-medium">{result.route.distanceToVenue} miles</span> from your venue

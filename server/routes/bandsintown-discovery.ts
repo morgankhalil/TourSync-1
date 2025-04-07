@@ -54,26 +54,39 @@ class RealBandsintownDiscoveryService implements BandsintownDiscoveryService {
         throw new Error(`Venue "${venue.name}" is missing location data`);
       }
       
-      // Step 2: Get popular artists playing in the area
-      // For now, we'll start with a predefined list of popular artists to check
-      // This approach is more reliable than using the discover endpoint which is limited
-      const popularArtists = [
-        'Taylor Swift', 'Beyoncé', 'Ed Sheeran', 'Drake', 'Coldplay', 
-        'Bruno Mars', 'Adele', 'The Weeknd', 'Billie Eilish', 'Lady Gaga',
-        'Post Malone', 'Twenty One Pilots', 'Imagine Dragons', 'Shawn Mendes',
-        'Dua Lipa', 'Harry Styles', 'BTS', 'Justin Bieber', 'Ariana Grande',
-        'Kendrick Lamar', 'The Killers', 'Foo Fighters', 'Green Day', 'Metallica',
-        'Pearl Jam', 'Red Hot Chili Peppers', 'Rage Against The Machine', 'Tool',
+      // Step 2: Get artists playing in the area
+      // Mix of popular, indie, and regional acts that might be playing venues like Bug Jar
+      const artists = [
+        // Mainstream touring acts
+        'The Killers', 'Foo Fighters', 'Green Day', 'Metallica',
+        'Pearl Jam', 'Red Hot Chili Peppers', 'Tool',
         'Jack White', 'Tame Impala', 'Arctic Monkeys', 'The Strokes', 'Vampire Weekend',
-        'The Black Keys', 'The National', 'Radiohead', 'Arcade Fire', 'LCD Soundsystem',
-        'The War On Drugs', 'Spoon', 'Fleet Foxes', 'Bon Iver', 'Sufjan Stevens',
-        'St. Vincent', 'Angel Olsen', 'Phoebe Bridgers', 'Mitski', 'Japanese Breakfast'
+        'The Black Keys', 'The National', 'Arcade Fire', 'LCD Soundsystem',
+        'The War On Drugs', 'Spoon', 'Fleet Foxes', 'Bon Iver',
+        'St. Vincent', 'Angel Olsen', 'Phoebe Bridgers', 'Mitski', 'Japanese Breakfast',
+        
+        // More indie and regional touring acts
+        'King Gizzard & The Lizard Wizard', 'Car Seat Headrest', 'Beach House', 'Big Thief',
+        'Black Midi', 'Parquet Courts', 'Fontaines D.C.', 'Idles', 'Shame',
+        'Courtney Barnett', 'Kurt Vile', 'Ty Segall', 'Mac DeMarco', 'Oh Sees',
+        'Real Estate', 'Alvvays', 'Snail Mail', 'Soccer Mommy', 'Lucy Dacus',
+        'Julien Baker', 'The Mountain Goats', 'Phosphorescent', 'Kevin Morby',
+        'Whitney', 'Wolf Parade', 'Pinegrove', 'Dinosaur Jr.', 'Built to Spill',
+        'Cloud Nothings', 'Guided By Voices', 'Modest Mouse', 'Bright Eyes',
+        
+        // Regional artists that tour venues like Bug Jar
+        'Pile', 'Geese', 'Wednesday', 'Hotline TNT', 'Ratboys', 'Horse Jumper of Love',
+        'Duster', 'Slothrust', 'Weakened Friends', 'Fat Night', 'Stove', 'Kneecap',
+        'Squirrel Flower', 'Really From', 'Guerilla Toss', 'Pkew Pkew Pkew',
+        'Wild Pink', 'Hovvdy', 'Oso Oso', 'Camp Cope', 'Future Teens', 'Another Michael',
+        'Dirt Buyer', 'Mal Devisa', 'Florist', 'Lomelda', 'Illuminati Hotties', 
+        'Peaer', 'Pom Pom Squad', 'Kal Marks', 'The Ophelias', '2nd Grade'
       ];
       
-      console.log(`Fetching events for ${popularArtists.length} popular artists`);
+      console.log(`Fetching events for ${artists.length} artists`);
       
       // Step 3: For each artist, get their events
-      const artistsWithEventsPromises = popularArtists.map(async (artistName) => {
+      const artistsWithEventsPromises = artists.map(async (artistName) => {
         try {
           // First get artist info
           const artistResponse = await axios.get(
@@ -109,16 +122,49 @@ class RealBandsintownDiscoveryService implements BandsintownDiscoveryService {
       // Step 4: Calculate which artists are passing "near" the venue
       // Filter for artists with at least 2 events in the date range
       const artistsWithRoutes = validArtists
-        .filter(artist => artist && artist.events && artist.events.length >= 2)
+        .filter(artist => artist && artist.events && artist.events.length >= 1) // Just need 1 event to consider an artist
         .map(artist => {
           // Sort events by date
           const sortedEvents = [...artist.events].sort((a: any, b: any) => 
             new Date(a.datetime).getTime() - new Date(b.datetime).getTime()
           );
           
-          // Find pairs of consecutive events that our venue could fit between
+          // First check - if artist only has one event and it's within reasonable distance of our venue
           let bestRoute = null;
           
+          if (sortedEvents.length === 1) {
+            const event = sortedEvents[0];
+            const eventLat = parseFloat(event.venue.latitude || '0');
+            const eventLng = parseFloat(event.venue.longitude || '0');
+            
+            if (eventLat && eventLng) {
+              const distanceToVenue = this.calculateDistance(
+                parseFloat(venue.latitude),
+                parseFloat(venue.longitude),
+                eventLat,
+                eventLng
+              );
+              
+              // If the single event is within the specified radius, consider it
+              if (distanceToVenue <= radius) {
+                bestRoute = {
+                  origin: {
+                    city: event.venue.city,
+                    state: event.venue.region,
+                    date: event.datetime,
+                    lat: eventLat,
+                    lng: eventLng
+                  },
+                  destination: null, // Single event, so no destination
+                  distanceToVenue: Math.round(distanceToVenue),
+                  detourDistance: Math.round(distanceToVenue * 2), // Round trip
+                  daysAvailable: 1 // Assume 1 day available
+                };
+              }
+            }
+          }
+          
+          // Second check - find pairs of consecutive events that our venue could fit between
           for (let i = 0; i < sortedEvents.length - 1; i++) {
             const event1 = sortedEvents[i];
             const event2 = sortedEvents[i + 1];
