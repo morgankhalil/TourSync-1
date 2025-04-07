@@ -1230,4 +1230,6 @@ const bugJarPerformances = [
 const bugJarVenue = Array.from(memStorage.venuesData.values()).find(v => v.name === "Bug Jar");
 if (bugJarVenue) {
   bugJarVenue.pastPerformers = bugJarPerformances;
+  bugJarVenue.latitude = "43.1498";
+  bugJarVenue.longitude = "-77.5963";
 }
