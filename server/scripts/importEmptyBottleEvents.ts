@@ -101,21 +101,34 @@ async function importEmptyBottleEvents() {
       .returning();
 
       if (band) {
-        // Create a tour for the band
-        // Parse and validate dates using UTC to avoid timezone issues
+        // Create a tour for the band with proper date handling
         const eventDate = new Date(event.datetime);
+        
+        // Ensure dates are normalized to midnight UTC
         const tourStartDate = new Date(Date.UTC(
           eventDate.getUTCFullYear(),
           eventDate.getUTCMonth(),
-          eventDate.getUTCDate()
+          eventDate.getUTCDate(),
+          0, 0, 0, 0
         ));
         
         // Calculate tour end date (30 days after start)
-        const tourEndDate = new Date(tourStartDate);
-        tourEndDate.setUTCDate(tourEndDate.getUTCDate() + 30);
+        const tourEndDate = new Date(Date.UTC(
+          tourStartDate.getUTCFullYear(),
+          tourStartDate.getUTCMonth(),
+          tourStartDate.getUTCDate() + 30,
+          0, 0, 0, 0
+        ));
 
+        // Validate dates
         if (isNaN(tourStartDate.getTime()) || isNaN(tourEndDate.getTime())) {
           console.error(`Invalid date for tour: ${event.lineup[0]} - ${event.datetime}`);
+          continue;
+        }
+
+        // Additional validation for future dates only
+        if (tourStartDate < new Date()) {
+          console.warn(`Skipping past event for: ${event.lineup[0]}`);
           continue;
         }
 

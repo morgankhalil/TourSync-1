@@ -359,18 +359,25 @@ export class EnhancedBandsintownDiscoveryService {
     distanceToVenue: number,
     detourDistance: number,
     daysBetween: number,
-    venueDrawSize: number = 0
+    venueDrawSize: number = 0,
+    venueCapacity: number = 0
   ): number {
-    // Enhanced distance scoring with exponential penalty
-    const distancePenalty = distanceToVenue > 300
+    // Enhanced distance scoring with progressive penalty
+    const distanceThreshold = Math.min(300 + (venueCapacity / 10), 500);
+    const distancePenalty = distanceToVenue > distanceThreshold
       ? 100
-      : Math.round((Math.pow(distanceToVenue / 300, 1.5)) * 100);
+      : Math.round((Math.pow(distanceToVenue / distanceThreshold, 1.8)) * 100);
 
-    // Improved detour calculation with variable threshold based on venue draw
+    // Dynamic detour threshold based on venue metrics
     const maxAcceptableDetour = Math.min(
-      distanceToVenue * (1.5 + (venueDrawSize / 1000)), // Larger venues allow bigger detours
-      300
+      distanceToVenue * (1.5 + (venueDrawSize / 1000) + (venueCapacity / 2000)),
+      Math.max(300, distanceThreshold * 1.2)
     );
+
+    // Bonus for optimal venue size match
+    const venueSizeBonus = venueDrawSize > 0 && venueCapacity > 0
+      ? Math.max(0, 20 - Math.abs(venueDrawSize - venueCapacity) / 100)
+      : 0;
     
     // Exponential detour penalty
     const detourPenalty = detourDistance > maxAcceptableDetour
