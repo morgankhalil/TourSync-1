@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import Home from './pages/Home';
 import VenueCalendar from './pages/VenueCalendar';
 import VenueProfile from './pages/VenueProfile';
+import VenueDashboard from './pages/VenueDashboard';
 import TourDashboard from './pages/TourDashboard';
 import CreateTour from './pages/CreateTour';
 import ArtistDiscovery from './pages/ArtistDiscovery';
