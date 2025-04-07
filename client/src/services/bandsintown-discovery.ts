@@ -1,70 +1,43 @@
-/**
- * BandsinTown discovery service for client
- * This service directly queries the API without database storage for real-time artist data
- */
-
-import { apiRequest } from '@/lib/queryClient';
+import axios from 'axios';
 import { BandDiscoveryResult } from '@/types';
 
-export interface BandsintownDiscoveryOptions {
-  venueId: number;
-  startDate: Date | string;
-  endDate: Date | string;
-  radius?: number;
-}
+class BandsintownDiscoveryService {
+  private apiUrl = '/api/bandsintown-discovery';
+  private websocketUrl: string;
 
-/**
- * Direct Bandsintown discovery service - polls API directly without storing artist data
- */
-export const bandsintownDiscoveryService = {
-  /**
-   * Discover bands passing near a venue within a date range
-   * This directly queries the Bandsintown API without storing data in our database
-   */
-  async findBandsNearVenue({
-    venueId,
-    startDate,
-    endDate,
-    radius = 50
-  }: BandsintownDiscoveryOptions): Promise<BandDiscoveryResult[]> {
-    // Format dates as ISO strings if they're Date objects
-    const formattedStartDate = typeof startDate === 'string' ? startDate : startDate.toISOString();
-    const formattedEndDate = typeof endDate === 'string' ? endDate : endDate.toISOString();
+  constructor() {
+    // Properly construct WebSocket URL based on the current hostname
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.host; // This will correctly get the hostname and port
+    this.websocketUrl = `${protocol}//${host}`;
+  }
 
-    const response = await apiRequest('/api/bandsintown/discover-bands-near-venue', {
-      method: 'POST',
-      body: JSON.stringify({
-        venueId,
-        startDate: formattedStartDate,
-        endDate: formattedEndDate,
-        radius
-      })
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Error fetching bands near venue');
-    }
-
-    const result = await response.json();
-    return result.data || [];
-  },
-
-  /**
-   * Check the status of the Bandsintown discovery service
-   */
-  async checkStatus(): Promise<{ 
-    status: string;
+  async checkStatus(): Promise<{
     apiKeyConfigured: boolean;
     discoveryEnabled: boolean;
   }> {
-    const response = await apiRequest('/api/bandsintown/discovery-status');
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Error checking Bandsintown API status');
-    }
-
-    return await response.json();
+    const response = await axios.get(`${this.apiUrl}/status`);
+    return response.data;
   }
-};
+
+  async findBandsNearVenue(params: {
+    venueId: number | string;
+    startDate: string;
+    endDate: string;
+    radius: number;
+  }): Promise<BandDiscoveryResult[]> {
+    try {
+      const response = await axios.get(`${this.apiUrl}/bands-near-venue`, {
+        params
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error finding bands near venue:', error);
+      throw error;
+    }
+  }
+
+  // Other methods for the discovery service
+}
+
+export const bandsintownDiscoveryService = new BandsintownDiscoveryService();
