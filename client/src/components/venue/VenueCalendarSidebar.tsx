@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Calendar } from '@/components/ui/calendar';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardTitle, CardHeader, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Venue, VenueAvailability } from '@shared/schema';
-import { format, isSameDay } from 'date-fns';
-import { Calendar as CalendarIcon, Clock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Venue, VenueAvailability, TourDate } from '@shared/schema';
+import { format, isSameDay, addDays, subDays, isToday, isSameMonth } from 'date-fns';
+import { Calendar as CalendarIcon, Clock, Plus, Music, Users, ArrowRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface VenueCalendarSidebarProps {
   selectedDate: Date | undefined;
@@ -19,6 +21,7 @@ export function VenueCalendarSidebar({
   venue
 }: VenueCalendarSidebarProps) {
   const [focusedDate, setFocusedDate] = useState<Date | null>(null);
+  const today = new Date();
 
   // Fetch venue availability data
   const { data: availabilityData } = useQuery({
@@ -27,14 +30,39 @@ export function VenueCalendarSidebar({
     retry: false
   });
   
+  // Fetch venue events data
+  const { data: eventsData } = useQuery({
+    queryKey: [`/api/venues/${venue?.id}/dates`],
+    enabled: !!venue?.id,
+    retry: false,
+  });
+  
   // Format the availability data for display
   const availableDates = React.useMemo(() => {
     if (!availabilityData) return [];
     
-    return (availabilityData as VenueAvailability[]).map(
-      availability => new Date(availability.date)
-    );
+    return (availabilityData as VenueAvailability[])
+      .filter(a => a.isAvailable)
+      .map(availability => new Date(availability.date));
   }, [availabilityData]);
+  
+  // Extract booked dates
+  const bookedDates = React.useMemo(() => {
+    if (!eventsData) return [];
+    
+    return (eventsData as TourDate[])
+      .filter(event => !event.isOpenDate && event.status !== 'cancelled')
+      .map(event => new Date(event.date));
+  }, [eventsData]);
+  
+  // Get the currently focused date's events
+  const focusedDateEvents = React.useMemo(() => {
+    if (!focusedDate || !eventsData) return [];
+    
+    return (eventsData as TourDate[]).filter(
+      event => isSameDay(new Date(event.date), focusedDate)
+    );
+  }, [focusedDate, eventsData]);
   
   // Get the currently focused date's availability details
   const focusedDateAvailability = React.useMemo(() => {
@@ -51,90 +79,166 @@ export function VenueCalendarSidebar({
   };
 
   return (
-    <div className="p-4 h-full flex flex-col">
-      <h2 className="text-xl font-bold mb-4">{venue?.name || 'Venue'} Calendar</h2>
+    <div className="flex flex-col h-full">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg">Calendar View</CardTitle>
+        <CardDescription>
+          Select a date to see details
+        </CardDescription>
+      </CardHeader>
       
-      <div className="mb-4 flex-shrink-0">
+      <CardContent className="px-2 pb-0 flex-grow">
         <Calendar
           mode="single"
           selected={selectedDate}
           onSelect={handleDateSelect}
           onDayMouseEnter={(date) => setFocusedDate(date)}
-          className="rounded-md border"
+          className="rounded-md"
           modifiers={{
-            available: availableDates,
+            booked: bookedDates,
+            available: availableDates
           }}
           modifiersStyles={{
+            booked: {
+              fontWeight: 'bold',
+              borderWidth: '2px',
+              borderColor: 'var(--primary)'
+            },
             available: {
-              backgroundColor: '#ecfdf5',
-              color: '#047857',
-              fontWeight: 'bold'
+              backgroundColor: 'hsl(var(--success) / 0.1)',
+              color: 'hsl(var(--success))'
+            }
+          }}
+          components={{
+            Day: (props) => {
+              const date = props.date;
+              const isSelected = selectedDate && isSameDay(date, selectedDate);
+              const isBooked = bookedDates.some(bookedDate => isSameDay(bookedDate, date));
+              const isAvailable = availableDates.some(availableDate => isSameDay(availableDate, date));
+              
+              return (
+                <div
+                  {...props}
+                  className={cn(
+                    props.className,
+                    isSelected && 'bg-primary text-primary-foreground',
+                    !props.outside && !isSelected && isToday(date) && 'text-accent-foreground font-bold',
+                    props.outside && 'text-muted-foreground opacity-50',
+                    (isBooked || isAvailable) && 'font-medium'
+                  )}
+                >
+                  <time dateTime={format(date, 'yyyy-MM-dd')}>
+                    {format(date, 'd')}
+                  </time>
+                  
+                  {/* Add dots to indicate events */}
+                  {!props.outside && (isBooked || isAvailable) && (
+                    <div className="h-1 w-1 mx-auto mt-1 rounded-full 
+                      bg-primary/50" />
+                  )}
+                </div>
+              );
             }
           }}
         />
-      </div>
+      </CardContent>
       
       {/* Selected date information */}
       {selectedDate && (
-        <div className="mb-4">
-          <h3 className="font-semibold flex items-center text-lg">
+        <div className="p-4 border-t mt-4">
+          <h3 className="font-semibold flex items-center text-base">
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {format(selectedDate, 'MMMM d, yyyy')}
+            {format(selectedDate, 'EEEE, MMMM d, yyyy')}
           </h3>
           
-          <div className="mt-2 text-sm text-muted-foreground">
-            {venue && (
-              <p>
-                {venue.name} - {venue.city}, {venue.state}
-              </p>
+          {/* Status badges */}
+          <div className="mt-2 flex flex-wrap gap-1">
+            {bookedDates.some(date => isSameDay(date, selectedDate)) && (
+              <Badge variant="default">Booked</Badge>
+            )}
+            {availableDates.some(date => isSameDay(date, selectedDate)) && (
+              <Badge variant="secondary" className="bg-green-100 text-green-800 hover:bg-green-200">
+                Available
+              </Badge>
+            )}
+            {isToday(selectedDate) && (
+              <Badge variant="outline">Today</Badge>
             )}
           </div>
           
-          {/* Availability badge */}
-          <div className="mt-2">
-            {availableDates.some(date => isSameDay(date, selectedDate)) ? (
-              <Badge className="bg-green-100 text-green-800 hover:bg-green-200">Available</Badge>
-            ) : (
-              <Badge variant="outline">Not Available</Badge>
-            )}
-          </div>
-        </div>
-      )}
-      
-      {/* Date availability details */}
-      {focusedDateAvailability && (
-        <Card className="mt-2">
-          <CardContent className="pt-4">
-            <div className="text-sm space-y-2">
-              <div className="flex items-center">
-                <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                <span>Status: </span>
-                <span className="ml-1 font-medium">
-                  {focusedDateAvailability.isAvailable ? 'Available all day' : 'Not available'}
-                </span>
-              </div>
+          {/* Events for the selected date */}
+          {focusedDateEvents.length > 0 && (
+            <div className="mt-3 space-y-2">
+              <p className="text-xs font-semibold text-muted-foreground uppercase">Events</p>
               
-              <div>
-                <p className="text-xs text-muted-foreground">
-                  This date is {focusedDateAvailability.isAvailable ? 'available' : 'not available'} for booking.
-                </p>
-              </div>
+              {focusedDateEvents.map((event, idx) => (
+                <div key={idx} className="text-sm border rounded-md p-2">
+                  <div className="font-medium">{event.title || 'Untitled Event'}</div>
+                  <div className="flex items-center text-xs text-muted-foreground mt-1">
+                    <Music className="h-3 w-3 mr-1" />
+                    {event.bandId ? `Band #${event.bandId}` : 'No band assigned'}
+                  </div>
+                  {event.notes && (
+                    <div className="text-xs mt-1 text-muted-foreground">
+                      {event.notes}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
-          </CardContent>
-        </Card>
+          )}
+          
+          {/* Available date without events */}
+          {focusedDateEvents.length === 0 && availableDates.some(date => isSameDay(date, selectedDate)) && (
+            <div className="mt-3 text-sm">
+              <p className="text-muted-foreground">
+                This date is available but no events are scheduled.
+              </p>
+              <Button size="sm" variant="outline" className="mt-2 w-full">
+                <Plus className="h-3 w-3 mr-1" />
+                Schedule Event
+              </Button>
+            </div>
+          )}
+          
+          {/* Not available date */}
+          {focusedDateEvents.length === 0 && !availableDates.some(date => isSameDay(date, selectedDate)) && (
+            <div className="mt-3 text-sm">
+              <p className="text-muted-foreground">
+                This date is currently marked as unavailable.
+              </p>
+              <Button size="sm" variant="outline" className="mt-2 w-full">
+                Mark as Available
+              </Button>
+            </div>
+          )}
+        </div>
       )}
       
       {/* Legend */}
-      <div className="mt-auto pt-4 border-t text-xs text-muted-foreground">
-        <div className="flex items-center mb-1">
-          <div className="w-3 h-3 rounded-full bg-green-100 mr-2"></div>
-          <span>Available Dates</span>
+      <CardFooter className="flex-col items-start gap-2 mt-auto border-t pt-4">
+        <p className="text-xs font-medium text-muted-foreground">Calendar Legend</p>
+        <div className="grid grid-cols-2 gap-x-2 gap-y-1 w-full text-xs text-muted-foreground">
+          <div className="flex items-center">
+            <div className="w-3 h-3 border-2 border-primary rounded-full mr-2"></div>
+            <span>Booked Dates</span>
+          </div>
+          <div className="flex items-center">
+            <div className="w-3 h-3 bg-green-100 rounded-full mr-2"></div>
+            <span>Available Dates</span>
+          </div>
+          <div className="flex items-center">
+            <div className="w-3 h-3 rounded-full border mr-2"></div>
+            <span>Regular Date</span>
+          </div>
+          <div className="flex items-center">
+            <div className="w-3 h-3 font-bold bg-accent/20 rounded-full mr-2 flex items-center justify-center text-[9px]">
+              T
+            </div>
+            <span>Today</span>
+          </div>
         </div>
-        <div className="flex items-center">
-          <div className="w-3 h-3 rounded-full border mr-2"></div>
-          <span>Booked or Unavailable</span>
-        </div>
-      </div>
+      </CardFooter>
     </div>
   );
 }
