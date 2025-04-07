@@ -33,16 +33,30 @@ function shutdownGracefully() {
 process.on('SIGTERM', shutdownGracefully);
 process.on('SIGINT', shutdownGracefully);
 
-const server = app.listen(PORT, '0.0.0.0', () => {
-  log(`Server running at http://0.0.0.0:${PORT}`);
-}).on('error', (err: any) => {
-  if (err.code === 'EADDRINUSE') {
-    log(`Port ${PORT} is busy, trying to close existing process...`);
-    shutdownGracefully();
-  } else {
-    console.error('Server error:', err);
+const startServer = () => {
+  try {
+    const server = app.listen(PORT, '0.0.0.0', () => {
+      log(`Server running at http://0.0.0.0:${PORT}`);
+    }).on('error', (err: any) => {
+      if (err.code === 'EADDRINUSE') {
+        log(`Port ${PORT} is busy, retrying in 1 second...`);
+        setTimeout(() => {
+          server.close();
+          startServer();
+        }, 1000);
+      } else {
+        console.error('Server error:', err);
+      }
+    });
+
+    return server;
+  } catch (err) {
+    console.error('Failed to start server:', err);
+    process.exit(1);
   }
-});
+};
+
+const server = startServer();
 
 server.on('upgrade', (request, socket, head) => {
   wss.handleUpgrade(request, socket, head, (ws) => {
