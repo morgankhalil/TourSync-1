@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 interface ExtendedTourDate extends TourDate {
   title?: string;
   bandId?: number;
+  poster?: string;
 }
 
 // Event card component to reduce repetition
@@ -102,45 +103,83 @@ const VenueCalendar: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [activeTab, setActiveTab] = useState("upcoming");
 
-  // Full query implementation with proper query function
-  const { data: upcomingDates, isLoading, error } = useQuery({
+  // Separate queries for better error handling and caching
+  // Get tour dates for the venue
+  const { data: venueDates, isLoading: isLoadingDates, error: datesError } = useQuery({
     queryKey: ['/api/venues', venue?.id, 'dates'],
     queryFn: async () => {
       if (!venue) return [];
       console.log("Fetching venue dates for venue ID:", venue.id);
       try {
-        const response = await axios.get(`/api/venues/${venue.id}/dates`);
-        console.log("Received venue dates:", response.data);
-
-        // Get tours to find band names
-        const toursResponse = await axios.get('/api/tours');
-        const tours = toursResponse.data;
-
-        // Get all bands for matching
-        const bandsResponse = await axios.get('/api/bands');
-        const bands = bandsResponse.data;
-
-        // Enhance tour dates with band names
-        const enhancedDates = response.data.map((date: TourDate) => {
-          const tour = tours.find((t: any) => t.id === date.tourId);
-          const band = tour ? bands.find((b: any) => b.id === tour.bandId) : null;
-
-          return {
-            ...date,
-            title: band?.name || `Event on ${formatDate(date.date)}`,
-            bandId: band?.id
-          };
-        });
-
-        console.log("Enhanced dates with band info:", enhancedDates);
-        return enhancedDates as ExtendedTourDate[];
+        const response = await fetch(`/api/venues/${venue.id}/dates`);
+        if (!response.ok) throw new Error(`Failed to fetch dates: ${response.status}`);
+        const data = await response.json();
+        console.log("Received venue dates:", data);
+        return data as TourDate[];
       } catch (err) {
         console.error("Error fetching venue dates:", err);
         throw err;
       }
     },
     enabled: !!venue,
+    retry: 1,
+    staleTime: 60000, // 1 minute
   });
+  
+  // Get all tours
+  const { data: tours, isLoading: isLoadingTours } = useQuery({
+    queryKey: ['/api/tours'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/tours');
+        if (!response.ok) throw new Error(`Failed to fetch tours: ${response.status}`);
+        return await response.json();
+      } catch (err) {
+        console.error("Error fetching tours:", err);
+        return [];
+      }
+    },
+    enabled: !!venueDates,
+    staleTime: 300000, // 5 minutes
+  });
+  
+  // Get all bands
+  const { data: bands, isLoading: isLoadingBands } = useQuery({
+    queryKey: ['/api/bands'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/bands');
+        if (!response.ok) throw new Error(`Failed to fetch bands: ${response.status}`);
+        return await response.json();
+      } catch (err) {
+        console.error("Error fetching bands:", err);
+        return [];
+      }
+    },
+    enabled: !!venueDates,
+    staleTime: 300000, // 5 minutes
+  });
+  
+  // Combine the data once all queries are complete
+  const isLoading = isLoadingDates || isLoadingTours || isLoadingBands;
+  const error = datesError;
+  
+  // Enhance dates with band information
+  const upcomingDates = React.useMemo(() => {
+    if (!venueDates || !tours || !bands) return [];
+    
+    return venueDates.map((date: TourDate) => {
+      const tour = tours.find((t: any) => t.id === date.tourId);
+      const band = tour ? bands.find((b: any) => b.id === tour.bandId) : null;
+      
+      return {
+        ...date,
+        title: band?.name || `Event on ${formatDate(date.date)}`,
+        bandId: band?.id,
+        poster: band?.imageUrl || date.poster || null
+      };
+    });
+  }, [venueDates, tours, bands]);
 
   // Filter dates based on current date
   const currentDate = new Date();

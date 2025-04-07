@@ -90,6 +90,7 @@ export interface TourDate {
   bandId?: number;
   latitude?: string | number;
   longitude?: string | number;
+  poster?: string;
 }
 
 export interface VenueAvailability {
