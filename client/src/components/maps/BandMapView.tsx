@@ -50,8 +50,8 @@ const BandMapView: React.FC<BandMapViewProps> = ({
     // Add venue marker if activeVenue is available
     if (activeVenue) {
       // Convert string coordinates to numbers if needed
-      const venueLat = typeof activeVenue.lat === 'string' ? parseFloat(activeVenue.lat) : (activeVenue.lat || 0);
-      const venueLng = typeof activeVenue.lng === 'string' ? parseFloat(activeVenue.lng) : (activeVenue.lng || 0);
+      const venueLat = parseFloat(activeVenue.latitude);
+      const venueLng = parseFloat(activeVenue.longitude);
       
       if (venueLat && venueLng) {
         newMarkers.push({

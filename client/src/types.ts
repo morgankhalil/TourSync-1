@@ -27,8 +27,8 @@ export interface Venue {
   city: string;
   state: string;
   zipCode: string;
-  lat?: number | string;
-  lng?: number | string;
+  latitude: string;
+  longitude: string;
   capacity: number | null;
   contactName: string | null;
   contactEmail: string | null;
