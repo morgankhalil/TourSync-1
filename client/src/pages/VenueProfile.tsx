@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
@@ -33,11 +32,15 @@ export default function VenueProfile() {
   } = useQuery({
     queryKey: ["/api/venues", venueId],
     queryFn: async () => {
-      const result = await apiRequest(`/api/venues/${venueId}`);
-      return result as Venue;
+      const response = await fetch(`/api/venues/${venueId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch venue data');
+      }
+      return response.json();
     },
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    refetchOnWindowFocus: false,
     enabled: !!venueId,
-    staleTime: 60000
   });
 
   if (!venueId) {
