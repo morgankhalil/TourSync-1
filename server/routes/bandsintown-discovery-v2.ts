@@ -13,10 +13,10 @@ const discoveryService = new EnhancedBandsintownDiscoveryService(BANDSINTOWN_API
 
 export function registerBandsintownDiscoveryV2Routes(router: Router) {
   /**
-   * GET /api/bandsintown-discovery-v2/status
+   * GET /api/bandsintown-v2/status
    * Check the status of the Bandsintown API connection
    */
-  router.get('/api/bandsintown-discovery-v2/status', async (req: Request, res: Response) => {
+  router.get('/api/bandsintown-v2/status', async (req: Request, res: Response) => {
     try {
       const status = await discoveryService.checkStatus();
       res.json(status);
@@ -31,10 +31,10 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
   });
 
   /**
-   * GET /api/bandsintown-discovery-v2/near-venue
-   * Find bands passing near a venue
+   * GET /api/bandsintown-v2/discover
+   * Find bands passing near a venue (main discovery endpoint)
    */
-  router.get('/api/bandsintown-discovery-v2/near-venue', async (req: Request, res: Response) => {
+  router.get('/api/bandsintown-v2/discover', async (req: Request, res: Response) => {
     try {
       const {
         venueId,
@@ -100,10 +100,10 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
   });
 
   /**
-   * POST /api/bandsintown-discovery-v2/clear-cache
+   * POST /api/bandsintown-v2/clear-cache
    * Clear the API cache
    */
-  router.post('/api/bandsintown-discovery-v2/clear-cache', (req: Request, res: Response) => {
+  router.post('/api/bandsintown-v2/clear-cache', (req: Request, res: Response) => {
     try {
       discoveryService.clearCache();
       res.json({
