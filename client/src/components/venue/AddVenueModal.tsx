@@ -32,10 +32,7 @@ export default function AddVenueModal() {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          // Add auth header if you have a token
-          ...(localStorage.getItem('authToken') && {
-            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-          })
+          'X-API-KEY': import.meta.env.VITE_BANDSINTOWN_API_KEY
         }
       });
       if (!searchResponse.ok) {
