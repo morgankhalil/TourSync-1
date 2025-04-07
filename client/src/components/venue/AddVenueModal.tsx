@@ -36,17 +36,22 @@ export default function AddVenueModal() {
       const searchResponse = await fetch(`/api/bandsintown/venue/search?name=${encodeURIComponent(venueName)}&location=${encodeURIComponent(location)}`, {
         headers: {
           'Content-Type': 'application/json',
-          'X-API-KEY': apiKey
+          'Authorization': `Bearer ${apiKey}`
         }
       });
+      
       if (!searchResponse.ok) {
-        const errorData = await searchResponse.json();
-        throw new Error(`Error searching for venue: ${searchResponse.status} - ${errorData.message || 'Unknown error'}`);
+        throw new Error(`Error searching for venue: ${searchResponse.status}`);
       }
-      const searchResult = await searchResponse.json();
-
+      
+      const searchResults = await searchResponse.json();
+      if (!searchResults || !searchResults.length) {
+        throw new Error('No venues found');
+      }
+      
+      const searchResult = searchResults[0]; // Use first result
       if (!searchResult?.id) {
-        throw new Error('Venue not found');
+        throw new Error('Invalid venue data received');
       }
 
       // Get detailed venue info
