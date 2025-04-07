@@ -8,8 +8,14 @@ async function importEmptyBottleEvents() {
   try {
     console.log('Starting Empty Bottle data import...');
 
+    // Validate API key
+    const apiKey = process.env.BANDSINTOWN_API_KEY;
+    if (!apiKey) {
+      throw new Error('BANDSINTOWN_API_KEY environment variable is not set');
+    }
+    
     // Initialize Bandsintown API service
-    const bandsintownApi = new BandsintownApiService(process.env.BANDSINTOWN_API_KEY || '');
+    const bandsintownApi = new BandsintownApiService(apiKey);
 
     // 1. Create or get the Empty Bottle venue
     const existingVenue = await db.query.venues.findFirst({

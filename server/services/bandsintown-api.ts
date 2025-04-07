@@ -358,6 +358,10 @@ export class BandsintownApiService {
    */
   async getVenueEvents(venueName: string, location: string): Promise<Event[]> {
     try {
+      if (!this.apiKey) {
+        throw new Error('No API key configured');
+      }
+
       const cacheKey = `venue_events:${venueName}:${location}`;
       
       // Check cache first
@@ -374,17 +378,29 @@ export class BandsintownApiService {
             app_id: this.apiKey,
             venue: venueName,
             location: location
-          } 
+          },
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
         }
       );
+
+      if (response.status === 403) {
+        throw new Error('API key unauthorized - please check your Bandsintown API key');
+      }
 
       // Cache the results
       API_CACHE.set(cacheKey, response.data);
       
       return response.data;
     } catch (error) {
-      console.error(`Error fetching events for venue ${venueName}:`, error);
-      return [];
+      if (axios.isAxiosError(error) && error.response?.status === 403) {
+        console.error('Bandsintown API authorization failed - invalid API key');
+      } else {
+        console.error(`Error fetching events for venue ${venueName}:`, error);
+      }
+      throw error;
     }
   }
 
