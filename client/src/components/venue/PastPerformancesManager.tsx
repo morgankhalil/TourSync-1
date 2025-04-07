@@ -247,8 +247,8 @@ export default function PastPerformancesManager({ venueId }: PastPerformancesMan
                           {performancesByYear[year]
                             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                             .map((performance) => (
-                              <Card key={performance.id} className="p-4 relative">
-                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+                              <Card key={performance.id} className="p-3 md:p-4 relative">
+                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                                   <div className="flex-1">
                                     <div className="flex items-start justify-between">
                                       <div>

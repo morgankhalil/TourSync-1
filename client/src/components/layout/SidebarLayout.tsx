@@ -1,18 +1,34 @@
+
 import React, { ReactNode } from 'react';
 import Sidebar from './Sidebar';
+import MobileNavigation from './MobileNavigation';
 import { useSidebar } from '@/context/SidebarContext';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Menu } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface SidebarLayoutProps {
   children: ReactNode;
 }
 
 export function SidebarLayout({ children }: SidebarLayoutProps) {
-  const { isSidebarOpen, closeSidebar } = useSidebar();
+  const { isSidebarOpen, closeSidebar, toggleSidebar } = useSidebar();
   const isMobile = useIsMobile();
 
   return (
     <div className="flex h-full overflow-hidden">
+      {/* Mobile menu button */}
+      {isMobile && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleSidebar}
+          className="fixed top-4 left-4 z-50 md:hidden"
+        >
+          <Menu size={24} />
+        </Button>
+      )}
+      
       {/* Mobile overlay */}
       {isMobile && isSidebarOpen && (
         <div 
@@ -31,9 +47,12 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
       </div>
       
       {/* Main content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto pb-16 md:pb-0">
         {children}
       </div>
+
+      {/* Mobile navigation */}
+      {isMobile && <MobileNavigation />}
     </div>
   );
 }
