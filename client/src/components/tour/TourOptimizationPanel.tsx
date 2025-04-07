@@ -156,6 +156,8 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
   
   const handleSelectVenue = (venue: Venue) => {
     setSelectedVenue(venue);
+    setGapVenues([]); // Clear gap venues after selection
+    setNearbyVenues([]); // Clear nearby venues after selection
     if (onSelectVenue) {
       onSelectVenue(venue);
     }
