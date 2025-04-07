@@ -25,6 +25,17 @@ const VenueSelector: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const { toast } = useToast();
   const { activeVenue, setActiveVenue, venueId, setVenueId, refreshVenue } = useActiveVenue();
+
+  // Show toast when component mounts if no venue is selected
+  useEffect(() => {
+    if (!activeVenue) {
+      toast({
+        title: "No Venue Selected",
+        description: "Please select a venue to continue",
+        duration: 5000
+      });
+    }
+  }, []);
   
   // Fetch venues
   const { data: venues, isLoading, refetch } = useQuery({
@@ -111,10 +122,10 @@ const VenueSelector: React.FC = () => {
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
-            variant="outline"
+            variant={activeVenue ? "outline" : "default"}
             role="combobox"
             aria-expanded={open}
-            className="w-[200px] justify-between"
+            className={`w-[200px] justify-between ${!activeVenue ? 'animate-pulse' : ''}`}
           >
             {isLoading ? (
               'Loading venues...'
