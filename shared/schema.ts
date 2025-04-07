@@ -28,7 +28,6 @@ export const insertBandSchema = createInsertSchema(bands).omit({
 // Venue schema
 export const venues = pgTable("venues", {
   id: serial("id").primaryKey(),
-  bandsintownId: text("bandsintown_id"),
   name: text("name").notNull(),
   address: text("address").notNull(),
   city: text("city").notNull(),
@@ -85,8 +84,7 @@ export const tourDates = pgTable("tour_dates", {
   status: text("status").default("open"), // open, pending, confirmed
   notes: text("notes"),
   venueName: text("venue_name"),
-  isOpenDate: boolean("is_open_date").default(false),
-  poster: text("poster")
+  isOpenDate: boolean("is_open_date").default(false)
 });
 
 export const insertTourDateSchema = createInsertSchema(tourDates).omit({
@@ -146,6 +144,20 @@ export const insertArtistDiscoverySchema = createInsertSchema(artistDiscovery);
 
 export type ArtistDiscovery = typeof artistDiscovery.$inferSelect;
 export type InsertArtistDiscovery = z.infer<typeof insertArtistDiscoverySchema>;
+export interface Venue {
+  id: number;
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  latitude: string;
+  longitude: string;
+  capacity?: number;
+  website?: string;
+  phone?: string;
+  email?: string;
+}
 
 export interface Artist {
   id: string;

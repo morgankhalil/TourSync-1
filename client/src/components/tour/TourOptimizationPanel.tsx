@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,6 +15,7 @@ import { CalendarIcon, Map, Calendar as CalendarIcon2, Clock } from "lucide-reac
 import { useToast } from "../../hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
+import { cn } from "../../lib/utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import VenueItem from "../venue/VenueItem";
@@ -45,6 +45,7 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
   
   const { toast } = useToast();
   
+  // Finding tour gaps
   useEffect(() => {
     if (tour?.id) {
       fetchTourGaps();
@@ -112,6 +113,7 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
     }
   };
   
+  // Finding nearby venues
   const handleSelectTourDate = async (date: TourDate) => {
     if (!date.venueId) {
       toast({
@@ -127,6 +129,7 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
     try {
       setIsLoading(true);
       
+      // Get venues already in the tour to exclude them
       const excludeIds = tourDates
         .filter(td => td.venueId)
         .map(td => td.venueId as number)
@@ -354,6 +357,41 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
             </div>
           </TabsContent>
         </Tabs>
+      </CardContent>
+    </Card>
+  );
+};
+
+import React from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Tour, TourDate, Venue } from '@/types';
+
+interface TourOptimizationPanelProps {
+  tour: Tour | null;
+  tourDates: TourDate[];
+  onSelectVenue: (venue: Venue) => void;
+}
+
+const TourOptimizationPanel: React.FC<TourOptimizationPanelProps> = ({
+  tour,
+  tourDates,
+  onSelectVenue
+}) => {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Tour Optimization</CardTitle>
+        <CardDescription>Find and fill open dates with recommended venues</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {tourDates.filter(date => date.isOpenDate || !date.venueId).map(date => (
+            <div key={date.id} className="p-4 border rounded-lg">
+              <div className="font-medium">{new Date(date.date).toLocaleDateString()}</div>
+              <div className="text-sm text-muted-foreground">Looking for venues...</div>
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );

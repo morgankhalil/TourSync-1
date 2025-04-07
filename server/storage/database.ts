@@ -101,13 +101,8 @@ export class DatabaseStorage implements IStorage {
 
   // Venue operations
   async getVenue(id: number): Promise<Venue | undefined> {
-    try {
-      const [venue] = await db.select().from(venues).where(eq(venues.id, id));
-      return venue || undefined;
-    } catch (error) {
-      console.error(`Error fetching venue ${id}:`, error);
-      return undefined;
-    }
+    const [venue] = await db.select().from(venues).where(eq(venues.id, id));
+    return venue || undefined;
   }
 
   async getVenues(): Promise<Venue[]> {

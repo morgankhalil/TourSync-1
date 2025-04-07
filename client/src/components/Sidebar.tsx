@@ -23,16 +23,7 @@ const Sidebar: React.FC = () => {
     { name: 'Dashboard', path: '/', icon: <Home className="w-5 h-5 mr-3" /> },
     { name: 'Artist Discovery', path: '/discovery', icon: <Compass className="w-5 h-5 mr-3" /> },
     { name: 'Enhanced Discovery', path: '/discovery-v2', icon: <Compass className="w-5 h-5 mr-3 text-purple-600" /> },
-    { 
-      name: 'Calendar', 
-      path: '/calendar', 
-      icon: <CalendarDays className="w-5 h-5 mr-3" />,
-      children: [
-        { name: 'View Calendar', path: '/calendar' },
-        { name: 'Manage Calendar', path: '/calendar/manage' },
-        { name: 'Set Availability', path: '/venue-availability' },
-      ]
-    },
+    { name: 'Calendar', path: '/calendar', icon: <CalendarDays className="w-5 h-5 mr-3" /> },
     { name: 'Tour Planning', path: '/tour-planning', icon: <Building className="w-5 h-5 mr-3" /> }, //Replaced Map with Building as Map is not defined.
     { name: 'Tour Dashboard', path: '/tour-dashboard', icon: <BarChart2 className="w-5 h-5 mr-3" /> }, // Changed BarChart3 to BarChart2
     { name: 'Bands', path: '/bands', icon: <Users className="w-5 h-5 mr-3" /> },
@@ -60,11 +51,9 @@ const Sidebar: React.FC = () => {
           {navItems.map((item) => {
             const isActive = location === item.path || 
               (item.path !== '/' && location.startsWith(item.path));
-            
-            const hasChildren = item.children && item.children.length > 0;
-            
+
             return (
-              <li key={item.path} className="space-y-1">
+              <li key={item.path}>
                 <Link
                   href={item.path}
                   className={`flex items-center px-3 py-2 rounded-md text-sm group hover:bg-gray-100 ${
@@ -76,33 +65,9 @@ const Sidebar: React.FC = () => {
                   {item.icon}
                   {item.name}
                   <ChevronRight className={`w-4 h-4 ml-auto transition-transform ${
-                    isActive ? 'text-primary transform rotate-90' : 'opacity-0 group-hover:opacity-100'
+                    isActive ? 'text-primary' : 'opacity-0 group-hover:opacity-100'
                   }`} />
                 </Link>
-                
-                {/* Render child menu items if active and has children */}
-                {hasChildren && isActive && (
-                  <ul className="pl-8 space-y-1 mt-1">
-                    {item.children.map((child: any) => {
-                      const isChildActive = location === child.path;
-                      
-                      return (
-                        <li key={child.path}>
-                          <Link 
-                            href={child.path}
-                            className={`flex items-center px-3 py-1.5 rounded-md text-xs group hover:bg-gray-100 ${
-                              isChildActive 
-                                ? 'bg-gray-100 text-primary font-medium' 
-                                : 'text-gray-700'
-                            }`}
-                          >
-                            {child.name}
-                          </Link>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
               </li>
             );
           })}

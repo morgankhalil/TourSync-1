@@ -25,18 +25,7 @@ const VenueSelector: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const { toast } = useToast();
   const { activeVenue, setActiveVenue, venueId, setVenueId, refreshVenue } = useActiveVenue();
-
-  // Show toast when component mounts if no venue is selected
-  useEffect(() => {
-    if (!activeVenue) {
-      toast({
-        title: "No Venue Selected",
-        description: "Please select a venue to continue",
-        duration: 5000
-      });
-    }
-  }, []);
-
+  
   // Fetch venues
   const { data: venues, isLoading, refetch } = useQuery({
     queryKey: ['/api/venues'],
@@ -61,19 +50,19 @@ const VenueSelector: React.FC = () => {
   // Handle venue selection with more thorough approach
   const handleVenueSelect = (venue: Venue) => {
     console.log(`Selecting venue: ${venue.name} (ID: ${venue.id})`);
-
+    
     if (venueId === venue.id) {
       console.log("Venue already selected, no change needed");
       setOpen(false);
       return;
     }
-
+    
     // Set active venue - this will handle ID updates and cache clearing internally
     setActiveVenue(venue);
-
+    
     // Close the popover
     setOpen(false);
-
+    
     // Show a toast to confirm venue change
     toast({
       title: "Venue Changed",
@@ -81,7 +70,7 @@ const VenueSelector: React.FC = () => {
       duration: 3000
     });
   };
-
+  
   // Handle manual refresh with enhanced client
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -89,13 +78,13 @@ const VenueSelector: React.FC = () => {
       // Clear API cache using the enhanced client
       const cacheResult = await EnhancedBandsintownDiscoveryClient.clearCache();
       console.log("Cache cleared:", cacheResult);
-
+      
       // Refresh venue data
       refreshVenue();
-
+      
       // Refresh venues list
       await refetch();
-
+      
       toast({
         title: "Data Refreshed",
         description: "Venue information has been refreshed",
@@ -122,10 +111,10 @@ const VenueSelector: React.FC = () => {
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
-            variant={activeVenue ? "outline" : "default"}
+            variant="outline"
             role="combobox"
             aria-expanded={open}
-            className={`w-[200px] justify-between ${!activeVenue ? 'animate-pulse' : ''}`}
+            className="w-[200px] justify-between"
           >
             {isLoading ? (
               'Loading venues...'

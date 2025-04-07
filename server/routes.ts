@@ -498,7 +498,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Get tour dates associated with a specific venue (use this format for more specific filters)
+  // Get tour dates associated with a specific venue
   app.get("/api/venues/:id/tour-dates", async (req, res) => {
     try {
       const venueId = parseInt(req.params.id);
@@ -521,41 +521,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Filter dates for the specified venue
       const venueDates = allDates.filter(date => date.venueId === venueId);
-      
-      res.json(venueDates);
-    } catch (error) {
-      console.error("Error fetching venue tour dates:", error);
-      res.status(500).json({ message: "Error fetching venue tour dates" });
-    }
-  });
-  
-  // Venue dates endpoint (used by calendar components)
-  app.get("/api/venues/:id/dates", async (req, res) => {
-    try {
-      const venueId = parseInt(req.params.id);
-      console.log(`Fetching dates for venue ID: ${venueId}`);
-      
-      // Get all tours
-      const tours = await storage.getTours();
-      console.log(`Found ${tours.length} tours`);
-      
-      // Get all tour dates
-      const allDatePromises = tours.map(tour => {
-        // Ensure we have a valid tour id
-        if (!tour || isNaN(tour.id)) {
-          console.warn("Invalid tour ID encountered:", tour);
-          return Promise.resolve([]);
-        }
-        return storage.getTourDates(tour.id);
-      });
-      
-      const allDatesArrays = await Promise.all(allDatePromises);
-      const allDates = allDatesArrays.flat();
-      console.log(`Found ${allDates.length} total dates across all tours`);
-      
-      // Filter dates for the specified venue
-      const venueDates = allDates.filter(date => date.venueId === venueId);
-      console.log(`Found ${venueDates.length} dates for venue ID ${venueId}`);
       
       res.json(venueDates);
     } catch (error) {

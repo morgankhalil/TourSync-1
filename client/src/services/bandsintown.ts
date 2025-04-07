@@ -60,7 +60,7 @@ export const bandsintownService = {
   ): Promise<BandPassingNearby[]> {
     const start = typeof startDate === 'string' ? startDate : startDate.toISOString().split('T')[0];
     const end = typeof endDate === 'string' ? endDate : endDate.toISOString().split('T')[0];
-
+    
     return apiRequest<BandPassingNearby[]>('post', '/api/bandsintown/find-bands-near-venue', {
       venueId,
       startDate: start,
@@ -79,7 +79,7 @@ export const bandsintownService = {
   ): Promise<{ message: string, processedArtists: number }> {
     const start = fromDate ? (typeof fromDate === 'string' ? fromDate : fromDate.toISOString().split('T')[0]) : undefined;
     const end = toDate ? (typeof toDate === 'string' ? toDate : toDate.toISOString().split('T')[0]) : undefined;
-
+    
     return apiRequest<{ message: string, processedArtists: number }>('post', '/api/bandsintown/refresh-tour-routes', {
       fromDate: start,
       toDate: end,
@@ -92,21 +92,6 @@ export const bandsintownService = {
    */
   async getStatus(): Promise<any> {
     return apiRequest<any>('get', '/api/bandsintown/status');
-  },
-
-  clearCache(): void {
-    API_CACHE.flushAll();
-    console.log('API cache cleared');
-  },
-
-  async searchVenue(name: string, location: string): Promise<any> {
-    return apiRequest<any>('get', `/api/bandsintown/venue/search`, {
-      params: { name, location }
-    });
-  },
-
-  async getVenueDetails(venueId: string): Promise<any> {
-    return apiRequest<any>('get', `/api/bandsintown/venue/${venueId}`);
   }
 };
 

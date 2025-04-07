@@ -5,8 +5,8 @@ import axios, { AxiosRequestConfig } from 'axios';
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 2,
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      refetchOnWindowFocus: false,
+      retry: 1,
     },
   },
 });
@@ -123,8 +123,7 @@ type ApiRequestOptions = {
  * Default fetcher function for React Query
  * This will be used when no queryFn is provided to useQuery
  */
-export async function defaultFetcher<T = any>(context: any): Promise<T> {
-  const { queryKey } = context;
+export async function defaultFetcher<T = any>({ queryKey }: { queryKey: any[] }): Promise<T> {
   // The first element of queryKey should be the URL
   const [url, params] = queryKey;
 

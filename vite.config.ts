@@ -1,4 +1,3 @@
-
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import themePlugin from "@replit/vite-plugin-shadcn-theme-json";
@@ -19,18 +18,6 @@ export default defineConfig({
         ]
       : []),
   ],
-  optimizeDeps: {
-    exclude: [
-      '@hookform/resolvers/zod',
-      'react-hook-form',
-      'zod',
-      'drizzle-orm/pg-core',
-      'drizzle-zod',
-      '@radix-ui/react-accordion',
-      '@radix-ui/react-separator',
-      '@radix-ui/react-checkbox'
-    ]
-  },
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
@@ -46,10 +33,8 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     hmr: {
-      port: 5000,
-      protocol: 'ws',
-      host: '0.0.0.0',
-      clientPort: 443
+      clientPort: 443,
+      protocol: 'wss'
     },
     proxy: {
       '/api': 'http://0.0.0.0:5000',

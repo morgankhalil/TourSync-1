@@ -50,15 +50,6 @@ export interface Venue {
   foodOptions: any;
   loadingInfo: any;
   priceRange: any;
-  // Additional properties needed for component compatibility
-  dealType?: string | null;
-  venueType?: string | null;
-  pastPerformers?: any[];
-  photoGallery?: any[];
-  reviews?: any[];
-  bookingContact?: any;
-  accommodations?: any[];
-  preferredGenres?: string[];
 }
 
 export interface Tour {
@@ -90,7 +81,6 @@ export interface TourDate {
   bandId?: number;
   latitude?: string | number;
   longitude?: string | number;
-  poster?: string;
 }
 
 export interface VenueAvailability {
