@@ -51,12 +51,20 @@ export default function EnhancedArtistDiscovery() {
 
   // Handle incremental search results
   const handleViewArtist = (artist: DiscoveryResult) => {
+    console.log("View artist details:", artist.name);
     setSelectedArtist(artist);
-    // Switch to details tab
-    const detailsTab = document.querySelector('[data-state="inactive"][value="details"]');
-    if (detailsTab) {
-      (detailsTab as HTMLElement).click();
-    }
+    
+    // Use a timeout to ensure the state update completes first
+    setTimeout(() => {
+      // Find and click the details tab
+      const detailsTab = document.querySelector('button[value="details"]');
+      if (detailsTab) {
+        console.log("Found details tab, clicking it");
+        (detailsTab as HTMLElement).click();
+      } else {
+        console.log("Details tab not found");
+      }
+    }, 100);
   };
   
   const handleIncrementalResults = (newResults: DiscoveryResult[]) => {
@@ -614,7 +622,21 @@ export default function EnhancedArtistDiscovery() {
                       <Button 
                         variant="outline" 
                         className="w-full" 
-                        onClick={() => handleViewArtist(artist)}
+                        onClick={() => {
+                          console.log("Button clicked - viewing artist details", artist.name);
+                          // First update selected artist
+                          setSelectedArtist(artist);
+                          // Then manually force the tab change after a small delay
+                          setTimeout(() => {
+                            const detailsTab = document.querySelector('button[value="details"]');
+                            if (detailsTab) {
+                              console.log("Found details tab, clicking it directly");
+                              (detailsTab as HTMLElement).click();
+                            } else {
+                              console.log("Details tab not found");
+                            }
+                          }, 50);
+                        }}
                       >
                         View Details
                       </Button>
@@ -643,30 +665,66 @@ export default function EnhancedArtistDiscovery() {
                         // Each artist tour is a group
                         const tourLocations = [];
                         
-                        // Add origin location if available
-                        if (artist.route.origin && artist.route.origin.lat && artist.route.origin.lng) {
-                          tourLocations.push({
-                            lat: artist.route.origin.lat,
-                            lng: artist.route.origin.lng,
-                            name: `${artist.route.origin.city}, ${artist.route.origin.state}`,
-                            tourId: artist.name, // Use band name as tourId
-                            bandName: artist.name,
-                            imageUrl: artist.image,
-                            date: artist.route.origin.date
-                          });
+                        // Add origin location if available - use precise venue coordinates from event
+                        if (artist.route.origin && artist.route.origin.date) {
+                          // Try to find the matching event to get precise venue coordinates
+                          const originEvent = artist.events?.find(e => 
+                            e.datetime.split('T')[0] === artist.route.origin?.date);
+                            
+                          // If we found matching event, use its venue coordinates
+                          if (originEvent && originEvent.venue.latitude && originEvent.venue.longitude) {
+                            tourLocations.push({
+                              lat: parseFloat(originEvent.venue.latitude),
+                              lng: parseFloat(originEvent.venue.longitude),
+                              name: `${originEvent.venue.name}, ${artist.route.origin.city}, ${artist.route.origin.state}`,
+                              tourId: artist.name, // Use band name as tourId
+                              bandName: artist.name,
+                              imageUrl: artist.image,
+                              date: artist.route.origin.date
+                            });
+                          } else if (artist.route.origin.lat && artist.route.origin.lng) {
+                            // Fallback to approximate coordinates if no event found
+                            tourLocations.push({
+                              lat: artist.route.origin.lat,
+                              lng: artist.route.origin.lng,
+                              name: `${artist.route.origin.city}, ${artist.route.origin.state}`,
+                              tourId: artist.name, // Use band name as tourId
+                              bandName: artist.name,
+                              imageUrl: artist.image,
+                              date: artist.route.origin.date
+                            });
+                          }
                         }
                         
-                        // Add destination location if available
-                        if (artist.route.destination && artist.route.destination.lat && artist.route.destination.lng) {
-                          tourLocations.push({
-                            lat: artist.route.destination.lat,
-                            lng: artist.route.destination.lng,
-                            name: `${artist.route.destination.city}, ${artist.route.destination.state}`,
-                            tourId: artist.name, // Use band name as tourId
-                            bandName: artist.name,
-                            imageUrl: artist.image,
-                            date: artist.route.destination.date
-                          });
+                        // Add destination location if available - use precise venue coordinates from event
+                        if (artist.route.destination && artist.route.destination.date) {
+                          // Try to find the matching event to get precise venue coordinates
+                          const destEvent = artist.events?.find(e => 
+                            e.datetime.split('T')[0] === artist.route.destination?.date);
+                            
+                          // If we found matching event, use its venue coordinates
+                          if (destEvent && destEvent.venue.latitude && destEvent.venue.longitude) {
+                            tourLocations.push({
+                              lat: parseFloat(destEvent.venue.latitude),
+                              lng: parseFloat(destEvent.venue.longitude),
+                              name: `${destEvent.venue.name}, ${artist.route.destination.city}, ${artist.route.destination.state}`,
+                              tourId: artist.name, // Use band name as tourId
+                              bandName: artist.name,
+                              imageUrl: artist.image,
+                              date: artist.route.destination.date
+                            });
+                          } else if (artist.route.destination.lat && artist.route.destination.lng) {
+                            // Fallback to approximate coordinates if no event found
+                            tourLocations.push({
+                              lat: artist.route.destination.lat,
+                              lng: artist.route.destination.lng,
+                              name: `${artist.route.destination.city}, ${artist.route.destination.state}`,
+                              tourId: artist.name, // Use band name as tourId
+                              bandName: artist.name,
+                              imageUrl: artist.image,
+                              date: artist.route.destination.date
+                            });
+                          }
                         }
                         
                         // Add midpoint for potential venue (when selected a specific artist)
@@ -798,15 +856,34 @@ export default function EnhancedArtistDiscovery() {
                                 isVenue: true
                               },
                               // Build a tour path with origin, venue, and destination
-                              ...(selectedArtist.route.origin ? [{
-                                lat: selectedArtist.route.origin.lat,
-                                lng: selectedArtist.route.origin.lng,
-                                name: `${selectedArtist.route.origin.city}, ${selectedArtist.route.origin.state}`,
-                                tourId: selectedArtist.name,
-                                bandName: selectedArtist.name,
-                                imageUrl: selectedArtist.image,
-                                date: selectedArtist.route.origin.date
-                              }] : []),
+                              ...(selectedArtist.route.origin ? (() => {
+                                // Try to find the matching event to get precise venue coordinates
+                                const originEvent = selectedArtist.events?.find(e => 
+                                  e.datetime.split('T')[0] === selectedArtist.route.origin?.date);
+                                
+                                if (originEvent && originEvent.venue.latitude && originEvent.venue.longitude) {
+                                  return [{
+                                    lat: parseFloat(originEvent.venue.latitude),
+                                    lng: parseFloat(originEvent.venue.longitude),
+                                    name: `${originEvent.venue.name}, ${selectedArtist.route.origin.city}, ${selectedArtist.route.origin.state}`,
+                                    tourId: selectedArtist.name,
+                                    bandName: selectedArtist.name,
+                                    imageUrl: selectedArtist.image,
+                                    date: selectedArtist.route.origin.date
+                                  }];
+                                } else if (selectedArtist.route.origin.lat && selectedArtist.route.origin.lng) {
+                                  return [{
+                                    lat: selectedArtist.route.origin.lat,
+                                    lng: selectedArtist.route.origin.lng,
+                                    name: `${selectedArtist.route.origin.city}, ${selectedArtist.route.origin.state}`,
+                                    tourId: selectedArtist.name,
+                                    bandName: selectedArtist.name,
+                                    imageUrl: selectedArtist.image,
+                                    date: selectedArtist.route.origin.date
+                                  }];
+                                }
+                                return [];
+                              })() : []),
                               // Add venue as potential stop on the tour
                               ...(selectedArtist.route.origin && selectedArtist.route.destination ? [{
                                 lat: parseFloat(activeVenue.latitude),
@@ -820,15 +897,34 @@ export default function EnhancedArtistDiscovery() {
                                        new Date(selectedArtist.route.origin.date).getTime()) / 2).toISOString().split('T')[0]
                               }] : []),
                               // Destination
-                              ...(selectedArtist.route.destination ? [{
-                                lat: selectedArtist.route.destination.lat,
-                                lng: selectedArtist.route.destination.lng,
-                                name: `${selectedArtist.route.destination.city}, ${selectedArtist.route.destination.state}`,
-                                tourId: selectedArtist.name,
-                                bandName: selectedArtist.name,
-                                imageUrl: selectedArtist.image,
-                                date: selectedArtist.route.destination.date
-                              }] : [])
+                              ...(selectedArtist.route.destination ? (() => {
+                                // Try to find the matching event to get precise venue coordinates
+                                const destEvent = selectedArtist.events?.find(e => 
+                                  e.datetime.split('T')[0] === selectedArtist.route.destination?.date);
+                                
+                                if (destEvent && destEvent.venue.latitude && destEvent.venue.longitude) {
+                                  return [{
+                                    lat: parseFloat(destEvent.venue.latitude),
+                                    lng: parseFloat(destEvent.venue.longitude),
+                                    name: `${destEvent.venue.name}, ${selectedArtist.route.destination.city}, ${selectedArtist.route.destination.state}`,
+                                    tourId: selectedArtist.name,
+                                    bandName: selectedArtist.name,
+                                    imageUrl: selectedArtist.image,
+                                    date: selectedArtist.route.destination.date
+                                  }];
+                                } else if (selectedArtist.route.destination.lat && selectedArtist.route.destination.lng) {
+                                  return [{
+                                    lat: selectedArtist.route.destination.lat,
+                                    lng: selectedArtist.route.destination.lng,
+                                    name: `${selectedArtist.route.destination.city}, ${selectedArtist.route.destination.state}`,
+                                    tourId: selectedArtist.name,
+                                    bandName: selectedArtist.name,
+                                    imageUrl: selectedArtist.image,
+                                    date: selectedArtist.route.destination.date
+                                  }];
+                                }
+                                return [];
+                              })() : [])
                             ]}
                             zoom={5}
                             showPaths={true}
@@ -845,7 +941,10 @@ export default function EnhancedArtistDiscovery() {
                                 {format(new Date(selectedArtist.route.origin.date), "EEEE, MMMM d, yyyy")}
                               </p>
                               <p className="text-gray-600">
-                                {selectedArtist.route.origin.city}, {selectedArtist.route.origin.state}
+                                {/* Try to find the venue name in the events */}
+                                {selectedArtist.events?.find(e => 
+                                  e.datetime.split('T')[0] === selectedArtist.route.origin.date)?.venue.name || 'Unknown Venue'} 
+                                in {selectedArtist.route.origin.city}, {selectedArtist.route.origin.state}
                               </p>
                               <p className="text-sm text-gray-500 mt-1">
                                 {selectedArtist.route.distanceToVenue} miles from your venue
@@ -879,7 +978,10 @@ export default function EnhancedArtistDiscovery() {
                                 {format(new Date(selectedArtist.route.destination.date), "EEEE, MMMM d, yyyy")}
                               </p>
                               <p className="text-gray-600">
-                                {selectedArtist.route.destination.city}, {selectedArtist.route.destination.state}
+                                {/* Try to find the venue name in the events */}
+                                {selectedArtist.events?.find(e => 
+                                  e.datetime.split('T')[0] === selectedArtist.route.destination.date)?.venue.name || 'Unknown Venue'} 
+                                in {selectedArtist.route.destination.city}, {selectedArtist.route.destination.state}
                               </p>
                             </div>
                           </div>
