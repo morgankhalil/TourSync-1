@@ -46,9 +46,10 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     hmr: {
-      clientPort: 443,
-      protocol: 'wss',
-      host: process.env.REPL_SLUG + '.' + process.env.REPL_OWNER + '.repl.co'
+      port: 5000,
+      protocol: 'ws',
+      host: '0.0.0.0',
+      clientPort: 443
     },
     proxy: {
       '/api': 'http://0.0.0.0:5000',
