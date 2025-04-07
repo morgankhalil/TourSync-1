@@ -130,6 +130,7 @@ export interface RouteAnalysis {
   distanceToVenue: number;
   detourDistance: number;
   daysAvailable: number;
+  routingScore?: number; // Added: Lower score means better routing opportunity
 }
 
 export interface BandPassingNearby {

@@ -179,7 +179,51 @@ class RealBandsintownDiscoveryService implements BandsintownDiscoveryService {
       
       
       // Step 4: Calculate which artists are passing "near" the venue
-      // Filter for artists with at least 2 events in the date range
+      // We're implementing a more sophisticated algorithm to find the ideal "low hanging fruit" bands
+      
+      // Expand the search radius for route analysis to 200 miles (more aggressive than the user's input radius)
+      const expandedRadius = Math.max(radius, 200);
+      
+      // Score function to rank how good a routing opportunity is
+      const calculateRoutingScore = (
+        distanceToVenue: number, 
+        detourDistance: number, 
+        daysBetween: number
+      ): number => {
+        // Lower is better
+        // We want bands that:
+        // 1. Are close to our venue (weight: highest)
+        // 2. Have minimal detour driving (weight: high)
+        // 3. Have 1-3 days between shows, optimal is 2 (weight: medium)
+        
+        // Distance penalty (0-100 points)
+        const distancePenalty = distanceToVenue > 200 
+          ? 100 
+          : Math.round((distanceToVenue / 200) * 100);
+        
+        // Detour penalty (0-100 points)
+        // If detour is more than 2x the distance to venue or more than 200 miles, max penalty
+        const maxAcceptableDetour = Math.min(distanceToVenue * 2, 200); 
+        const detourPenalty = detourDistance > maxAcceptableDetour
+          ? 100
+          : Math.round((detourDistance / maxAcceptableDetour) * 100);
+        
+        // Days penalty (0-100 points)
+        // Ideal is 1-3 days between shows, with 2 being perfect
+        // More than 5 days might mean they have other plans or are taking a break
+        let daysPenalty = 100;
+        if (daysBetween === 2) daysPenalty = 0;  // Perfect
+        else if (daysBetween === 1 || daysBetween === 3) daysPenalty = 10; // Great
+        else if (daysBetween === 4) daysPenalty = 30; // Good
+        else if (daysBetween === 5) daysPenalty = 50; // Acceptable
+        else if (daysBetween > 5) daysPenalty = 50 + (daysBetween - 5) * 10; // Less ideal
+        
+        // Overall score (0-300, lower is better)
+        return distancePenalty * 1.5 + detourPenalty * 1.2 + daysPenalty * 0.8;
+      };
+
+      // ENHANCED ALGORITHM: Now analyze all artists including those with events outside the date range
+      // We're implementing a "lookahead" approach where we consider all upcoming shows
       const artistsWithRoutes = validArtists
         .filter(artist => artist && artist.events && artist.events.length >= 1) // Just need 1 event to consider an artist
         .map(artist => {
@@ -188,9 +232,12 @@ class RealBandsintownDiscoveryService implements BandsintownDiscoveryService {
             new Date(a.datetime).getTime() - new Date(b.datetime).getTime()
           );
           
-          // First check - if artist only has one event and it's within reasonable distance of our venue
+          // Metadata to store our best routing opportunity for this artist
           let bestRoute = null;
+          let bestScore = Infinity;
           
+          // SCENARIO 1: Check single event opportunities
+          // If artist only has one event and it's within reasonable distance of our venue
           if (sortedEvents.length === 1) {
             const event = sortedEvents[0];
             const eventLat = parseFloat(event.venue.latitude || '0');
@@ -204,8 +251,14 @@ class RealBandsintownDiscoveryService implements BandsintownDiscoveryService {
                 eventLng
               );
               
-              // If the single event is within the specified radius, consider it
-              if (distanceToVenue <= radius) {
+              // Consider single events within the expanded radius
+              if (distanceToVenue <= expandedRadius) {
+                const routeScore = calculateRoutingScore(
+                  distanceToVenue,  // Distance to venue
+                  distanceToVenue * 2,  // Round trip detour
+                  1  // Assume 1 day available
+                );
+                
                 bestRoute = {
                   origin: {
                     city: event.venue.city,
@@ -217,13 +270,17 @@ class RealBandsintownDiscoveryService implements BandsintownDiscoveryService {
                   destination: null, // Single event, so no destination
                   distanceToVenue: Math.round(distanceToVenue),
                   detourDistance: Math.round(distanceToVenue * 2), // Round trip
-                  daysAvailable: 1 // Assume 1 day available
+                  daysAvailable: 1, // Assume 1 day available
+                  routingScore: routeScore // Add a score for better sorting
                 };
+                
+                bestScore = routeScore;
               }
             }
           }
           
-          // Second check - find pairs of consecutive events that our venue could fit between
+          // SCENARIO 2: Find routing opportunities between consecutive events
+          // Look for gaps in an artist's tour where our venue would be a convenient stop
           for (let i = 0; i < sortedEvents.length - 1; i++) {
             const event1 = sortedEvents[i];
             const event2 = sortedEvents[i + 1];
@@ -236,10 +293,10 @@ class RealBandsintownDiscoveryService implements BandsintownDiscoveryService {
               (event2Date.getTime() - event1Date.getTime()) / (1000 * 60 * 60 * 24)
             );
             
-            // If less than 2 days between shows, probably not enough time for our venue
-            if (daysBetween < 2) continue;
+            // If less than 1 day between shows, definitely no time for our venue
+            if (daysBetween < 1) continue;
             
-            // Calculate the midpoint between the two venues
+            // Get venue coordinates
             const event1Lat = parseFloat(event1.venue.latitude || '0');
             const event1Lng = parseFloat(event1.venue.longitude || '0');
             const event2Lat = parseFloat(event2.venue.latitude || '0');
@@ -249,18 +306,29 @@ class RealBandsintownDiscoveryService implements BandsintownDiscoveryService {
               continue; // Skip if venue coordinates are missing
             }
             
-            const midpointLat = (event1Lat + event2Lat) / 2;
-            const midpointLng = (event1Lng + event2Lng) / 2;
-            
-            // Calculate distance from our venue to the midpoint
-            const distanceToVenue = this.calculateDistance(
-              parseFloat(venue.latitude), 
-              parseFloat(venue.longitude), 
-              midpointLat, 
-              midpointLng
+            // NEW APPROACH: Instead of midpoint, check direct distance from our venue to their route
+            // Calculate distance from our venue to each event
+            const distanceToEvent1 = this.calculateDistance(
+              parseFloat(venue.latitude),
+              parseFloat(venue.longitude),
+              event1Lat,
+              event1Lng
             );
             
-            // Calculate direct distance between the two shows
+            const distanceToEvent2 = this.calculateDistance(
+              parseFloat(venue.latitude),
+              parseFloat(venue.longitude),
+              event2Lat,
+              event2Lng
+            );
+            
+            // Take the minimum distance as "distance to route"
+            const distanceToVenue = Math.min(distanceToEvent1, distanceToEvent2);
+            
+            // Only consider if at least one of their events is within our expanded radius
+            if (distanceToVenue > expandedRadius) continue;
+            
+            // Calculate direct distance between the two shows (their original route)
             const directDistance = this.calculateDistance(
               event1Lat,
               event1Lng,
@@ -268,7 +336,7 @@ class RealBandsintownDiscoveryService implements BandsintownDiscoveryService {
               event2Lng
             );
             
-            // Calculate detour distance (distance to our venue and then to the next show)
+            // Calculate detour distance (their original city → our venue → their next city)
             const detourDistance = this.calculateDistance(
               event1Lat,
               event1Lng,
@@ -284,8 +352,15 @@ class RealBandsintownDiscoveryService implements BandsintownDiscoveryService {
             // Calculate how much extra driving this would add to their tour
             const extraDistance = detourDistance - directDistance;
             
-            // If we don't have a route yet, or this one is better, use it
-            if (!bestRoute || extraDistance < bestRoute.detourDistance) {
+            // Calculate a routing score for this opportunity
+            const routeScore = calculateRoutingScore(
+              distanceToVenue,  // How far is our venue from their route?
+              extraDistance,    // How much extra driving would they do?
+              daysBetween       // How many days do they have available?
+            );
+            
+            // If this route scores better than our current best, update it
+            if (routeScore < bestScore) {
               bestRoute = {
                 origin: {
                   city: event1.venue.city,
@@ -303,11 +378,15 @@ class RealBandsintownDiscoveryService implements BandsintownDiscoveryService {
                 },
                 distanceToVenue: Math.round(distanceToVenue),
                 detourDistance: Math.round(extraDistance),
-                daysAvailable: daysBetween
+                daysAvailable: daysBetween,
+                routingScore: routeScore // Add a score for better sorting
               };
+              
+              bestScore = routeScore;
             }
           }
           
+          // If we found a good routing opportunity for this artist
           if (bestRoute) {
             return {
               name: artist.name,
@@ -322,8 +401,8 @@ class RealBandsintownDiscoveryService implements BandsintownDiscoveryService {
           return null;
         })
         .filter(artist => artist !== null)
-        // Sort by distance to venue
-        .sort((a: any, b: any) => a.route.distanceToVenue - b.route.distanceToVenue);
+        // Sort by routing score (lower is better)
+        .sort((a: any, b: any) => a.route.routingScore - b.route.routingScore);
       
       return {
         data: artistsWithRoutes,

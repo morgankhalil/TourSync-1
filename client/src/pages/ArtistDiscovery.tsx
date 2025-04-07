@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useActiveVenue } from '@/hooks/useActiveVenue';
 import { useToast } from '@/hooks/use-toast';
 import { BandDiscoveryResult, BandPassingNearby, DiscoveryResult, Venue } from '@/types';
-import { getLocationLabel, formatDate, formatDateMedium, calculateDistance } from '@/lib/utils';
+import { getLocationLabel, formatDate, formatDateMedium, calculateDistance, getFitDescription } from '@/lib/utils';
 import { bandsintownService } from '@/services/bandsintown';
 import { bandsintownDiscoveryService } from '@/services/bandsintown-discovery';
 import BandMapView from '@/components/maps/BandMapView';
@@ -291,9 +291,25 @@ const ArtistDiscovery: React.FC = () => {
                           <span className="text-green-500">Single show</span>
                         )}
                       </div>
-                      <div className="text-xs mt-1">
-                        <span className="text-green-600 font-medium">{result.route.distanceToVenue} miles</span> from your venue
+                      <div className="flex justify-between text-xs mt-1">
+                        <span>
+                          <span className="text-green-600 font-medium">{result.route.distanceToVenue} miles</span> from your venue
+                        </span>
+                        <span>
+                          {result.route.daysAvailable} {result.route.daysAvailable === 1 ? 'day' : 'days'} available
+                        </span>
                       </div>
+                      {result.route.routingScore !== undefined && (
+                        <div className="flex items-center mt-1 text-xs">
+                          <div className="w-full bg-gray-200 rounded-full h-1.5 mr-2">
+                            <div 
+                              className="bg-green-500 h-1.5 rounded-full" 
+                              style={{ width: `${Math.max(0, 100 - Math.min(100, result.route.routingScore/3))}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-muted-foreground">{getFitDescription(result.route.routingScore)}</span>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

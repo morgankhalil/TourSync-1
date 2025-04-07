@@ -75,3 +75,18 @@ export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2
   // Round to 1 decimal place
   return Math.round(distance * 10) / 10;
 }
+
+/**
+ * Generates a descriptive label for a routing score
+ * @param score The routing score (lower is better)
+ * @returns A human-readable description of how good the routing opportunity is
+ */
+export function getFitDescription(score?: number): string {
+  if (score === undefined) return 'Unknown fit';
+  
+  if (score < 50) return 'Excellent fit';
+  if (score < 100) return 'Good fit';
+  if (score < 150) return 'Moderate fit';
+  if (score < 200) return 'Fair fit';
+  return 'Poor fit';
+}
