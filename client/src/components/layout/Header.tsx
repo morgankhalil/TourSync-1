@@ -3,6 +3,7 @@ import { useMediaQuery } from "@/hooks/use-mobile";
 import { Menu, User, MapPin, Calendar, Music, Star, Compass, Mail, Settings, Clock } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useActiveVenue } from "@/hooks/useActiveVenue";
+import React from 'react';
 
 const Header = () => {
   const { toggleSidebar } = useSidebar();
@@ -12,6 +13,17 @@ const Header = () => {
 
   // Check if a route is active
   const isActive = (path: string) => location === path;
+
+  // Add Replit Auth
+  React.useEffect(() => {
+    const script = document.createElement('script');
+    script.src = "https://auth.util.repl.co/script.js";
+    script.setAttribute('data-authed', 'window.location.reload()');
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
   return (
     <header className="bg-primary text-white h-16 flex items-center justify-between px-4 md:px-6">
@@ -24,7 +36,7 @@ const Header = () => {
         <Link href="/dashboard">
           <h1 className="text-xl font-inter font-bold cursor-pointer">VenueBooker</h1>
         </Link>
-        
+
         {/* Display active venue name prominently */}
         {activeVenue && (
           <div className="ml-4 px-3 py-1 bg-primary-foreground/20 rounded-full hidden md:flex items-center">
@@ -35,7 +47,7 @@ const Header = () => {
           </div>
         )}
       </div>
-      
+
       <div className="flex items-center">
         <div className="hidden md:flex space-x-6 mr-4">
           {/* Venue Staff Navigation */}
@@ -45,21 +57,21 @@ const Header = () => {
               Dashboard
             </span>
           </Link>
-          
+
           <Link href="/artist-discovery">
             <span className={`font-inter font-medium cursor-pointer hover:underline flex items-center ${isActive("/artist-discovery") || isActive("/opportunities") || isActive("/bands") ? "underline" : ""}`}>
               <Music size={16} className="mr-1" />
               Artist Discovery
             </span>
           </Link>
-          
+
           <Link href={activeVenue ? `/venues/${activeVenue.id}` : "/venues"}>
             <span className={`font-inter font-medium cursor-pointer hover:underline flex items-center ${isActive("/venues") || (activeVenue && isActive(`/venues/${activeVenue.id}`)) ? "underline" : ""}`}>
               <Star size={16} className="mr-1" />
               Venue Profile
             </span>
           </Link>
-          
+
           <Link href="/calendar">
             <span className={`font-inter font-medium cursor-pointer hover:underline flex items-center ${isActive("/calendar") ? "underline" : ""}`}>
               <Clock size={16} className="mr-1" />
@@ -67,7 +79,7 @@ const Header = () => {
             </span>
           </Link>
         </div>
-        
+
         {/* User Profile */}
         <Link href="/profile">
           <button className="w-8 h-8 rounded-full bg-accent flex items-center justify-center">

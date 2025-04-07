@@ -47,7 +47,11 @@ function getIntegration(): BandsintownIntegration {
   return bandsintownIntegration;
 }
 
+import { requireAuth } from '../middleware/auth';
+
 export function registerBandsintownRoutes(app: Express): void {
+  // Apply auth middleware to all bandsintown routes
+  app.use('/api/bandsintown', requireAuth);
   // Get artist information
   app.get('/api/bandsintown/artist/:name', async (req: Request, res: Response) => {
     try {
