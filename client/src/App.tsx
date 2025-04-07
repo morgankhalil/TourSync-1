@@ -1,67 +1,29 @@
 import { Route, Switch } from 'wouter';
-import Dashboard from './pages/Dashboard';
-import ArtistDiscovery from './pages/ArtistDiscovery';
-import EnhancedArtistDiscovery from './pages/EnhancedArtistDiscovery';
-import VenueCalendar from './pages/VenueCalendar';
-import BandDetailPage from './pages/BandDetailPage';
 import { Toaster } from './components/ui/toaster';
-import { ActiveVenueProvider } from './hooks/useActiveVenue';
-import Sidebar from './components/Sidebar';
-import { GoogleMapsKey } from './components/GoogleMapsKey';
+import AppLayout from './components/layout/AppLayout';
+import Dashboard from './pages/Dashboard';
+import VenueCalendar from './pages/VenueCalendar';
+import VenueProfile from './pages/VenueProfile';
+import TourDashboard from './pages/TourDashboard';
+import CreateTour from './pages/CreateTour';
+import ArtistDiscovery from './pages/ArtistDiscovery';
+import BandDetailPage from './pages/BandDetailPage';
 
-function Router() {
+export default function App() {
   return (
-    <Switch>
-      <Route path="/" component={Dashboard} />
-      <Route path="/discovery" component={ArtistDiscovery} />
-      <Route path="/discovery-v2" component={EnhancedArtistDiscovery} />
-      <Route path="/calendar" component={VenueCalendar} />
-      <Route path="/bands/:id" component={BandDetailPage} />
-    </Switch>
-  );
-}
-
-function MainContent() {
-  return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <header className="sticky top-0 z-40 w-full border-b bg-background">
-          <div className="flex h-16 items-center px-6">
-            <div className="flex-1"></div>
-            <div className="flex items-center space-x-4">
-              <div className="text-sm text-muted-foreground">
-                {new Date().toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}
-              </div>
-            </div>
-          </div>
-        </header>
-        <main className="flex-1 px-6 py-6 overflow-auto">
-          <Router />
-        </main>
-        <footer className="bg-secondary py-3 text-center text-xs text-secondary-foreground">
-          <div className="container mx-auto">
-            &copy; {new Date().getFullYear()} VenueBuddy - All rights reserved
-          </div>
-        </footer>
-      </div>
-    </div>
-  );
-}
-
-function App() {
-  return (
-    <ActiveVenueProvider>
-      <GoogleMapsKey />
-      <MainContent />
+    <>
+      <AppLayout>
+        <Switch>
+          <Route path="/" component={Dashboard} />
+          <Route path="/calendar" component={VenueCalendar} />
+          <Route path="/venue/:id" component={VenueProfile} />
+          <Route path="/tours" component={TourDashboard} />
+          <Route path="/tour/create" component={CreateTour} />
+          <Route path="/discovery" component={ArtistDiscovery} />
+          <Route path="/band/:id" component={BandDetailPage} />
+        </Switch>
+      </AppLayout>
       <Toaster />
-    </ActiveVenueProvider>
+    </>
   );
 }
-
-export default App;
