@@ -19,6 +19,7 @@ export default function App() {
           <Route path="/dashboard" component={Dashboard} />
           <Route path="/calendar" component={VenueCalendar} />
           <Route path="/venue/:id" component={VenueProfile} />
+          <Route path="/venue/:id/dashboard" component={VenueDashboard} />
           <Route path="/tours" component={TourDashboard} />
           <Route path="/tour/create" component={CreateTour} />
           <Route path="/discovery" component={ArtistDiscovery} />

@@ -19,7 +19,7 @@ const Home = () => {
   const handleVenueSelect = async (venue: Venue) => {
     await setActiveVenue(venue);
     // Ensure we navigate to the venue-specific dashboard
-    setLocation(`/venue/${venue.id}/dashboard`);
+    setLocation(`/venue/${venue.id}`);
   };
 
   return (
