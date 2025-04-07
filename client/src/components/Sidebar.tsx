@@ -9,10 +9,10 @@ import {
   Users, 
   Settings, 
   ChevronRight,
-  Building
+  Building,
+  BarChart2,
+  MapPin
 } from 'lucide-react';
-import {BarChart2} from 'lucide-react'; // Added import for BarChart2
-import VenueSelector from './venue/VenueSelector';
 
 const Sidebar: React.FC = () => {
   // Use 'as any' to bypass TypeScript errors while the context is being refactored
@@ -34,12 +34,14 @@ const Sidebar: React.FC = () => {
     <div className="min-h-screen w-64 bg-gray-50 border-r flex flex-col">
       <div className="p-4 border-b">
         <h1 className="text-2xl font-bold">VenueBuddy</h1>
-        <div className="mt-3">
-          <VenueSelector />
-        </div>
+        
         {activeVenue && (
-          <div className="mt-2">
-            <p className="text-xs text-muted-foreground">
+          <div className="mt-3 p-3 bg-primary/5 rounded-md border">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-primary" />
+              <span className="font-medium text-sm">{activeVenue.name}</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1 ml-6">
               {getLocationLabel(activeVenue.city, activeVenue.state)}
             </p>
           </div>
