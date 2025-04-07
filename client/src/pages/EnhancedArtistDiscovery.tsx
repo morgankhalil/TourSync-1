@@ -700,11 +700,11 @@ export default function EnhancedArtistDiscovery() {
                         
                         <div>
                           <h4 className="text-sm font-semibold mb-1">Routing Fit</h4>
-                          <p>
+                          <div>
                             <Badge className={getFitDescription(selectedArtist.route.routingScore).color}>
                               {getFitDescription(selectedArtist.route.routingScore).text}
                             </Badge>
-                          </p>
+                          </div>
                         </div>
                       </div>
                     </CardContent>
