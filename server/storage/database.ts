@@ -10,6 +10,67 @@ import { bands, venues, tours, tourDates, venueAvailability, artists, artistDisc
 import { eq, and, between, or, like, sql, asc } from 'drizzle-orm';
 
 export class DatabaseStorage implements IStorage {
+  // Artist operations
+  async getArtist(id: string): Promise<Artist | undefined> {
+    return db.query.artists.findFirst({
+      where: eq(artists.id, id)
+    });
+  }
+
+  async getArtists(options: { limit?: number; genres?: string[] } = {}): Promise<Artist[]> {
+    const { limit, genres } = options;
+    let query = db.select().from(artists);
+    
+    if (genres?.length) {
+      // Filter by genres if provided
+      query = query.where(sql`${artists.genres} ?& ${genres}`);
+    }
+    
+    if (limit) {
+      query = query.limit(limit);
+    }
+    
+    return query;
+  }
+
+  async createArtist(artist: InsertArtist): Promise<Artist> {
+    const [result] = await db.insert(artists).values(artist).returning();
+    return result;
+  }
+
+  async updateArtist(id: string, artist: Partial<InsertArtist>): Promise<Artist | undefined> {
+    const [result] = await db.update(artists)
+      .set(artist)
+      .where(eq(artists.id, id))
+      .returning();
+    return result;
+  }
+
+  async deleteArtist(id: string): Promise<boolean> {
+    const result = await db.delete(artists)
+      .where(eq(artists.id, id));
+    return result.rowCount > 0;
+  }
+
+  // Artist discovery tracking
+  async getArtistDiscovery(artistId: string): Promise<ArtistDiscovery | undefined> {
+    return db.query.artistDiscovery.findFirst({
+      where: eq(artistDiscovery.artistId, artistId)
+    });
+  }
+
+  async recordArtistDiscovery(discovery: InsertArtistDiscovery): Promise<ArtistDiscovery> {
+    const [result] = await db.insert(artistDiscovery).values(discovery).returning();
+    return result;
+  }
+
+  async updateArtistDiscovery(artistId: string, discovery: Partial<InsertArtistDiscovery>): Promise<ArtistDiscovery | undefined> {
+    const [result] = await db.update(artistDiscovery)
+      .set(discovery)
+      .where(eq(artistDiscovery.artistId, artistId))
+      .returning();
+    return result;
+  }
   // Band operations
   async getBand(id: number): Promise<Band | undefined> {
     const [band] = await db.select().from(bands).where(eq(bands.id, id));
