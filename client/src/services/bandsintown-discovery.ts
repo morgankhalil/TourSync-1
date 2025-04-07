@@ -1,3 +1,4 @@
+
 import { BandsintownArtist, DiscoveryOptions, DiscoveryResult } from '@/types';
 import { calculateRouteMatch } from '@/utils/matchingAlgorithm';
 
@@ -23,8 +24,6 @@ export class BandsintownDiscoveryService {
 
     return response.json();
   }
-
-  // Add other unified methods here
 }
 
-export default new BandsintownDiscoveryService(import.meta.env.VITE_BANDSINTOWN_API_KEY);
+export const bandsintownDiscoveryService = new BandsintownDiscoveryService(import.meta.env.VITE_BANDSINTOWN_API_KEY);
