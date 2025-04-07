@@ -27,11 +27,16 @@ export default function AddVenueModal() {
     }
 
     try {
-      // First search for venue using queryClient for proper auth handling
+      // First search for venue
+      const apiKey = import.meta.env.VITE_BANDSINTOWN_API_KEY;
+      if (!apiKey) {
+        throw new Error('Bandsintown API key not configured');
+      }
+      
       const searchResponse = await fetch(`/api/bandsintown/venue/search?name=${encodeURIComponent(venueName)}&location=${encodeURIComponent(location)}`, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_BANDSINTOWN_API_KEY}`
+          'X-API-KEY': apiKey
         }
       });
       if (!searchResponse.ok) {
