@@ -144,16 +144,18 @@ const Sidebar = () => {
             </h3>
             <nav className="space-y-1">
               {navigationItems.map(item => (
-                <Link key={item.href} href={item.href}>
-                  <a className={cn(
+                <Link 
+                  key={item.href} 
+                  href={item.href}
+                  className={cn(
                     "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium",
                     isActive(item.href) ? 
                       "bg-primary/10 text-primary" : 
                       "text-foreground hover:bg-accent hover:text-accent-foreground"
-                  )}>
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </a>
+                  )}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
                 </Link>
               ))}
             </nav>
@@ -199,10 +201,11 @@ const Sidebar = () => {
                     </Card>
                   ))}
                 </div>
-                <Link href="/performances">
-                  <a className="text-xs text-primary font-medium hover:underline block text-center mt-1">
-                    View all performances
-                  </a>
+                <Link 
+                  href="/performances"
+                  className="text-xs text-primary font-medium hover:underline block text-center mt-1"
+                >
+                  View all performances
                 </Link>
               </>
             ) : (
@@ -246,16 +249,18 @@ const Sidebar = () => {
             </h3>
             <nav className="space-y-1">
               {adminItems.map(item => (
-                <Link key={item.href} href={item.href}>
-                  <a className={cn(
+                <Link 
+                  key={item.href} 
+                  href={item.href}
+                  className={cn(
                     "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium",
                     isActive(item.href) ? 
                       "bg-primary/10 text-primary" : 
                       "text-foreground hover:bg-accent hover:text-accent-foreground"
-                  )}>
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </a>
+                  )}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
                 </Link>
               ))}
             </nav>

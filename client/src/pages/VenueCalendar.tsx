@@ -20,8 +20,8 @@ interface ExtendedTourDate extends TourDate {
 
 // Event card component to reduce repetition
 const EventCard = ({ event }: { event: ExtendedTourDate }) => {
-  // Default event title based on venue or date
-  const eventTitle = event.venueName || `Event on ${formatDate(event.date)}`;
+  // Use the band name or a fallback title
+  const eventTitle = event.title || event.venueName || `Event on ${formatDate(event.date)}`;
 
   return (
     <Card key={event.id} className="overflow-hidden border">
@@ -47,7 +47,9 @@ const EventCard = ({ event }: { event: ExtendedTourDate }) => {
             {event.tourId && (
               <div className="flex items-center mt-1 text-muted-foreground text-sm">
                 <Music className="h-3 w-3 mr-1" />
-                {event.tourId ? `Tour ID: ${event.tourId}` : 'No tour assigned'}
+                {event.title ? 
+                  `${event.title} Tour` : 
+                  (event.tourId ? `Tour ID: ${event.tourId}` : 'No tour assigned')}
               </div>
             )}
             <div className="flex mt-2 text-sm">
@@ -104,7 +106,29 @@ const VenueCalendar: React.FC = () => {
       try {
         const response = await axios.get(`/api/venues/${venue.id}/dates`);
         console.log("Received venue dates:", response.data);
-        return response.data as TourDate[];
+        
+        // Get tours to find band names
+        const toursResponse = await axios.get('/api/tours');
+        const tours = toursResponse.data;
+        
+        // Get all bands for matching
+        const bandsResponse = await axios.get('/api/bands');
+        const bands = bandsResponse.data;
+        
+        // Enhance tour dates with band names
+        const enhancedDates = response.data.map((date: TourDate) => {
+          const tour = tours.find((t: any) => t.id === date.tourId);
+          const band = tour ? bands.find((b: any) => b.id === tour.bandId) : null;
+          
+          return {
+            ...date,
+            title: band?.name || `Event on ${formatDate(date.date)}`,
+            bandId: band?.id
+          };
+        });
+        
+        console.log("Enhanced dates with band info:", enhancedDates);
+        return enhancedDates as ExtendedTourDate[];
       } catch (err) {
         console.error("Error fetching venue dates:", err);
         throw err;
