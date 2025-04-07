@@ -1,7 +1,7 @@
 
-import { createBandsintownIntegration } from '../integrations/bandsintown';
+import { BandsintownApiService } from '../services/bandsintown-api';
 import dotenv from 'dotenv';
-import { addMonths, format } from 'date-fns';
+import { format } from 'date-fns';
 
 dotenv.config();
 
@@ -10,14 +10,14 @@ async function fetchVenueEvents() {
     throw new Error('Bandsintown API key not configured');
   }
 
-  const integration = createBandsintownIntegration(process.env.VITE_BANDSINTOWN_API_KEY);
+  const api = new BandsintownApiService(process.env.VITE_BANDSINTOWN_API_KEY);
   
   // Set date range for April
   const startDate = new Date('2024-04-01');
   const endDate = new Date('2024-04-30');
 
   try {
-    const events = await integration.getVenueEvents('Empty Bottle', 'Chicago, IL');
+    const events = await api.getVenueEvents('Empty Bottle', 'Chicago, IL');
     
     // Filter events for April and limit to 5
     const aprilEvents = events
