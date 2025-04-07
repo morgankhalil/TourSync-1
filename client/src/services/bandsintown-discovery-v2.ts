@@ -94,11 +94,11 @@ export class EnhancedBandsintownDiscoveryClient {
   }> {
     try {
       const response = await fetch('/api/bandsintown-v2/status');
-      
+
       if (!response.ok) {
         throw new Error('API status check failed');
       }
-      
+
       return await response.json();
     } catch (error) {
       console.error('Failed to check Bandsintown API status', error);
@@ -121,6 +121,8 @@ export class EnhancedBandsintownDiscoveryClient {
     maxBands?: number;
     lookAheadDays?: number;
     useDemoMode?: boolean;
+    onIncrementalResults?: (newResults: DiscoveryResult[]) => void; // Callback for incremental results
+
   }): Promise<DiscoveryResponse> {
     try {
       const queryParams = new URLSearchParams({
@@ -132,13 +134,13 @@ export class EnhancedBandsintownDiscoveryClient {
         lookAheadDays: (options.lookAheadDays || 90).toString(),
         useDemoMode: (options.useDemoMode || false).toString()
       });
-      
+
       const response = await fetch(`/api/bandsintown-v2/discover?${queryParams}`);
-      
+
       if (!response.ok) {
         throw new Error('Discovery API request failed');
       }
-      
+
       return await response.json();
     } catch (error) {
       console.error('Failed to perform band discovery:', error);
@@ -154,11 +156,11 @@ export class EnhancedBandsintownDiscoveryClient {
       const response = await fetch('/api/bandsintown-v2/clear-cache', {
         method: 'POST'
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to clear API cache');
       }
-      
+
       return await response.json();
     } catch (error) {
       console.error('Failed to clear API cache:', error);

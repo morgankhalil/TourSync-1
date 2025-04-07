@@ -26,6 +26,9 @@ const ArtistDiscovery: React.FC = () => {
   const [selectedBand, setSelectedBand] = useState<BandPassingNearby | null>(null);
   const [useDemoMode, setUseDemoMode] = useState<boolean>(true);
 
+  // State to store incremental results
+  const [incrementalResults, setIncrementalResults] = useState<BandPassingNearby[]>([]);
+  
   // Query to find bands near the active venue using real-time Bandsintown API
   const { data: bandsNearVenue, isLoading, error, refetch } = useQuery({
     // Include useDemoMode in queryKey to trigger refetch when it changes
@@ -38,8 +41,43 @@ const ArtistDiscovery: React.FC = () => {
         throw new Error(`Venue "${activeVenue.name}" is missing location data. Please update the venue coordinates in venue settings.`);
       }
       
+      // Clear incremental results when starting a new search
+      setIncrementalResults([]);
+      
       // Log the current mode for debugging
       console.log(`Searching for bands with demo mode ${useDemoMode ? 'ENABLED' : 'DISABLED'}`);
+      
+      // Function to convert discovery results to UI format
+      const convertResultToUIFormat = (results: BandDiscoveryResult[]) => {
+        return results.map(result => ({
+          band: {
+            id: Math.random(), // Temporary ID for UI purposes
+            name: result.name,
+            contactEmail: '',
+            contactPhone: null,
+            description: null,
+            genre: null,
+            social: {}, // Add missing required property
+            drawSize: null,
+            pastVenues: {},
+            technicalRequirements: {},
+            imageUrl: result.image,
+            videoUrl: null,
+            preferredVenueTypes: {},
+            // Extended properties
+            location: '',
+            website: result.url,
+            bandsintownId: result.url.split('/').pop()
+          },
+          route: result.route
+        }));
+      };
+      
+      // Handler for incremental results
+      const handleIncrementalResults = (newResults: BandDiscoveryResult[]) => {
+        const formattedResults = convertResultToUIFormat(newResults);
+        setIncrementalResults(prev => [...prev, ...formattedResults]);
+      };
       
       // Use the direct discovery service that polls Bandsintown API in real-time
       // If useDemoMode is true, force use of sample data instead of API
@@ -48,7 +86,8 @@ const ArtistDiscovery: React.FC = () => {
         startDate,
         endDate,
         radius,
-        useDemo: useDemoMode
+        useDemo: useDemoMode,
+        onIncrementalResults: handleIncrementalResults
       });
       
       // Make sure results is an array before mapping
@@ -58,33 +97,15 @@ const ArtistDiscovery: React.FC = () => {
       }
       
       // Convert to BandPassingNearby format for the UI
-      return results.map(result => ({
-        band: {
-          id: Math.random(), // Temporary ID for UI purposes
-          name: result.name,
-          contactEmail: '',
-          contactPhone: null,
-          description: null,
-          genre: null,
-          social: {}, // Add missing required property
-          drawSize: null,
-          pastVenues: {},
-          technicalRequirements: {},
-          imageUrl: result.image,
-          videoUrl: null,
-          preferredVenueTypes: {},
-          // Extended properties
-          location: '',
-          website: result.url,
-          bandsintownId: result.url.split('/').pop()
-        },
-        route: result.route
-      }));
+      return convertResultToUIFormat(results);
     },
     enabled: !!activeVenue,
     retry: false, // Don't retry on error since it's likely a data issue
     refetchOnWindowFocus: false
   });
+
+  // Use incremental results if available, otherwise use query results
+  const displayResults = incrementalResults.length > 0 ? incrementalResults : bandsNearVenue;
 
   // Function to check Bandsintown API status
   const checkApiStatus = async () => {
@@ -255,15 +276,20 @@ const ArtistDiscovery: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="max-h-[500px] overflow-y-auto">
-              {isLoading ? (
+              {isLoading && displayResults.length === 0 ? (
                 <div className="text-center py-4">Loading...</div>
               ) : error ? (
                 <div className="text-center py-4 text-red-500">
                   Error loading bands: {error instanceof Error ? error.message : 'Unknown error'}
                 </div>
-              ) : bandsNearVenue && bandsNearVenue.length > 0 ? (
+              ) : displayResults && displayResults.length > 0 ? (
                 <div className="space-y-3">
-                  {bandsNearVenue.map((result) => (
+                  {isLoading && (
+                    <div className="text-center text-sm text-amber-500 py-2 border border-amber-200 bg-amber-50 rounded mb-2">
+                      Still searching for more bands...
+                    </div>
+                  )}
+                  {displayResults.map((result) => (
                     <div
                       key={result.band.id}
                       className={`p-3 rounded border cursor-pointer transition-colors ${

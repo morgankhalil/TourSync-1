@@ -234,6 +234,10 @@ export class EnhancedBandsintownDiscoveryService {
 
       // Step 5: Analyze each artist for routing opportunities
       const bandDiscoveryResults: BandDiscoveryResult[] = [];
+      const incremental: { results: BandDiscoveryResult[], lastSent: number } = { 
+        results: [], 
+        lastSent: 0 
+      };
 
       for (const artist of artistsWithEvents) {
         // Skip artists with no events
@@ -399,7 +403,7 @@ export class EnhancedBandsintownDiscoveryService {
 
         // If we found a good routing opportunity for this artist
         if (bestRoute) {
-          bandDiscoveryResults.push({
+          const newResult = {
             name: artist.name,
             image: artist.image_url,
             url: artist.url,
@@ -407,7 +411,19 @@ export class EnhancedBandsintownDiscoveryService {
             route: bestRoute,
             events: sortedEvents,
             bandsintownId: artist.id
-          });
+          };
+          
+          bandDiscoveryResults.push(newResult);
+          incremental.results.push(newResult);
+          
+          // Send incremental results when we have at least 3 new artists or it's been 10+ seconds
+          if (incremental.results.length >= 3 || (Date.now() - incremental.lastSent > 10000)) {
+            if (options.onIncrementalResults && incremental.results.length > 0) {
+              options.onIncrementalResults([...incremental.results]);
+              incremental.results = [];
+              incremental.lastSent = Date.now();
+            }
+          }
         }
       }
 

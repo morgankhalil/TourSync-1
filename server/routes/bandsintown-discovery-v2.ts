@@ -46,7 +46,7 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
         maxDistance,
         lookAheadDays
       } = req.query;
-      
+
       // Validate required parameters
       if (!venueId || !startDate || !endDate) {
         return res.status(400).json({
@@ -54,17 +54,17 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
           message: 'Missing required parameters: venueId, startDate, endDate'
         });
       }
-      
+
       // Parse numeric parameters
       const numericVenueId = parseInt(venueId as string, 10);
       const numericRadius = radius ? parseInt(radius as string, 10) : 50;
       const numericMaxBands = maxBands ? parseInt(maxBands as string, 10) : 20;
       const numericMaxDistance = maxDistance ? parseInt(maxDistance as string, 10) : 200;
       const numericLookAheadDays = lookAheadDays ? parseInt(lookAheadDays as string, 10) : 90;
-      
+
       // Parse genre array
       const genresArray = genres ? (genres as string).split(',') : [];
-      
+
       // Set up progress reporting
       let lastReportedProgress = 0;
       const onProgress = (completed: number, total: number) => {
@@ -74,8 +74,8 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
           console.log(`Discovery progress: ${progressPercent}% (${completed}/${total})`);
         }
       };
-      
-      // Find bands near venue
+
+      // Find bands near venue -  Now sends incremental results.
       const result = await discoveryService.findBandsNearVenue({
         venueId: numericVenueId,
         startDate: startDate as string,
@@ -85,10 +85,16 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
         maxBands: numericMaxBands,
         maxDistance: numericMaxDistance,
         lookAheadDays: numericLookAheadDays,
-        onProgress
+        onProgress,
+        onIncrementalResults: (newResults) => {
+          //In a real application, this would likely use a websocket or SSE to stream results to the client.
+          //For this example, we'll just log to the console.
+          console.log("Incremental Results:", newResults);
+          res.send(JSON.stringify({results: newResults, status: "in-progress"})); //Send partial results.
+        }
       });
-      
-      res.json(result);
+
+      res.json(result); //Send final results
     } catch (error) {
       console.error('Error finding bands near venue:', error);
       res.status(500).json({
@@ -119,7 +125,7 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
       });
     }
   });
-  
+
   /**
    * GET /api/bandsintown-v2/demo-data
    * Get demo discovery data for testing
@@ -127,19 +133,19 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
   router.get('/api/bandsintown-v2/demo-data', async (req: Request, res: Response) => {
     try {
       const { venueId } = req.query;
-      
+
       if (!venueId) {
         return res.status(400).json({
           status: 'error',
           message: 'Missing venueId parameter'
         });
       }
-      
+
       const numericVenueId = parseInt(venueId as string, 10);
       const now = new Date();
       const twoMonthsLater = new Date();
       twoMonthsLater.setMonth(twoMonthsLater.getMonth() + 2);
-      
+
       const result = await discoveryService.findBandsNearVenue({
         venueId: numericVenueId,
         startDate: now.toISOString().split('T')[0],
@@ -148,7 +154,7 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
         maxBands: 10,
         useDemo: true
       });
-      
+
       res.json(result);
     } catch (error) {
       console.error('Error getting demo data:', error);
