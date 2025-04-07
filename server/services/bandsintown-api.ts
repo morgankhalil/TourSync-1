@@ -109,6 +109,8 @@ export class BandsintownApiService {
     eventsFound: 0,
   };
 
+  private readonly baseUrl = 'https://rest.bandsintown.com';
+
   constructor(apiKey: string) {
     if (!apiKey || apiKey.trim() === '') {
       throw new Error("BandsintownApiService requires a valid API key");
