@@ -9,7 +9,7 @@ import { getLocationLabel, formatDate, formatDateMedium, calculateDistance, getF
 import { bandsintownService } from '@/services/bandsintown';
 import { bandsintownDiscoveryService } from '@/services/bandsintown-discovery';
 import { EnhancedBandsintownDiscoveryClient } from '@/services/bandsintown-discovery-v2';
-import BandMapView from '@/components/maps/BandMapView';
+import MapView from '@/components/maps/MapView';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
@@ -378,9 +378,23 @@ const ArtistDiscovery: React.FC = () => {
                 <div>
                   <h3 className="font-medium mb-2">Tour Route</h3>
                   <div className="h-[300px] w-full rounded overflow-hidden border">
-                    <BandMapView
-                      band={selectedBand.band}
-                      route={selectedBand.route}
+                    <MapView
+                      center={{ 
+                        lat: selectedBand.route.origin?.lat || 0,
+                        lng: selectedBand.route.origin?.lng || 0
+                      }}
+                      markers={[
+                        selectedBand.route.origin && {
+                          lat: selectedBand.route.origin.lat,
+                          lng: selectedBand.route.origin.lng,
+                          label: 'O'
+                        },
+                        selectedBand.route.destination && {
+                          lat: selectedBand.route.destination.lat,
+                          lng: selectedBand.route.destination.lng,
+                          label: 'D'
+                        }
+                      ].filter(Boolean)}
                     />
                   </div>
                 </div>
