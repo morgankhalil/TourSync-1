@@ -88,7 +88,7 @@ async function importEmptyBottleEvents() {
         await db.insert(tourDates).values({
           tourId: tour.id,
           venueId: venue.id,
-          date: event.datetime,
+          date: new Date(event.datetime).toISOString(),
           city: "Chicago",
           state: "IL",
           status: "confirmed",
