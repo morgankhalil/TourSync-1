@@ -416,8 +416,8 @@ export class BandsintownIntegration {
                     country: extractedVenue.country || 'United States',
                     postalCode: extractedVenue.postal_code || '',
                     capacity: 0, // Unknown capacity
-                    latitude: extractedVenue.latitude?.toString() || '',
-                    longitude: extractedVenue.longitude?.toString() || '',
+                    latitude: extractedVenue.latitude ? extractedVenue.latitude.toString() : null,
+                    longitude: extractedVenue.longitude ? extractedVenue.longitude.toString() : null,
                     website: '',
                     phone: '',
                     email: '',
