@@ -46,20 +46,19 @@ const Sidebar: React.FC = () => {
               
             return (
               <li key={item.path}>
-                <Link href={item.path}>
-                  <a
-                    className={`flex items-center px-3 py-2 rounded-md text-sm group hover:bg-gray-100 ${
-                      isActive 
-                        ? 'bg-gray-100 text-primary font-medium' 
-                        : 'text-gray-700'
-                    }`}
-                  >
-                    {item.icon}
-                    {item.name}
-                    <ChevronRight className={`w-4 h-4 ml-auto transition-transform ${
-                      isActive ? 'text-primary' : 'opacity-0 group-hover:opacity-100'
-                    }`} />
-                  </a>
+                <Link
+                  href={item.path}
+                  className={`flex items-center px-3 py-2 rounded-md text-sm group hover:bg-gray-100 ${
+                    isActive 
+                      ? 'bg-gray-100 text-primary font-medium' 
+                      : 'text-gray-700'
+                  }`}
+                >
+                  {item.icon}
+                  {item.name}
+                  <ChevronRight className={`w-4 h-4 ml-auto transition-transform ${
+                    isActive ? 'text-primary' : 'opacity-0 group-hover:opacity-100'
+                  }`} />
                 </Link>
               </li>
             );
