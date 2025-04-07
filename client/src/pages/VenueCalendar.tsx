@@ -20,18 +20,20 @@ interface ExtendedTourDate extends TourDate {
 
 // Event card component to reduce repetition
 const EventCard = ({ event }: { event: ExtendedTourDate }) => {
+  // Use the band name or a fallback title
+  const eventTitle = event.title || event.venueName || `Event on ${formatDate(event.date)}`;
   const posterUrl = event.poster || '/default-poster.jpg';
 
   return (
     <Card key={event.id} className="overflow-hidden border">
       <CardContent className="p-6">
-        <div className="flex gap-4">
-          <div className="w-1/4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="md:col-span-1">
             {event.poster ? (
               <div className="aspect-[3/4] rounded-md overflow-hidden">
                 <img 
                   src={posterUrl} 
-                  alt={`Poster for ${event.title || 'Event'}`}
+                  alt={`Poster for ${eventTitle}`}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -42,41 +44,35 @@ const EventCard = ({ event }: { event: ExtendedTourDate }) => {
               </div>
             )}
           </div>
-          <div className="flex-1">
-            <div className="flex justify-between items-start mb-2">
-              <h3 className="text-xl font-semibold">
-                {event.isOpenDate ? 'Open Date' : event.title || 'Untitled Event'}
-              </h3>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm">Details</Button>
-                <Button size="sm">Confirm</Button>
-                {event.status && (
-                  <Badge variant={
-                    event.status === 'confirmed' ? 'default' :
-                    event.status === 'cancelled' ? 'destructive' :
-                    'secondary'
-                  }>
-                    {event.status}
-                  </Badge>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center mb-2">
-              <CalendarDays className="h-4 w-4 mr-2" />
+          <div className="md:col-span-2">
+            <h3 className="text-lg font-semibold">
+              {event.isOpenDate ? 'Open Date' : eventTitle}
+            </h3>
+            <div className="flex items-center mt-1 text-muted-foreground text-sm">
+              <CalendarDays className="h-3 w-3 mr-1" />
               <span className="font-medium">
                 {formatDate(event.date, 'EEEE, MMMM d, yyyy')}
               </span>
             </div>
             {event.tourId && (
-              <div className="flex items-center mb-2">
-                <Music className="h-4 w-4 mr-2" />
-                <span>{event.title} Tour</span>
+              <div className="flex items-center mt-1 text-muted-foreground text-sm">
+                <Music className="h-3 w-3 mr-1" />
+                {event.title ? 
+                  `${event.title} Tour` : 
+                  (event.tourId ? `Tour ID: ${event.tourId}` : 'No tour assigned')}
               </div>
             )}
-            <div className="flex items-center">
-              <MapPin className="h-4 w-4 mr-2" />
-              <span>Performing at Empty Bottle</span>
+            <div className="flex mt-2 text-sm">
+              <div className="flex items-center text-muted-foreground">
+                <MapPin className="h-3 w-3 mr-1" />
+                {event.city}, {event.state}
+              </div>
             </div>
+            {event.notes && (
+              <div className="mt-2 text-sm text-muted-foreground">
+                {event.notes}
+              </div>
+            )}
           </div>
           <div className="md:col-span-1 flex flex-col justify-center items-end">
             <div className="inline-flex justify-end space-x-2">
