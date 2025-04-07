@@ -95,13 +95,16 @@ const VenueCalendar: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [activeTab, setActiveTab] = useState("upcoming");
 
+  // Fix the query implementation to provide a default function
   const { data: upcomingDates, isLoading, error } = useQuery({
     queryKey: [`/api/venues/${venue?.id}/dates`],
-    queryFn: async () => {
+    // We need to have a proper queryFn for React Query
+    queryFn: async ({ queryKey }) => {
+      const [url] = queryKey;
       if (!venue) return [];
       console.log("Fetching venue dates for venue ID:", venue.id);
       try {
-        const response = await axios.get(`/api/venues/${venue.id}/dates`);
+        const response = await axios.get(url as string);
         console.log("Received venue dates:", response.data);
         return response.data as TourDate[];
       } catch (err) {

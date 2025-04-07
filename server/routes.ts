@@ -533,9 +533,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/venues/:id/dates", async (req, res) => {
     try {
       const venueId = parseInt(req.params.id);
+      console.log(`Fetching dates for venue ID: ${venueId}`);
       
       // Get all tours
       const tours = await storage.getTours();
+      console.log(`Found ${tours.length} tours`);
       
       // Get all tour dates
       const allDatePromises = tours.map(tour => {
@@ -549,9 +551,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const allDatesArrays = await Promise.all(allDatePromises);
       const allDates = allDatesArrays.flat();
+      console.log(`Found ${allDates.length} total dates across all tours`);
       
       // Filter dates for the specified venue
       const venueDates = allDates.filter(date => date.venueId === venueId);
+      console.log(`Found ${venueDates.length} dates for venue ID ${venueId}`);
       
       res.json(venueDates);
     } catch (error) {
