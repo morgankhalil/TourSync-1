@@ -20,13 +20,6 @@ export default function VenueProfile() {
   const [activeTab, setActiveTab] = useState("details");
   const { activeVenue, setActiveVenue } = useActiveVenue();
 
-  useEffect(() => {
-    if (!venueId) {
-      setLocation("/venues");
-      return;
-    }
-  }, [venueId, setLocation]);
-
   const {
     data: venue,
     isLoading,
@@ -45,6 +38,19 @@ export default function VenueProfile() {
     refetchOnWindowFocus: false,
     enabled: !!venueId,
   });
+
+  // All useEffect hooks grouped together
+  useEffect(() => {
+    if (!venueId) {
+      setLocation("/venues");
+    }
+  }, [venueId, setLocation]);
+
+  useEffect(() => {
+    if (venue && (!activeVenue || activeVenue.id !== venue.id)) {
+      setActiveVenue(venue);
+    }
+  }, [venue, activeVenue, setActiveVenue]);
 
   if (!venueId) {
     return <div>Invalid venue ID. Redirecting...</div>;
@@ -68,13 +74,6 @@ export default function VenueProfile() {
       </div>
     );
   }
-
-  // Set active venue when data is loaded
-  useEffect(() => {
-    if (venue && (!activeVenue || activeVenue.id !== venue.id)) {
-      setActiveVenue(venue);
-    }
-  }, [venue, activeVenue, setActiveVenue]);
 
   return (
     <div className="container mx-auto py-6 max-w-7xl">
