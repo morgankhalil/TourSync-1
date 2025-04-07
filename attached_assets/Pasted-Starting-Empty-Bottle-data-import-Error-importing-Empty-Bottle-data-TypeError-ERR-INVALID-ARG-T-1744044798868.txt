@@ -1,0 +1,28 @@
+Starting Empty Bottle data import...
+Error importing Empty Bottle data: TypeError [ERR_INVALID_ARG_TYPE]: The "string" argument must be of type string or an instance of Buffer or ArrayBuffer. Received an instance of Date
+    at Function.byteLength (node:buffer:774:11)
+    at Function.str (file:///home/runner/workspace/node_modules/postgres/src/bytes.js:22:27)
+    at file:///home/runner/workspace/node_modules/postgres/src/connection.js:938:16
+    at Array.forEach (<anonymous>)
+    at Bind (file:///home/runner/workspace/node_modules/postgres/src/connection.js:928:16)
+    at prepared (file:///home/runner/workspace/node_modules/postgres/src/connection.js:204:7)
+    at ParameterDescription (file:///home/runner/workspace/node_modules/postgres/src/connection.js:607:58)
+    at handle (file:///home/runner/workspace/node_modules/postgres/src/connection.js:474:6)
+    at TLSSocket.data (file:///home/runner/workspace/node_modules/postgres/src/connection.js:315:9)
+    at TLSSocket.emit (node:events:518:28) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+TypeError [ERR_INVALID_ARG_TYPE]: The "string" argument must be of type string or an instance of Buffer or ArrayBuffer. Received an instance of Date
+    at Function.byteLength (node:buffer:774:11)
+    at Function.str (file:///home/runner/workspace/node_modules/postgres/src/bytes.js:22:27)
+    at file:///home/runner/workspace/node_modules/postgres/src/connection.js:938:16
+    at Array.forEach (<anonymous>)
+    at Bind (file:///home/runner/workspace/node_modules/postgres/src/connection.js:928:16)
+    at prepared (file:///home/runner/workspace/node_modules/postgres/src/connection.js:204:7)
+    at ParameterDescription (file:///home/runner/workspace/node_modules/postgres/src/connection.js:607:58)
+    at handle (file:///home/runner/workspace/node_modules/postgres/src/connection.js:474:6)
+    at TLSSocket.data (file:///home/runner/workspace/node_modules/postgres/src/connection.js:315:9)
+    at TLSSocket.emit (node:events:518:28) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+Import complete
