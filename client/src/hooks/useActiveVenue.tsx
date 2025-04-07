@@ -1,4 +1,5 @@
-import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import * as React from 'react';
+import { createContext, useState, useContext, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Venue } from '../types';
 
@@ -22,7 +23,7 @@ const defaultActiveVenueContext: ActiveVenueContextType = {
 
 const ActiveVenueContext = createContext<ActiveVenueContextType>(defaultActiveVenueContext);
 
-export const ActiveVenueProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const ActiveVenueProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [venueId, setVenueId] = useState<number | null>(38); // Default to Bug Jar venue (ID 38)
   const [activeVenue, setActiveVenue] = useState<Venue | null>(null);
   
