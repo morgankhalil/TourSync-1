@@ -2,7 +2,7 @@ import React from 'react';
 import { useParams } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { Tour, Venue } from '../types';
-import VenueMapView from '../components/maps/VenueMapView';
+import MapView from '@/components/maps/MapView';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, Music, MapPin, Users, Tag } from 'lucide-react';
@@ -111,7 +111,7 @@ const VenueView = () => {
           <CardTitle>Location</CardTitle>
         </CardHeader>
         <CardContent className="h-[calc(100%-5rem)]">
-          <VenueMapView venue={venue} onTourClick={handleTourClick} selectedDate={selectedDate} />
+          <MapView venue={venue} onTourClick={handleTourClick} selectedDate={selectedDate} />
         </CardContent>
       </Card>
 

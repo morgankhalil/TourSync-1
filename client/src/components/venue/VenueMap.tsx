@@ -20,7 +20,7 @@ export default function VenueMap({
   highlightedVenueId
 }: VenueMapProps) {
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
-  
+
   // Get Google Maps API key from backend
   const { data: apiKey } = useQuery({
     queryKey: ['/api/config/maps-api-key'],
