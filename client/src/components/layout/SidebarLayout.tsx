@@ -47,15 +47,17 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
       )}
       
       {/* Sidebar */}
-      <aside
-        className={`fixed md:relative z-50 md:z-auto h-full ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } transition-transform duration-200 ease-in-out w-[280px] max-w-[80vw] md:max-w-none bg-background ${
-          isMobile ? 'shadow-lg' : ''
-        }`}
-      >
-        <Sidebar />
-      </aside>
+      {(!isMobile || isSidebarOpen) && (
+        <aside
+          className={`fixed md:relative z-50 md:z-auto h-full ${
+            isMobile ? (isSidebarOpen ? 'translate-x-0' : '-translate-x-full') : ''
+          } transition-transform duration-200 ease-in-out w-[280px] max-w-[80vw] md:max-w-none bg-background ${
+            isMobile ? 'shadow-lg' : ''
+          }`}
+        >
+          <Sidebar />
+        </aside>
+      )}
       
       {/* Main content */}
       <main className="flex-1 overflow-auto w-full pb-16 md:pb-0 pt-14 md:pt-0">
