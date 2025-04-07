@@ -109,6 +109,8 @@ export class EnhancedBandsintownDiscoveryClient {
       };
     }
   }
+  
+
 
   /**
    * Find bands that will be near a venue in a given date range
@@ -569,9 +571,11 @@ export class EnhancedBandsintownDiscoveryClient {
 
   /**
    * Clear the API request cache
+   * This is useful when changing venues or search parameters to get fresh results
    */
   static async clearCache(): Promise<{ status: string; message: string }> {
     try {
+      console.log('Clearing Bandsintown API cache...');
       const response = await fetch('/api/bandsintown-discovery-v2/clear-cache', {
         method: 'POST'
       });
@@ -580,9 +584,11 @@ export class EnhancedBandsintownDiscoveryClient {
         throw new Error('Failed to clear API cache');
       }
 
-      return await response.json();
+      const result = await response.json();
+      console.log('Cache cleared successfully', result);
+      return result;
     } catch (error) {
-      console.error('Failed to clear API cache:', error);
+      console.error('Failed to clear Bandsintown API cache:', error);
       return {
         status: 'error',
         message: 'Failed to clear API cache'

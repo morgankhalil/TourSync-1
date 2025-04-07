@@ -43,12 +43,21 @@ export default function EnhancedArtistDiscovery() {
   const [useEnhancedDiscovery, setUseEnhancedDiscovery] = useState(true);
   const [useDemoMode, setUseDemoMode] = useState(false);
   
-  // Reset when venue changes
+  // Reset when venue changes 
   useEffect(() => {
+    console.log("Venue changed to:", activeVenue);
     setSearchResults([]);
     setSelectedArtist(null);
     setErrorMessage(null);
-  }, [activeVenue]);
+    
+    // Add a notification when venue changes
+    if (activeVenue) {
+      toast({
+        title: "Venue Changed",
+        description: `Selected venue is now ${activeVenue.name} (ID: ${activeVenue.id})`
+      });
+    }
+  }, [activeVenue, toast]);
 
   // Handle incremental search results
   const handleViewArtist = (artist: DiscoveryResult) => {

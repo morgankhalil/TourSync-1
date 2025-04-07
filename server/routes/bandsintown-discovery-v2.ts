@@ -29,6 +29,28 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
       });
     }
   });
+  
+  /**
+   * POST /api/bandsintown-discovery-v2/clear-cache
+   * Clear the API cache - useful when changing venues or search parameters
+   */
+  router.post('/api/bandsintown-discovery-v2/clear-cache', (req: Request, res: Response) => {
+    try {
+      console.log('Clearing Bandsintown API cache...');
+      discoveryService.clearCache();
+      res.json({
+        status: 'success',
+        message: 'API cache cleared successfully'
+      });
+    } catch (error) {
+      console.error('Error clearing API cache:', error);
+      res.status(500).json({
+        status: 'error',
+        message: 'Failed to clear API cache',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
 
   /**
    * GET /api/bandsintown-discovery-v2/discover
@@ -175,26 +197,7 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
     }
   });
 
-  /**
-   * POST /api/bandsintown-discovery-v2/clear-cache
-   * Clear the API cache
-   */
-  router.post('/api/bandsintown-discovery-v2/clear-cache', (req: Request, res: Response) => {
-    try {
-      discoveryService.clearCache();
-      res.json({
-        status: 'success',
-        message: 'Cache cleared successfully'
-      });
-    } catch (error) {
-      console.error('Error clearing cache:', error);
-      res.status(500).json({
-        status: 'error',
-        message: 'Failed to clear cache',
-        error: error.message
-      });
-    }
-  });
+
 
   /**
    * GET /api/bandsintown-discovery-v2/demo-data
