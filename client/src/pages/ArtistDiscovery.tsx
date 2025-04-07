@@ -383,14 +383,15 @@ const ArtistDiscovery: React.FC = () => {
                         lng: selectedBand.route.origin?.lng || 0
                       }}
                       markers={[
+                        // Only add markers that have valid data
                         ...(selectedBand.route.origin ? [{
-                          lat: selectedBand.route.origin.lat,
-                          lng: selectedBand.route.origin.lng,
+                          lat: Number(selectedBand.route.origin.lat),
+                          lng: Number(selectedBand.route.origin.lng),
                           label: 'O'
                         }] : []),
                         ...(selectedBand.route.destination ? [{
-                          lat: selectedBand.route.destination.lat,
-                          lng: selectedBand.route.destination.lng,
+                          lat: Number(selectedBand.route.destination.lat),
+                          lng: Number(selectedBand.route.destination.lng),
                           label: 'D'
                         }] : [])
                       ]}
