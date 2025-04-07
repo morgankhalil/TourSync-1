@@ -17,7 +17,7 @@ async function fetchVenueEvents() {
   const endDate = new Date('2024-04-30');
 
   try {
-    const events = await integration.getArtistEvents('Empty Bottle');
+    const events = await integration.getVenueEvents('Empty Bottle', 'Chicago, IL');
     
     // Filter events for April and limit to 5
     const aprilEvents = events
