@@ -797,18 +797,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Maps API key endpoint is now handled in config routes
 
-  import { storage } from './storage';
-
-  // Venues endpoints
-  app.get('/api/venues', async (req, res) => {
-    try {
-      const venues = await storage.getVenues();
-      res.json(venues);
-    } catch (error) {
-      console.error('Error fetching venues:', error);
-      res.status(500).json({ error: 'Failed to fetch venues' });
-    }
-  });
+  // Remove duplicate endpoint since it's already defined above
 
   const httpServer = createServer(app);
   return httpServer;
