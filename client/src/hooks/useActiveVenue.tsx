@@ -107,32 +107,21 @@ export const ActiveVenueProvider: React.FC<{ children: React.ReactNode }> = ({ c
     console.log(`Setting active venue to:`, venue);
     
     if (venue) {
-      // Ensure venueId is also updated
-      if (venueId !== venue.id) {
-        console.log(`Updating venueId to match: ${venue.id}`);
-        
-        // Use the enhanced client for better logging and error handling
-        EnhancedBandsintownDiscoveryClient.clearCache()
-          .then((result) => {
-            console.log("API cache cleared for direct venue change:", result);
-            
-            // After clearing the cache, invalidate related queries
-            queryClient.invalidateQueries({ queryKey: ['/api/venues'] });
-            queryClient.invalidateQueries({ queryKey: ['/api/bandsintown-discovery-v2'] });
-            
-            // Set the venue ID after cache is cleared
-            setVenueId(venue.id);
-          })
-          .catch((error) => {
-            console.error("Failed to clear API cache:", error);
-            // Still update the venue ID even if cache clearing fails
-            setVenueId(venue.id);
-          });
-      }
+      setVenueId(venue.id);
+      setActiveVenue(venue);
+      
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/venues'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/venues/${venue.id}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/bandsintown-discovery-v2'] });
+      
+      // Clear discovery cache in background
+      EnhancedBandsintownDiscoveryClient.clearCache()
+        .catch(error => console.error("Failed to clear API cache:", error));
+    } else {
+      setVenueId(null);
+      setActiveVenue(null);
     }
-    
-    // Always update the active venue object
-    setActiveVenue(venue);
   }, [venueId, queryClient]);
   
   // Update activeVenue when venue data changes

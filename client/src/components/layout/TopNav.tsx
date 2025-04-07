@@ -126,31 +126,17 @@ export default function TopNav() {
                   Loading venues...
                 </DropdownMenuItem>
               ) : venues && venues.length > 0 ? (
-                venues.map(venue => {
-                  // Make sure the venue has all the fields expected by the Venue type
-                  const completeVenue: any = {
-                    ...venue,
-                    imageUrl: venue.imageUrl || null,
-                    socialMedia: venue.socialMedia || {},
-                    paymentTerms: venue.paymentTerms || {},
-                    minimumDraw: venue.minimumDraw || null,
-                    amenities: venue.amenities || {},
-                    stageDimensions: venue.stageDimensions || {},
-                    technicalSpecs: venue.technicalSpecs || {},
-                    accessibility: venue.accessibility || {},
-                    parkingInfo: venue.parkingInfo || {},
-                    nearbyAccommodation: venue.nearbyAccommodation || {},
-                    foodOptions: venue.foodOptions || {},
-                    loadingInfo: venue.loadingInfo || {},
-                    priceRange: venue.priceRange || {}
-                  };
-                  
-                  return (
-                    <DropdownMenuItem key={venue.id} onClick={() => setActiveVenue(completeVenue)}>
-                      {venue.name}
-                    </DropdownMenuItem>
-                  );
-                })
+                venues.map(venue => (
+                  <DropdownMenuItem 
+                    key={venue.id} 
+                    onClick={() => {
+                      setActiveVenue(venue);
+                      console.log('Selected venue:', venue);
+                    }}
+                  >
+                    {venue.name}
+                  </DropdownMenuItem>
+                ))
               ) : (
                 <DropdownMenuItem disabled>
                   No venues found
