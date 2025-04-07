@@ -94,6 +94,203 @@ export class EnhancedBandsintownDiscoveryService {
     });
   }
 
+  private calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  }
+
+  private calculateRoutingScore(
+    distanceToVenue: number,
+    detourDistance: number,
+    daysBetween: number,
+    maxDistance: number
+  ): number {
+    const distanceScore = Math.max(0, 100 - (distanceToVenue / maxDistance) * 100);
+    const detourScore = Math.max(0, 100 - (detourDistance / maxDistance) * 50);
+    const timeScore = daysBetween >= 1 && daysBetween <= 4 ? 100 : Math.max(0, 100 - Math.abs(daysBetween - 2) * 20);
+    
+    return Math.round((distanceScore * 0.4) + (detourScore * 0.4) + (timeScore * 0.2));
+  }
+
+  private async getBandDiscoveryResult(
+    artist: ArtistWithEvents,
+    venue: Venue,
+    startDate: string,
+    endDate: string,
+    maxDistance: number
+  ): Promise<BandDiscoveryResult | null> {
+    if (!artist.events || artist.events.length === 0) return null;
+
+    const venueLat = parseFloat(venue.latitude || '0');
+    const venueLng = parseFloat(venue.longitude || '0');
+    
+    const sortedEvents = [...artist.events].sort(
+      (a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime()
+    );
+
+    let bestRoute: RouteAnalysis | null = null;
+    let bestScore = -1;
+
+    // Check each pair of consecutive events for potential venue fit
+    for (let i = 0; i < sortedEvents.length - 1; i++) {
+      const event1 = sortedEvents[i];
+      const event2 = sortedEvents[i + 1];
+
+      const event1Lat = parseFloat(event1.venue.latitude || '0');
+      const event1Lng = parseFloat(event1.venue.longitude || '0');
+      const event2Lat = parseFloat(event2.venue.latitude || '0');
+      const event2Lng = parseFloat(event2.venue.longitude || '0');
+
+      if (!event1Lat || !event1Lng || !event2Lat || !event2Lng) continue;
+
+      const distanceToVenue1 = this.calculateDistance(event1Lat, event1Lng, venueLat, venueLng);
+      const distanceToVenue2 = this.calculateDistance(event2Lat, event2Lng, venueLat, venueLng);
+      const originalDistance = this.calculateDistance(event1Lat, event1Lng, event2Lat, event2Lng);
+      
+      const detourDistance = 
+        this.calculateDistance(event1Lat, event1Lng, venueLat, venueLng) +
+        this.calculateDistance(venueLat, venueLng, event2Lat, event2Lng) -
+        originalDistance;
+
+      const daysBetween = Math.floor(
+        (new Date(event2.datetime).getTime() - new Date(event1.datetime).getTime()) / 
+        (1000 * 60 * 60 * 24)
+      );
+
+      const routingScore = this.calculateRoutingScore(
+        Math.min(distanceToVenue1, distanceToVenue2),
+        detourDistance,
+        daysBetween,
+        maxDistance
+      );
+
+      if (routingScore > bestScore) {
+        bestScore = routingScore;
+        bestRoute = {
+          origin: {
+            city: event1.venue.city,
+            state: event1.venue.region,
+            date: event1.datetime,
+            lat: event1Lat,
+            lng: event1Lng
+          },
+          destination: {
+            city: event2.venue.city,
+            state: event2.venue.region,
+            date: event2.datetime,
+            lat: event2Lat,
+            lng: event2Lng
+          },
+          distanceToVenue: Math.min(distanceToVenue1, distanceToVenue2),
+          detourDistance,
+          daysAvailable: daysBetween,
+          routingScore
+        };
+      }
+    }
+
+    if (!bestRoute) return null;
+
+    return {
+      name: artist.name,
+      image: artist.image_url,
+      url: artist.url,
+      upcomingEvents: artist.upcoming_event_count,
+      route: bestRoute,
+      events: artist.events
+    };
+  }
+
+  public async findBandsNearVenue({
+    venueId,
+    startDate,
+    endDate,
+    radius = 100,
+    maxBands = 50,
+    onProgress,
+    onIncrementalResults
+  }: DiscoveryOptions): Promise<DiscoveryResults> {
+    const startTime = Date.now();
+    const { storage } = await import('../storage');
+    
+    const venue = await storage.getVenue(venueId);
+    if (!venue) throw new Error(`Venue ${venueId} not found`);
+
+    const artists = await getArtistsToQuery();
+    const artistsToQuery = artists.slice(0, maxBands);
+    let completed = 0;
+
+    const results: BandDiscoveryResult[] = [];
+    const stats = {
+      artistsQueried: 0,
+      artistsWithEvents: 0,
+      artistsPassingNear: 0,
+      totalEventsFound: 0,
+      elapsedTimeMs: 0,
+      apiCacheStats: { keys: 0, hits: 0, misses: 0 }
+    };
+
+    // Process artists in batches
+    const batchSize = this.MAX_CONCURRENT_REQUESTS;
+    for (let i = 0; i < artistsToQuery.length; i += batchSize) {
+      const batch = artistsToQuery.slice(i, i + batchSize);
+      
+      const batchResults = await this.apiService.getMultipleArtistsWithEvents(
+        batch,
+        startDate,
+        endDate,
+        (completedCount, total) => {
+          completed = completedCount;
+          if (onProgress) onProgress(completed, total);
+        }
+      );
+
+      stats.artistsQueried += batch.length;
+      stats.artistsWithEvents += batchResults.length;
+
+      // Process each artist's events
+      const newResults = (await Promise.all(
+        batchResults.map(artist => 
+          this.getBandDiscoveryResult(artist, venue, startDate, endDate, radius)
+        )
+      )).filter((result): result is BandDiscoveryResult => result !== null);
+
+      if (newResults.length > 0) {
+        results.push(...newResults);
+        stats.artistsPassingNear += newResults.length;
+        
+        if (onIncrementalResults) {
+          onIncrementalResults(newResults);
+        }
+      }
+
+      // Add delay between batches
+      if (i + batchSize < artistsToQuery.length) {
+        await new Promise(resolve => setTimeout(resolve, this.REQUEST_DELAY));
+      }
+    }
+
+    // Sort results by routing score
+    results.sort((a, b) => b.route.routingScore - a.route.routingScore);
+
+    stats.elapsedTimeMs = Date.now() - startTime;
+    stats.apiCacheStats = this.apiService.getCacheStats();
+    stats.totalEventsFound = results.reduce((sum, r) => sum + r.events.length, 0);
+
+    return {
+      data: results.slice(0, maxBands),
+      venue,
+      stats
+    };
+  }
+
   /**
    * Initialize the service and validate configuration
    */
