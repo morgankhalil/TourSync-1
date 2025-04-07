@@ -8,6 +8,17 @@ import { WebSocketServer } from 'ws';
 const app = express();
 app.use(express.json());
 
+// Handle process termination
+process.on('SIGTERM', () => {
+  console.log('Received SIGTERM. Performing graceful shutdown...');
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('Received SIGINT. Performing graceful shutdown...');
+  process.exit(0);
+});
+
 // Create WebSocket server
 const wss = new WebSocketServer({ noServer: true });
 
