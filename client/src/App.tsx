@@ -2,6 +2,7 @@ import { Route, Switch } from 'wouter';
 import { Toaster } from './components/ui/toaster';
 import AppLayout from './components/layout/AppLayout';
 import Dashboard from './pages/Dashboard';
+import Home from './pages/Home';
 import VenueCalendar from './pages/VenueCalendar';
 import VenueProfile from './pages/VenueProfile';
 import TourDashboard from './pages/TourDashboard';
