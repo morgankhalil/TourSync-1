@@ -282,5 +282,6 @@ export default function VenueProfile() {
           </Tabs>
         </div>
       </div>
-    );
+    </div>
+  );
 }
