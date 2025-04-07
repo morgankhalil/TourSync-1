@@ -16,9 +16,10 @@ const Home = () => {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const handleVenueSelect = (venue: Venue) => {
-    setActiveVenue(venue);
-    setLocation('/dashboard');
+  const handleVenueSelect = async (venue: Venue) => {
+    await setActiveVenue(venue);
+    // Ensure we navigate to the venue-specific dashboard
+    setLocation(`/venue/${venue.id}/dashboard`);
   };
 
   return (
