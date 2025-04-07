@@ -35,17 +35,98 @@ export interface BandDiscoveryResult {
 }
 
 // Cache to store artist search results (temporary, not persistent)
-const artistDiscoveryCache = new NodeCache({ stdTTL: 1800 }); // 30 minutes TTL
+//const artistDiscoveryCache = new NodeCache({ stdTTL: 1800 }); // 30 minutes TTL
+
+class BandsintownApi {
+    private apiKey: string;
+    private baseUrl = 'https://rest.bandsintown.com';
+
+    constructor(apiKey: string) {
+        this.apiKey = apiKey;
+    }
+
+    async getArtistEvents(artistName: string): Promise<any[]> {
+        try {
+            const response = await axios.get(
+                `${this.baseUrl}/artists/${encodeURIComponent(artistName)}/events`,
+                { params: { app_id: this.apiKey } }
+            );
+            return response.data;
+        } catch (error) {
+            console.error(`Error fetching events for ${artistName}:`, error);
+            return [];
+        }
+    }
+
+    async getArtist(artistName: string) {
+        try {
+            const response = await axios.get(
+                `${this.baseUrl}/artists/${encodeURIComponent(artistName)}`,
+                { params: { app_id: this.apiKey } }
+            );
+            return response.data;
+        } catch (error) {
+            console.error(`Error fetching artist ${artistName}:`, error);
+            return null;
+        }
+    }
+
+}
+
+export class BandsintownDiscovery {
+  private api: BandsintownApi;
+  private cache: NodeCache;
+
+  constructor(apiKey: string) {
+    this.api = new BandsintownApi(apiKey);
+    this.cache = new NodeCache({ stdTTL: 3600 }); // Cache for 1 hour
+  }
+
+  private getCacheKey(type: string, query: string): string {
+    return `${type}:${query}`;
+  }
+
+  async getArtistEvents(artistName: string) {
+    const cacheKey = this.getCacheKey('artist', artistName);
+    const cached = this.cache.get(cacheKey);
+
+    if (cached) {
+      return cached;
+    }
+
+    const events = await this.api.getArtistEvents(artistName);
+    this.cache.set(cacheKey, events);
+    return events;
+  }
+
+  async getArtist(artistName: string) {
+    const cacheKey = this.getCacheKey('artistInfo', artistName);
+    const cached = this.cache.get(cacheKey);
+
+    if (cached) {
+      return cached;
+    }
+
+    const artistInfo = await this.api.getArtist(artistName);
+    this.cache.set(cacheKey, artistInfo);
+    return artistInfo;
+  }
+
+
+}
 
 /**
  * Service for discovering bands touring near venues using direct Bandsintown API calls
  */
+
 export class BandsintownDiscoveryService {
   private apiKey: string;
+  private discovery: BandsintownDiscovery;
   private baseUrl = 'https://rest.bandsintown.com';
 
   constructor(apiKey: string) {
     this.apiKey = apiKey;
+    this.discovery = new BandsintownDiscovery(apiKey);
   }
 
   /**
@@ -127,29 +208,13 @@ export class BandsintownDiscoveryService {
       const batch = artistsToSearch.slice(i, i + batchSize);
       await Promise.all(batch.map(async (artistName) => {
         try {
-          const cacheKey = `discovery:${artistName}:${startDate.toISOString()}:${endDate.toISOString()}`;
-
-          // Check cache first
-          let result = artistDiscoveryCache.get<BandDiscoveryResult>(cacheKey);
-          if (result) {
-            // Still need to check distance to venue since venue might be different
-            const routeAnalysis = this.analyzeRouteForVenueFit(
-              result.events, venueLat, venueLng, radius
-            );
-
-            if (routeAnalysis && routeAnalysis.distanceToVenue <= radius) {
-              result.route = routeAnalysis;
-              results.push(result);
-            }
-            return;
-          }
-
           // Get artist information
-          const artistInfo = await this.getArtist(artistName);
+          const artistInfo = await this.discovery.getArtist(artistName);
           if (!artistInfo) return;
 
           // Get artist events
-          const events = await this.getArtistEvents(artistName);
+          const events = await this.discovery.getArtistEvents(artistName);
+
 
           // Filter to events in our date range
           const filteredEvents = events.filter(event => {
@@ -173,9 +238,6 @@ export class BandsintownDiscoveryService {
               route: routeAnalysis,
               events: filteredEvents
             };
-
-            // Cache the result
-            artistDiscoveryCache.set(cacheKey, discoveryResult, 1800); // 30 min cache
 
             // Add to results
             results.push(discoveryResult);
@@ -330,38 +392,6 @@ export class BandsintownDiscoveryService {
 
     // Second priority: More days available is better
     return route1.daysAvailable > route2.daysAvailable;
-  }
-
-  /**
-   * Fetch artist information from Bandsintown
-   */
-  private async getArtist(artistName: string) {
-    try {
-      const response = await axios.get(
-        `${this.baseUrl}/artists/${encodeURIComponent(artistName)}`,
-        { params: { app_id: this.apiKey } }
-      );
-      return response.data;
-    } catch (error) {
-      console.error(`Error fetching artist ${artistName}:`, error);
-      return null;
-    }
-  }
-
-  /**
-   * Fetch artist events from Bandsintown
-   */
-  private async getArtistEvents(artistName: string) {
-    try {
-      const response = await axios.get(
-        `${this.baseUrl}/artists/${encodeURIComponent(artistName)}/events`,
-        { params: { app_id: this.apiKey } }
-      );
-      return response.data;
-    } catch (error) {
-      console.error(`Error fetching events for ${artistName}:`, error);
-      return [];
-    }
   }
 }
 
