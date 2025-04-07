@@ -10,6 +10,7 @@ import { useTours } from "../../hooks/useTours";
 import { useVenues } from "../../hooks/useVenues";
 import { apiRequest } from "../../lib/queryClient";
 import { Calendar } from "@/components/ui/calendar";
+import { InteractiveMapView } from "../maps/InteractiveMapView";
 import { CalendarIcon, Map, Calendar as CalendarIcon2, Clock } from "lucide-react";
 import { useToast } from "../../hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -170,6 +171,20 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
         <CardDescription>Find venues to optimize your tour routing and fill open dates</CardDescription>
       </CardHeader>
       <CardContent>
+        <div className="mb-6 h-[300px] rounded-lg overflow-hidden border">
+          <InteractiveMapView
+            locations={tourDates.map(date => ({
+              lat: Number(date.latitude) || 0,
+              lng: Number(date.longitude) || 0,
+              name: date.venueName || 'Open Date',
+              tourId: tour?.id,
+              date: date.date,
+              isVenue: !!date.venueId,
+            }))}
+            showPaths={true}
+          />
+        </div>
+        
         <Tabs defaultValue="gaps" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="gaps">Fill Tour Gaps</TabsTrigger>
