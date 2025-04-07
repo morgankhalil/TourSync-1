@@ -23,6 +23,13 @@ const VenueView = () => {
 
   const { data: venue, isLoading: isVenueLoading } = useQuery<Venue>({
     queryKey: [`/api/venues/${id}`],
+    queryFn: async () => {
+      const response = await fetch(`/api/venues/${id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch venue');
+      }
+      return response.json();
+    },
     enabled: !!id,
   });
 
