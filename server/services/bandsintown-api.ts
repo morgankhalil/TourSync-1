@@ -150,9 +150,9 @@ export class BandsintownApiService {
     return this.makeRequest(endpoint, cacheKey);
   }
 
-  async getVenueEvents(venueName: string, location: string): Promise<Event[]> {
-    const endpoint = `/venues/${encodeURIComponent(venueName)}/events?location=${encodeURIComponent(location)}`;
-    const cacheKey = `venue_events:${venueName}:${location}`;
+  async getVenueEvents(venueId: string): Promise<Event[]> {
+    const endpoint = `/venues/${venueId}/events`;
+    const cacheKey = `venue_events:${venueId}`;
     return this.makeRequest(endpoint, cacheKey);
   }
 

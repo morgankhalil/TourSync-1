@@ -20,8 +20,14 @@ async function fetchVenueEvents() {
   const endDate = new Date('2024-04-30');
 
   try {
-    console.log('Fetching events for Empty Bottle in Chicago...');
-    const events = await api.getVenueEvents('Empty Bottle', 'Chicago, IL');
+    // Get venue details from database
+    const venue = await storage.getVenue(45); // Empty Bottle ID
+    if (!venue || !venue.bandsintownId) {
+      throw new Error('Venue not found or missing Bandsintown ID');
+    }
+
+    console.log(`Fetching events for venue ID: ${venue.bandsintownId}...`);
+    const events = await api.getVenueEvents(venue.bandsintownId);
     
     if (!events || events.length === 0) {
       console.log('No events found for the venue');
