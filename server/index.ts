@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import cache from "express-cache-controller";
 import { registerRoutes } from "./routes";
 import calendarRoutes from "./routes/calendar";
+import staticRoutes from "./routes/static";
 import { setupVite, serveStatic, log } from "./vite";
 import { WebSocketServer } from 'ws';
 
@@ -42,7 +43,8 @@ function shutdownGracefully() {
 process.on('SIGTERM', shutdownGracefully);
 process.on('SIGINT', shutdownGracefully);
 
-const PORT = process.env.PORT || 5000;
+// Ensure PORT is always a number
+const PORT: number = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
 
 async function startServer() {
   try {
@@ -61,6 +63,7 @@ async function startServer() {
     }));
 
     app.use('/api/calendar', calendarRoutes);
+    app.use('/', staticRoutes);
     app.use(express.urlencoded({ extended: false }));
 
     // Disable caching
