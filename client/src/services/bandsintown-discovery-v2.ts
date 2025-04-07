@@ -93,7 +93,7 @@ export class EnhancedBandsintownDiscoveryClient {
     apiResponse?: any;
   }> {
     try {
-      const response = await fetch('/api/bandsintown-v2/status');
+      const response = await fetch('/api/bandsintown-discovery-v2/status');
 
       if (!response.ok) {
         throw new Error('API status check failed');
@@ -134,7 +134,7 @@ export class EnhancedBandsintownDiscoveryClient {
         useDemoMode: (options.useDemoMode || false).toString()
       });
 
-      const response = await fetch(`/api/bandsintown-v2/discover?${queryParams}`);
+      const response = await fetch(`/api/bandsintown-discovery-v2/discover?${queryParams}`);
 
       if (!response.ok) {
         throw new Error('Discovery API request failed');
@@ -152,7 +152,7 @@ export class EnhancedBandsintownDiscoveryClient {
    */
   static async clearCache(): Promise<{ status: string; message: string }> {
     try {
-      const response = await fetch('/api/bandsintown-v2/clear-cache', {
+      const response = await fetch('/api/bandsintown-discovery-v2/clear-cache', {
         method: 'POST'
       });
 
