@@ -358,19 +358,24 @@ export class EnhancedBandsintownDiscoveryService {
   private calculateRoutingScore(
     distanceToVenue: number,
     detourDistance: number,
-    daysBetween: number
+    daysBetween: number,
+    venueDrawSize: number = 0
   ): number {
-    // Distance penalty (0-100 points)
-    const distancePenalty = distanceToVenue > 200
+    // Enhanced distance scoring with exponential penalty
+    const distancePenalty = distanceToVenue > 300
       ? 100
-      : Math.round((distanceToVenue / 200) * 100);
+      : Math.round((Math.pow(distanceToVenue / 300, 1.5)) * 100);
 
-    // Detour penalty (0-100 points)
-    // If detour is more than 2x the distance to venue or more than 200 miles, max penalty
-    const maxAcceptableDetour = Math.min(distanceToVenue * 2, 200);
+    // Improved detour calculation with variable threshold based on venue draw
+    const maxAcceptableDetour = Math.min(
+      distanceToVenue * (1.5 + (venueDrawSize / 1000)), // Larger venues allow bigger detours
+      300
+    );
+    
+    // Exponential detour penalty
     const detourPenalty = detourDistance > maxAcceptableDetour
       ? 100
-      : Math.round((detourDistance / maxAcceptableDetour) * 100);
+      : Math.round((Math.pow(detourDistance / maxAcceptableDetour, 1.8)) * 100);
 
     // Days penalty (0-100 points)
     // Ideal is 1-3 days between shows, with 2 being perfect
