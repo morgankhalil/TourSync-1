@@ -8,14 +8,26 @@ import { WebSocketServer } from 'ws';
 const app = express();
 app.use(express.json());
 
-// Create WebSocket server with proper error handling
+// Create WebSocket server with enhanced error handling and configuration
 const wss = new WebSocketServer({ 
   noServer: true,
-  perMessageDeflate: false // Disable compression to avoid potential frame errors
+  perMessageDeflate: false,
+  maxPayload: 104857600, // 100MB max payload
+  skipUTF8Validation: true // Skip UTF-8 validation to avoid encoding issues
 });
 
 wss.on('error', (error) => {
   console.error('WebSocket Server Error:', error);
+});
+
+wss.on('connection', (ws) => {
+  ws.on('error', (error) => {
+    console.error('WebSocket Connection Error:', error);
+  });
+  
+  ws.on('close', () => {
+    console.log('Client disconnected');
+  });
 });
 
 // Handle process termination
