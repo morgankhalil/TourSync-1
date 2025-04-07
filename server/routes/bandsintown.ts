@@ -308,4 +308,34 @@ export function registerBandsintownRoutes(app: Express): void {
       res.status(500).json({ error: 'Failed to get status' });
     }
   });
+
+  // Search for a venue
+  app.get('/api/bandsintown/venue/search', async (req: Request, res: Response) => {
+    try {
+      const { name, location } = req.query;
+      if (!name || !location) {
+        return res.status(400).json({ error: 'Name and location are required' });
+      }
+
+      const integration = getIntegration();
+      const venue = await integration.searchVenue(name.toString(), location.toString());
+      res.json(venue);
+    } catch (error) {
+      console.error('Error searching venue:', error);
+      res.status(500).json({ error: 'Failed to search venue' });
+    }
+  });
+
+  // Get venue details
+  app.get('/api/bandsintown/venue/:id', async (req: Request, res: Response) => {
+    try {
+      const venueId = req.params.id;
+      const integration = getIntegration();
+      const venue = await integration.getVenueDetails(venueId);
+      res.json(venue);
+    } catch (error) {
+      console.error('Error getting venue details:', error);
+      res.status(500).json({ error: 'Failed to get venue details' });
+    }
+  });
 }
