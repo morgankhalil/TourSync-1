@@ -1,12 +1,3 @@
-/**
- * Enhanced Bandsintown API Service
- * Features:
- * - Request caching to reduce redundant API calls
- * - Retry mechanisms for failed requests
- * - Batch processing to handle larger artist lists
- * - Error handling and logging
- * - Rate limiting using express-rate-limit
- */
 
 import axios from 'axios';
 import rateLimit from 'express-rate-limit';
@@ -20,7 +11,7 @@ const API_CACHE = new NodeCache({
   maxKeys: 1000 // Limit cache size
 });
 
-// Cache keys (retained from original for consistency)
+// Cache keys
 const CACHE_KEYS = {
   ARTIST: (name: string) => `artist:${name}`,
   EVENTS: (name: string) => `events:${name}`,
@@ -66,7 +57,7 @@ export interface ArtistWithEvents extends Artist {
   events: Event[];
 }
 
-export class BandsintownApi {
+export class BandsintownApiService {
   private apiKey: string;
   private baseUrl = 'https://rest.bandsintown.com/v4';
   private limiter: any;
@@ -138,6 +129,7 @@ export class BandsintownApi {
       return false;
     }
   }
+
   resetStats() {
     this.statsCollector = {
       totalRequests: 0,
@@ -152,8 +144,7 @@ export class BandsintownApi {
     return { ...this.statsCollector };
   }
 
-
-  async getArtistEvents(artistName: string):Promise<Event[]> {
+  async getArtistEvents(artistName: string): Promise<Event[]> {
     const endpoint = `/artists/${encodeURIComponent(artistName)}/events`;
     const cacheKey = CACHE_KEYS.EVENTS(artistName);
     return this.makeRequest(endpoint, cacheKey);
@@ -164,6 +155,7 @@ export class BandsintownApi {
     const cacheKey = `venue_events:${venueName}:${location}`;
     return this.makeRequest(endpoint, cacheKey);
   }
+
   clearCache(): void {
     API_CACHE.flushAll();
     console.log('API cache cleared');
