@@ -188,113 +188,98 @@ export default function VenueProfile() {
               </Card>
             </div>
 
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList>
-                <TabsTrigger value="info">Info</TabsTrigger>
-                <TabsTrigger value="performances">Performances</TabsTrigger>
-              </TabsList>
+            <div>
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle>Location</CardTitle>
+                </CardHeader>
+                <CardContent className="h-[400px]">
+                  <SimpleVenueMap venue={venue} />
+                </CardContent>
+              </Card>
 
-              <TabsContent value="info">
-                <div>
-                  <Card className="mb-6">
-                    <CardHeader>
-                      <CardTitle>Location</CardTitle>
-                    </CardHeader>
-                    <CardContent className="h-[400px]">
-                      <SimpleVenueMap venue={venue} />
-                    </CardContent>
-                  </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Additional Information</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => setActiveTab("performances")}
+                    >
+                      <span className="mr-2">📊</span>
+                      View Past Performances
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => setActiveTab("calendar")}
+                    >
+                      <span className="mr-2">📅</span>
+                      View Availability Calendar
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Additional Information</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <Button 
-                          variant="outline" 
-                          className="w-full"
-                          onClick={() => setActiveTab("performances")}
-                        >
-                          <span className="mr-2">📊</span>
-                          View Past Performances
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          className="w-full"
-                          onClick={() => setActiveTab("calendar")}
-                        >
-                          <span className="mr-2">📅</span>
-                          View Availability Calendar
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
+            <TabsContent value="performances">
+              <PastPerformancesManager venueId={venueId} />
+            </TabsContent>
 
-              <TabsContent value="performances">
-                <PastPerformancesManager venueId={venueId} />
-              </TabsContent>
-            </Tabs>
-          </TabsContent>
-
-        <Tabs defaultValue="calendar">
-          <TabsList>
-            <TabsTrigger value="calendar">Calendar</TabsTrigger>
-          </TabsList>
-          <TabsContent value="calendar">
-            <Card>
-              <CardHeader>
-                <CardTitle>Venue Availability Calendar</CardTitle>
-                <CardDescription>Manage dates when your venue is available for booking</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {/* Using a simplified version of VenueAvailability component */}
-                <div className="flex flex-col gap-4">
-                  <div className="calendar-container border rounded-md p-4 bg-white">
-                    <div className="w-full max-w-md mx-auto">
-                      {/* Using a div here to prevent button nesting issues */}
-                      <div className="calendar-wrapper">
-                        <Calendar
-                          mode="multiple"
-                          selected={[new Date()]}
-                          className="rounded-md"
-                          showOutsideDays={false}
-                          disabled={{
-                            before: new Date(),
-                          }}
-                          classNames={{
-                            day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-                            day_today: "bg-accent text-accent-foreground",
-                          }}
-                        />
+            <TabsContent value="calendar">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Venue Availability Calendar</CardTitle>
+                  <CardDescription>Manage dates when your venue is available for booking</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {/* Using a simplified version of VenueAvailability component */}
+                  <div className="flex flex-col gap-4">
+                    <div className="calendar-container border rounded-md p-4 bg-white">
+                      <div className="w-full max-w-md mx-auto">
+                        {/* Using a div here to prevent button nesting issues */}
+                        <div className="calendar-wrapper">
+                          <Calendar
+                            mode="multiple"
+                            selected={[new Date()]}
+                            className="rounded-md"
+                            showOutsideDays={false}
+                            disabled={{
+                              before: new Date(),
+                            }}
+                            classNames={{
+                              day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                              day_today: "bg-accent text-accent-foreground",
+                            }}
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex justify-between gap-2 mt-2">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-4 h-4 rounded-full bg-primary"></div>
-                      <span className="text-sm">Available</span>
+                    <div className="flex justify-between gap-2 mt-2">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 rounded-full bg-primary"></div>
+                        <span className="text-sm">Available</span>
+                      </div>
+                      <div> {/* Wrap in div to prevent button nesting issues */}
+                        <Button type="button">
+                          <span className="flex items-center gap-1">
+                            <CheckIcon className="h-4 w-4" />
+                            Save Availability
+                          </span>
+                        </Button>
+                      </div>
                     </div>
-                    <div> {/* Wrap in div to prevent button nesting issues */}
-                      <Button type="button">
-                        <span className="flex items-center gap-1">
-                          <CheckIcon className="h-4 w-4" />
-                          Save Availability
-                        </span>
-                      </Button>
-                    </div>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Note: Select dates to mark your venue as available. Currently this is a preview - full calendar functionality will be available soon.
+                    </p>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Note: Select dates to mark your venue as available. Currently this is a preview - full calendar functionality will be available soon.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </Tabs>
-    </div>
-  );
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+    );
 }
