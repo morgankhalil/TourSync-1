@@ -1,24 +1,20 @@
-import { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Venue, TourDate, Tour } from "../../types";
-import { useTours } from "../../hooks/useTours";
-import { useVenues } from "../../hooks/useVenues";
-import { apiRequest } from "../../lib/queryClient";
-import { Calendar } from "@/components/ui/calendar";
-import { InteractiveMapView } from "../maps/InteractiveMapView";
-import { CalendarIcon, Map, Calendar as CalendarIcon2, Clock } from "lucide-react";
-import { useToast } from "../../hooks/use-toast";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { cn } from "../../lib/utils";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import VenueItem from "../venue/VenueItem";
+import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { format } from 'date-fns';
+import { Tour, TourDate, Venue, Band } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
+import { InteractiveMapView } from '../maps/InteractiveMapView';
+import { Calendar } from '@/components/ui/calendar';
+import { useToast } from '@/hooks/use-toast';
+import VenueItem from '../venue/VenueItem';
+import { apiRequest } from '@/lib/queryClient';
+import { cn } from '@/lib/utils';
+import { Calendar as CalendarIcon, Clock } from 'lucide-react';
 
 interface TourOptimizationPanelProps {
   tour: Tour | null;
@@ -42,23 +38,22 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
   const [tourGaps, setTourGaps] = useState<TourGap[]>([]);
   const [selectedGap, setSelectedGap] = useState<TourGap | null>(null);
   const [gapVenues, setGapVenues] = useState<Venue[]>([]);
-  
+
   const { toast } = useToast();
-  
-  // Finding tour gaps
+
   useEffect(() => {
     if (tour?.id) {
       fetchTourGaps();
     }
   }, [tour]);
-  
+
   const fetchTourGaps = async () => {
     if (!tour) return;
-    
+
     try {
       setIsLoading(true);
       const response = await apiRequest(`/api/tours/${tour.id}/gaps`);
-      
+
       if (Array.isArray(response)) {
         const gaps = response as TourGap[];
         setTourGaps(gaps.map(gap => ({
@@ -77,15 +72,15 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
       setIsLoading(false);
     }
   };
-  
+
   const handleSelectGap = async (gap: TourGap) => {
     if (!tour) return;
-    
+
     setSelectedGap(gap);
-    
+
     try {
       setIsLoading(true);
-      
+
       const response = await apiRequest(`/api/tours/${tour.id}/fill-gap`, {
         method: 'POST',
         data: {
@@ -94,10 +89,10 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
           radius: searchRadius
         }
       });
-      
+
       const venues = Array.isArray(response) ? response as Venue[] : [];
       setGapVenues(venues);
-      
+
       if (venues.length === 0) {
         toast({
           title: "No venues found",
@@ -112,8 +107,7 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
       setIsLoading(false);
     }
   };
-  
-  // Finding nearby venues
+
   const handleSelectTourDate = async (date: TourDate) => {
     if (!date.venueId) {
       toast({
@@ -123,25 +117,24 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
       });
       return;
     }
-    
+
     setSelectedTourDate(date);
-    
+
     try {
       setIsLoading(true);
-      
-      // Get venues already in the tour to exclude them
+
       const excludeIds = tourDates
         .filter(td => td.venueId)
         .map(td => td.venueId as number)
         .join(',');
-      
+
       const response = await apiRequest(
         `/api/venues/${date.venueId}/nearby?radius=${searchRadius}&excludeIds=${excludeIds}`
       );
-      
+
       const venues = Array.isArray(response) ? response as Venue[] : [];
       setNearbyVenues(venues);
-      
+
       if (venues.length === 0) {
         toast({
           title: "No venues found",
@@ -156,14 +149,14 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
       setIsLoading(false);
     }
   };
-  
+
   const handleSelectVenue = (venue: Venue) => {
     setSelectedVenue(venue);
     if (onSelectVenue) {
       onSelectVenue(venue);
     }
   };
-  
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -184,13 +177,13 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
             showPaths={true}
           />
         </div>
-        
+
         <Tabs defaultValue="gaps" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="gaps">Fill Tour Gaps</TabsTrigger>
             <TabsTrigger value="nearby">Find Nearby Venues</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="gaps">
             <div className="space-y-4 mt-4">
               <div className="flex items-center space-x-2">
@@ -203,7 +196,7 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
                   className="w-24"
                 />
               </div>
-              
+
               {tourGaps.length > 0 ? (
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">Available Gaps</h3>
@@ -242,7 +235,7 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
                   </p>
                 </div>
               )}
-              
+
               {selectedGap && (
                 <>
                   <Separator className="my-4" />
@@ -260,7 +253,7 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
                             isSelected={selectedVenue?.id === venue.id}
                           />
                         ))}
-                        
+
                         {gapVenues.length === 0 && !isLoading && (
                           <p className="py-4 text-center text-muted-foreground">
                             No venues found for this gap. Try increasing the search radius.
@@ -273,7 +266,7 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
               )}
             </div>
           </TabsContent>
-          
+
           <TabsContent value="nearby">
             <div className="space-y-4 mt-4">
               <div className="flex items-center space-x-2">
@@ -286,7 +279,7 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
                   className="w-24"
                 />
               </div>
-              
+
               <h3 className="text-lg font-medium">Select a confirmed venue</h3>
               <div className="mt-2 max-h-[300px] overflow-y-auto pr-2">
                 <div className="space-y-2">
@@ -310,14 +303,14 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
                               </span>
                             </div>
                             <div className="flex items-center">
-                              <CalendarIcon2 className="h-5 w-5 mr-2 text-muted-foreground" />
+                              <CalendarIcon className="h-5 w-5 mr-2 text-muted-foreground" />
                               <span>{format(new Date(date.date), 'MMM d, yyyy')}</span>
                             </div>
                           </div>
                         </CardContent>
                       </Card>
                     ))}
-                    
+
                   {tourDates.filter(date => date.venueId && (date.status === 'confirmed' || date.status === 'pending')).length === 0 && (
                     <p className="py-4 text-center text-muted-foreground">
                       No confirmed venues in this tour yet.
@@ -325,7 +318,7 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
                   )}
                 </div>
               </div>
-              
+
               {selectedTourDate && (
                 <>
                   <Separator className="my-4" />
@@ -343,7 +336,7 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
                             isSelected={selectedVenue?.id === venue.id}
                           />
                         ))}
-                        
+
                         {nearbyVenues.length === 0 && !isLoading && (
                           <p className="py-4 text-center text-muted-foreground">
                             No venues found near this location. Try increasing the search radius.
@@ -357,41 +350,6 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
             </div>
           </TabsContent>
         </Tabs>
-      </CardContent>
-    </Card>
-  );
-};
-
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Tour, TourDate, Venue } from '@/types';
-
-interface TourOptimizationPanelProps {
-  tour: Tour | null;
-  tourDates: TourDate[];
-  onSelectVenue: (venue: Venue) => void;
-}
-
-const TourOptimizationPanel: React.FC<TourOptimizationPanelProps> = ({
-  tour,
-  tourDates,
-  onSelectVenue
-}) => {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Tour Optimization</CardTitle>
-        <CardDescription>Find and fill open dates with recommended venues</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {tourDates.filter(date => date.isOpenDate || !date.venueId).map(date => (
-            <div key={date.id} className="p-4 border rounded-lg">
-              <div className="font-medium">{new Date(date.date).toLocaleDateString()}</div>
-              <div className="text-sm text-muted-foreground">Looking for venues...</div>
-            </div>
-          ))}
-        </div>
       </CardContent>
     </Card>
   );
