@@ -112,6 +112,9 @@ export default function AddVenueModal() {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Add New Venue</DialogTitle>
+          <DialogDescription>
+            Search for a venue by name and location to add it to your list.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div>
