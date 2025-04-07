@@ -1,20 +1,38 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useActiveVenue } from '@/hooks/useActiveVenue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar, Users, Route, TrendingUp } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { addDays, format } from 'date-fns';
 
 const Dashboard = () => {
   const { activeVenue, isLoading: isVenueLoading } = useActiveVenue();
-
-  // If no venue is selected, redirect to home
-  if (!isVenueLoading && !activeVenue) {
-    window.location.href = '/';
-    return null;
+  const [, setLocation] = useLocation();
+  
+  // Redirect to the specific venue dashboard if a venue is selected
+  useEffect(() => {
+    if (!isVenueLoading && activeVenue) {
+      // Use proper navigation to venue dashboard
+      setLocation(`/venue/${activeVenue.id}/dashboard`);
+    } else if (!isVenueLoading && !activeVenue) {
+      // If no venue is selected, redirect to home
+      setLocation('/');
+    }
+  }, [activeVenue, isVenueLoading, setLocation]);
+  
+  // Show loading state while redirecting
+  if (isVenueLoading || activeVenue) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-lg">Redirecting to venue dashboard...</p>
+        </div>
+      </div>
+    );
   }
 
   const stats = {

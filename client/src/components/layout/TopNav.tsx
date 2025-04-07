@@ -131,8 +131,7 @@ export default function TopNav() {
                     key={venue.id} 
                     onClick={() => {
                       setActiveVenue(venue);
-                      // Navigate to venue dashboard
-                      window.location.href = `/venue/${venue.id}`;
+                      // We don't need to manually navigate as setActiveVenue handles this
                     }}
                   >
                     <div className="flex items-center gap-2">
