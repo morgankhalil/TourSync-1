@@ -81,7 +81,37 @@ async function importEmptyBottleEvents() {
       }
     ];
 
-    for (const tourData of sampleTours) {
+    // Create sample bands first
+    const sampleBands = [
+      {
+        name: "The Spring Awakeners",
+        genre: "Indie Rock",
+        formedYear: 2020,
+        hometown: "Chicago, IL",
+        description: "Up and coming indie rock band",
+      },
+      {
+        name: "Underground Soundsystem",
+        genre: "Electronic",
+        formedYear: 2019,
+        hometown: "Detroit, MI", 
+        description: "Electronic music collective",
+      }
+    ];
+
+    const bands = [];
+    for (const bandData of sampleBands) {
+      const [band] = await db.insert(bands).values(bandData).returning();
+      bands.push(band);
+    }
+
+    // Now create tours with the actual band IDs
+    for (let i = 0; i < sampleTours.length; i++) {
+      const tourData = {
+        ...sampleTours[i],
+        bandId: bands[i].id
+      };
+      
       const [tour] = await db.insert(tours).values(tourData).returning();
 
       await db.insert(tourDates).values({
@@ -90,7 +120,7 @@ async function importEmptyBottleEvents() {
         date: new Date(new Date(tourData.startDate).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(),
         city: "Chicago",
         state: "IL",
-        status: "confirmed",
+        status: "confirmed", 
         notes: `Performing at ${venue.name}`,
         venueName: venue.name,
         isOpenDate: false
