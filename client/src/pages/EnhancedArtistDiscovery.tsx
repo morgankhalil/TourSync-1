@@ -66,10 +66,20 @@ export default function EnhancedArtistDiscovery() {
       const formattedStartDate = format(startDate, "yyyy-MM-dd");
       const formattedEndDate = format(endDate, "yyyy-MM-dd");
       
+      console.log(`Starting enhanced discovery search for venue ${activeVenue.id} from ${formattedStartDate} to ${formattedEndDate}`);
+      
+      // First check the API status
+      const statusCheck = await EnhancedBandsintownDiscoveryClient.checkStatus();
+      if (statusCheck.status !== 'ok') {
+        throw new Error(`Bandsintown API status check failed: ${statusCheck.message || 'Unknown error'}`);
+      }
+      
       // Clear Bandsintown cache to ensure fresh results
+      console.log('Clearing Bandsintown API cache...');
       await EnhancedBandsintownDiscoveryClient.clearCache();
       
       // Perform the search
+      console.log('Starting band discovery search...');
       const response = await EnhancedBandsintownDiscoveryClient.findBandsNearVenue({
         venueId: activeVenue.id,
         startDate: formattedStartDate,
@@ -79,8 +89,16 @@ export default function EnhancedArtistDiscovery() {
         lookAheadDays,
       });
       
+      console.log(`Discovery search complete. Found ${response.data?.length || 0} results`);
+      
+      if (!response.data) {
+        throw new Error('Invalid response from discovery API - missing data array');
+      }
+      
       setSearchResults(response.data);
-      setSearchStats(response.stats);
+      if (response.stats) {
+        setSearchStats(response.stats);
+      }
       
       if (response.data.length === 0) {
         setErrorMessage(
@@ -99,11 +117,15 @@ export default function EnhancedArtistDiscovery() {
       
     } catch (error) {
       console.error("Error searching for bands:", error);
-      setErrorMessage("An error occurred while searching for bands. Please try again later.");
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "An unknown error occurred while searching for bands";
+        
+      setErrorMessage(`Search failed: ${errorMessage}. Please try reducing your search parameters or try again later.`);
       
       toast({
         title: "Search Error",
-        description: "Failed to complete the band search. See console for details.",
+        description: "Failed to complete the band search. See error message for details.",
         variant: "destructive",
       });
     } finally {

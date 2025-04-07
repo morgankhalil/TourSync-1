@@ -56,6 +56,8 @@ export interface DiscoveryOptions {
   maxBands?: number; // Maximum number of bands to return
   maxDistance?: number; // Maximum distance to venue
   onProgress?: (completed: number, total: number) => void;
+  onIncrementalResults?: (results: BandDiscoveryResult[]) => void;
+  useDemo?: boolean; // Flag to use demo data
 }
 
 export interface DiscoveryResults {

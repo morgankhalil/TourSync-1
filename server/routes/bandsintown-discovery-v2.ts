@@ -84,34 +84,72 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
       // Create a flag to track if any incremental results were sent
       let incrementalResultsSent = false;
       
-      // Find bands near venue with streaming incremental results
-      const result = await discoveryService.findBandsNearVenue({
-        venueId: numericVenueId,
-        startDate: startDate as string,
-        endDate: endDate as string,
-        radius: numericRadius,
-        genres: genresArray,
-        maxBands: numericMaxBands,
-        maxDistance: numericMaxDistance,
-        lookAheadDays: numericLookAheadDays,
-        onProgress,
-        onIncrementalResults: (newResults) => {
-          if (newResults && newResults.length > 0) {
-            // Send each batch as a newline-delimited JSON
-            res.write(JSON.stringify({results: newResults, status: "in-progress"}) + '\n');
-            incrementalResultsSent = true;
+      try {
+        // Find bands near venue with streaming incremental results
+        const result = await discoveryService.findBandsNearVenue({
+          venueId: numericVenueId,
+          startDate: startDate as string,
+          endDate: endDate as string,
+          radius: numericRadius,
+          genres: genresArray,
+          maxBands: numericMaxBands,
+          maxDistance: numericMaxDistance,
+          lookAheadDays: numericLookAheadDays,
+          onProgress,
+          onIncrementalResults: (newResults) => {
+            if (newResults && newResults.length > 0) {
+              try {
+                // Send each batch as a newline-delimited JSON
+                res.write(JSON.stringify({results: newResults, status: "in-progress"}) + '\n');
+                incrementalResultsSent = true;
+              } catch (err) {
+                console.error('Error sending incremental results:', err);
+              }
+            }
           }
-        }
-      });
+        });
 
-      // If we sent incremental results, end the response
-      if (incrementalResultsSent) {
-        // Send the final complete result
-        res.write(JSON.stringify({results: result.data, status: "complete"}) + '\n');
-        res.end();
-      } else {
-        // If no incremental results were sent, just send the final result as normal JSON
-        res.json(result);
+        console.log(`Discovery complete. Found ${result.data.length} bands near venue ${numericVenueId}`);
+
+        // If we sent incremental results, end the response
+        if (incrementalResultsSent) {
+          try {
+            // Send the final complete result
+            res.write(JSON.stringify({results: result.data, status: "complete"}) + '\n');
+            res.end();
+          } catch (err) {
+            console.error('Error sending final streaming response:', err);
+            // Try to send a regular response if streaming failed
+            if (!res.headersSent) {
+              res.json(result);
+            }
+          }
+        } else {
+          // If no incremental results were sent, just send the final result as normal JSON
+          res.json(result);
+        }
+      } catch (innerError) {
+        console.error('Error during band discovery process:', innerError);
+        
+        // If we already started streaming, try to end the response with an error
+        if (incrementalResultsSent) {
+          try {
+            res.write(JSON.stringify({
+              status: "error", 
+              message: "An error occurred during discovery"
+            }) + '\n');
+            res.end();
+          } catch (err) {
+            console.error('Error sending streaming error response:', err);
+          }
+        } else if (!res.headersSent) {
+          // Otherwise send a normal error response
+          res.status(500).json({
+            status: 'error',
+            message: 'Failed to complete band discovery',
+            error: innerError instanceof Error ? innerError.message : 'Unknown error'
+          });
+        }
       }
     } catch (error) {
       console.error('Error finding bands near venue:', error);
