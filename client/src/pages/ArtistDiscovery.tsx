@@ -9,6 +9,8 @@ import { getLocationLabel, formatDate, formatDateMedium, calculateDistance } fro
 import { bandsintownService } from '@/services/bandsintown';
 import { bandsintownDiscoveryService } from '@/services/bandsintown-discovery';
 import BandMapView from '@/components/maps/BandMapView';
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 const ArtistDiscovery: React.FC = () => {
   const venue = useActiveVenue();
@@ -22,6 +24,7 @@ const ArtistDiscovery: React.FC = () => {
   ); // Default to 1 month from now
   const [radius, setRadius] = useState<number>(50);
   const [selectedBand, setSelectedBand] = useState<BandPassingNearby | null>(null);
+  const [useDemoMode, setUseDemoMode] = useState<boolean>(true);
 
   // Query to find bands near the active venue using real-time Bandsintown API
   const { data: bandsNearVenue, isLoading, error, refetch } = useQuery({
@@ -35,11 +38,13 @@ const ArtistDiscovery: React.FC = () => {
       }
       
       // Use the direct discovery service that polls Bandsintown API in real-time
+      // If useDemoMode is true, force use of sample data instead of API
       const results = await bandsintownDiscoveryService.findBandsNearVenue({
         venueId: activeVenue.id,
         startDate,
         endDate,
-        radius
+        radius,
+        useDemo: useDemoMode
       });
       
       // Make sure results is an array before mapping
@@ -109,6 +114,15 @@ const ArtistDiscovery: React.FC = () => {
             : 'API key is not configured. Please contact support.',
           variant: 'destructive',
         });
+        
+        // If API key is not configured, automatically enable demo mode
+        if (!status.apiKeyConfigured && !useDemoMode) {
+          setUseDemoMode(true);
+          toast({
+            title: 'Demo Mode Enabled',
+            description: 'Switched to demo mode due to API configuration issues.',
+          });
+        }
       }
     } catch (error) {
       toast({
@@ -116,6 +130,15 @@ const ArtistDiscovery: React.FC = () => {
         description: error instanceof Error ? error.message : 'Could not connect to Bandsintown API.',
         variant: 'destructive',
       });
+      
+      // Automatically enable demo mode on connection error
+      if (!useDemoMode) {
+        setUseDemoMode(true);
+        toast({
+          title: 'Demo Mode Enabled',
+          description: 'Switched to demo mode due to API connection issues.',
+        });
+      }
     }
   };
 
@@ -188,8 +211,30 @@ const ArtistDiscovery: React.FC = () => {
               <div className="text-sm text-right">{radius} miles</div>
             </div>
           </div>
+          
+          <div className="flex items-center space-x-2 mt-4">
+            <Switch 
+              id="demo-mode" 
+              checked={useDemoMode} 
+              onCheckedChange={setUseDemoMode}
+            />
+            <Label htmlFor="demo-mode">Use demo data {useDemoMode ? "(Enabled)" : "(Disabled)"}</Label>
+            <div className="ml-2 text-sm text-muted-foreground">
+              {useDemoMode 
+                ? "Using sample data for demonstration purposes" 
+                : "Using live Bandsintown API data"}
+            </div>
+          </div>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="flex justify-between">
+          <div className="text-sm text-muted-foreground">
+            {useDemoMode && (
+              <div className="flex items-center text-amber-500">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-info mr-1"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                Demo mode is active. Results are simulated.
+              </div>
+            )}
+          </div>
           <Button onClick={() => refetch()}>Search</Button>
         </CardFooter>
       </Card>

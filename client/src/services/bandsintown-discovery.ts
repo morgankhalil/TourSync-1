@@ -26,9 +26,19 @@ class BandsintownDiscoveryService {
     startDate: string;
     endDate: string;
     radius?: number;
+    useDemo?: boolean;
   }): Promise<BandDiscoveryResult[]> {
     try {
-      const response = await axios.post(`${this.apiUrl}/discover-bands-near-venue`, params);
+      // Add demo parameter to query string if useDemo is true
+      const url = params.useDemo 
+        ? `${this.apiUrl}/discover-bands-near-venue?demo=true` 
+        : `${this.apiUrl}/discover-bands-near-venue`;
+      
+      // Strip useDemo from params before sending to API
+      const { useDemo, ...apiParams } = params;
+      
+      console.log(`Requesting artist discovery data with${useDemo ? ' demo mode' : ' live API'}`);
+      const response = await axios.post(url, apiParams);
       return response.data.data || [];
     } catch (error) {
       console.error('Error finding bands near venue:', error);
