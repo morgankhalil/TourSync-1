@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EnhancedBandsintownDiscoveryClient, DiscoveryResult, DiscoveryStats } from "@/services/bandsintown-discovery-v2";
 import { EnhancedBandMapView } from "../components/maps/EnhancedBandMapView";
+import { SimpleMapView } from "../components/maps/SimpleMapView";
 import { AlertCircle, CalendarDays, Info, MapPin, AlertTriangle, RefreshCw, Music, Zap } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -620,26 +621,35 @@ export default function EnhancedArtistDiscovery() {
             <Card>
               <CardContent className="p-1 h-[600px]">
                 {activeVenue && (
-                  <EnhancedBandMapView 
-                    venueLocation={{
+                  <SimpleMapView 
+                    locations={[
+                      // Venue location
+                      {
+                        lat: parseFloat(activeVenue.latitude),
+                        lng: parseFloat(activeVenue.longitude),
+                        name: activeVenue.name
+                      },
+                      // Origin locations
+                      ...searchResults
+                        .filter(artist => artist.route.origin && artist.route.origin.lat && artist.route.origin.lng)
+                        .map(artist => ({
+                          lat: artist.route.origin!.lat,
+                          lng: artist.route.origin!.lng,
+                          name: `${artist.name} @ ${artist.route.origin!.city}, ${artist.route.origin!.state}`
+                        })),
+                      // Destination locations
+                      ...searchResults
+                        .filter(artist => artist.route.destination && artist.route.destination.lat && artist.route.destination.lng)
+                        .map(artist => ({
+                          lat: artist.route.destination!.lat,
+                          lng: artist.route.destination!.lng,
+                          name: `${artist.name} @ ${artist.route.destination!.city}, ${artist.route.destination!.state}`
+                        }))
+                    ]}
+                    center={{
                       lat: parseFloat(activeVenue.latitude),
                       lng: parseFloat(activeVenue.longitude)
                     }}
-                    artists={searchResults.map(artist => ({
-                      name: artist.name,
-                      origin: artist.route.origin ? {
-                        lat: artist.route.origin.lat,
-                        lng: artist.route.origin.lng,
-                        label: `${artist.route.origin.city}, ${artist.route.origin.state}`,
-                        date: artist.route.origin.date
-                      } : null,
-                      destination: artist.route.destination ? {
-                        lat: artist.route.destination.lat,
-                        lng: artist.route.destination.lng,
-                        label: `${artist.route.destination.city}, ${artist.route.destination.state}`,
-                        date: artist.route.destination.date
-                      } : null
-                    }))}
                   />
                 )}
               </CardContent>
