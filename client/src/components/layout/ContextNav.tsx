@@ -1,11 +1,30 @@
 
-import React from 'react';
+import React, { ReactElement } from 'react';
 import { useLocation, Link } from 'wouter';
 import { useActiveVenue } from '@/hooks/useActiveVenue';
 import { TabsList, TabsTrigger, Tabs, TabsContent } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { Home, Map, List, Star, Calendar, BarChart2, Settings, Users } from 'lucide-react';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbList } from '@/components/ui/breadcrumb';
+
+// Define types for our tab items
+interface BreadcrumbItem {
+  label: string;
+  path: string;
+  icon: ReactElement | null;
+}
+
+interface TabItem {
+  value: string;
+  label: string;
+  href: string;
+  icon?: ReactElement; // Make icon optional
+}
+
+interface SectionTabs {
+  defaultValue: string;
+  items: TabItem[];
+}
 
 export default function ContextNav() {
   const [location] = useLocation();
@@ -15,8 +34,8 @@ export default function ContextNav() {
   const pathSegments = location.split('/').filter(Boolean);
 
   // Generate breadcrumb items dynamically
-  const getBreadcrumbItems = () => {
-    const items = [];
+  const getBreadcrumbItems = (): BreadcrumbItem[] => {
+    const items: BreadcrumbItem[] = [];
     let path = '';
 
     // Always add home
@@ -47,7 +66,7 @@ export default function ContextNav() {
   };
 
   // Define section tabs based on current route
-  const getSectionTabs = () => {
+  const getSectionTabs = (): SectionTabs | null => {
     // Venue Profile
     if (location.startsWith('/venue/')) {
       return {

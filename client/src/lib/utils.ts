@@ -6,10 +6,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatDate(date: string | Date): string {
+export function formatDate(date: string | Date, formatStr: string = 'MMM d, yyyy'): string {
   if (!date) return '';
   const parsedDate = typeof date === 'string' ? new Date(date) : date;
-  return format(parsedDate, 'MMM d, yyyy');
+  return format(parsedDate, formatStr);
 }
 
 export function formatDateMedium(date: string | Date): string {
