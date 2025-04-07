@@ -27,6 +27,9 @@ const ArtistDiscovery: React.FC = () => {
     queryKey: activeVenue ? ['find-bands-near-venue', activeVenue.id, startDate, endDate, radius] : ['skip-query'],
     queryFn: async () => {
       if (!activeVenue) return [];
+      if (!activeVenue.latitude || !activeVenue.longitude) {
+        throw new Error('Selected venue is missing location data. Please update the venue with valid coordinates.');
+      }
       return bandsintownService.findBandsNearVenue(activeVenue.id, startDate, endDate, radius);
     },
     enabled: !!activeVenue,
