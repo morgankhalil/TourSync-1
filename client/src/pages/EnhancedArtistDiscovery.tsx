@@ -738,6 +738,34 @@ export default function EnhancedArtistDiscovery() {
                         </Alert>
                       </div>
                       
+                      {/* Artist route map */}
+                      <div className="h-[300px] mb-6 border rounded-md overflow-hidden">
+                        {activeVenue && (
+                          <StaticMapView 
+                            locations={[
+                              // Venue location
+                              {
+                                lat: parseFloat(activeVenue.latitude),
+                                lng: parseFloat(activeVenue.longitude),
+                                name: activeVenue.name
+                              },
+                              // Origin and destination
+                              ...(selectedArtist.route.origin ? [{
+                                lat: selectedArtist.route.origin.lat,
+                                lng: selectedArtist.route.origin.lng,
+                                name: `${selectedArtist.route.origin.city}, ${selectedArtist.route.origin.state}`
+                              }] : []),
+                              ...(selectedArtist.route.destination ? [{
+                                lat: selectedArtist.route.destination.lat,
+                                lng: selectedArtist.route.destination.lng,
+                                name: `${selectedArtist.route.destination.city}, ${selectedArtist.route.destination.state}`
+                              }] : [])
+                            ]}
+                            zoom={5}
+                          />
+                        )}
+                      </div>
+                      
                       <div className="space-y-4">
                         {selectedArtist.route.origin && (
                           <div>
