@@ -32,7 +32,7 @@ const ActiveVenueContext = createContext<ActiveVenueContextType>(defaultActiveVe
 export const ActiveVenueProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [venueId, setVenueId] = useState<number | null>(38); // Default to Bug Jar venue (ID 38)
+  const [venueId, setVenueId] = useState<number | null>(45); // Default to Empty Bottle venue (ID 45)
   const [activeVenue, setActiveVenue] = useState<Venue | null>(null);
   
   // Function to refresh venue data
@@ -141,11 +141,11 @@ export const ActiveVenueProvider: React.FC<{ children: React.ReactNode }> = ({ c
       console.log(`Setting active venue from fetched data:`, venue);
       setActiveVenue(venue);
     } else if (venues && venues.length > 0 && !activeVenue) {
-      // If we have venues but no active venue, set the first one or Bug Jar
-      const bugJar = venues.find(v => v.name === "Bug Jar") || venues[0];
-      console.log(`Setting default venue to:`, bugJar);
-      setActiveVenue(bugJar);
-      setVenueId(bugJar.id);
+      // If we have venues but no active venue, set Empty Bottle or first available
+      const emptyBottle = venues.find(v => v.name === "Empty Bottle") || venues[0];
+      console.log(`Setting default venue to:`, emptyBottle);
+      setActiveVenue(emptyBottle);
+      setVenueId(emptyBottle.id);
       
       toast({
         title: "Default venue selected",
