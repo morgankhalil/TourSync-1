@@ -17,10 +17,10 @@ const API_CACHE = new NodeCache({ stdTTL: 3600, checkperiod: 120 });
 
 // Constants
 const API_BASE_URL = 'https://rest.bandsintown.com';
-const MAX_RETRIES = 2;
-const RETRY_DELAY = 1000; // 1 second
-const BATCH_SIZE = 5; // Process 5 artists at a time to avoid rate limits
-const BATCH_DELAY = 5000; // 5 seconds between batches
+const MAX_RETRIES = 3; // Increased from 2 to allow more retries
+const RETRY_DELAY = 1000; // 1 second base delay (will use exponential backoff)
+const BATCH_SIZE = 3; // Reduced from 5 to 3 to be more conservative with API
+const BATCH_DELAY = 3000; // Reduced from 5 seconds to 3 seconds between batches
 
 // Cache keys
 const CACHE_KEYS = {
@@ -194,8 +194,20 @@ export class BandsintownApiService {
         // Increment retry counter
         retries++;
         
+        // Implement exponential backoff
+        const isRateLimitError = axios.isAxiosError(error) && 
+          (error.response?.status === 429 || error.response?.status === 403);
+        
+        // Calculate delay - longer for rate limit errors (exponential), shorter for other errors (linear)
+        let delay = isRateLimitError 
+          ? RETRY_DELAY * Math.pow(3, retries) // Exponential backoff: 1s, 3s, 9s, 27s
+          : RETRY_DELAY * retries;            // Linear backoff: 1s, 2s, 3s
+        
+        console.log(`${isRateLimitError ? 'Rate limit detected. Using exponential backoff.' : 'Using standard delay.'}`);
+        console.log(`Waiting ${delay/1000}s before retry ${retries}/${MAX_RETRIES}: ${endpoint}`);
+        
         // Wait before retrying
-        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * retries));
+        await new Promise(resolve => setTimeout(resolve, delay));
         
         console.log(`Retrying request (${retries}/${MAX_RETRIES}): ${endpoint}`);
       }
@@ -327,6 +339,7 @@ export class BandsintownApiService {
         }
         
         if (i + BATCH_SIZE < artistNames.length) {
+          // Use current batch delay (allows for adjusting this dynamically if needed in future)
           console.log(`Waiting ${BATCH_DELAY}ms before next batch...`);
           await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
         }

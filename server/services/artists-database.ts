@@ -92,20 +92,66 @@ export function getArtistsToQuery(options: {
   genres?: string[];
   includeMainstream?: boolean;
   includeUnderground?: boolean;
+  prioritize?: boolean; // New option to prioritize artists instead of random shuffle
 } = {}): string[] {
   const {
     limit = 150,
     genres = [],
     includeMainstream = true,
     includeUnderground = true,
+    prioritize = true, // Default to prioritized list
   } = options;
   
-  // For now just return a subset of the base list
-  // TODO: Implement genre filtering and other options
+  // Define categories of artists by touring likelihood
+  const highPriorityArtists = [
+    // Active touring artists that frequently book smaller venues
+    'Big Thief', 'Parquet Courts', 'Fontaines D.C.', 'Car Seat Headrest', 'Japanese Breakfast', 
+    'Snail Mail', 'Lucy Dacus', 'Julien Baker', 'Mitski', 'Phoebe Bridgers',
+    'Mannequin Pussy', 'Jeff Rosenstock', 'PUP', 'IDLES', 'Shame',
+    'King Gizzard & The Lizard Wizard', 'Black Midi', 'The Mountain Goats', 'Pinegrove',
+    'Crack Cloud', 'Protomartyr', 'Cloud Nothings', 'Hop Along', 'Joyce Manor',
+    'Soccer Mommy', 'Alvvays', 'Illuminati Hotties', 'PONY', 'Gulfer',
+    'Short Fictions', 'Prince Daddy & The Hyena', 'Origami Angel', 'Equipment'
+  ];
   
-  // Randomize the list to get different artists each time if limit is less than full list
-  const shuffledList = [...baseArtistList].sort(() => Math.random() - 0.5);
+  // Filter artists based on genres if provided
+  let filteredList = [...baseArtistList];
+  if (genres.length > 0) {
+    // In the future, we can implement proper genre filtering
+    // For now, just a placeholder that doesn't filter anything
+    console.log(`Genre filtering requested for: ${genres.join(', ')}`);
+  }
+  
+  // If prioritization is enabled, structure the list with higher priority artists first
+  if (prioritize) {
+    // First, create a set for O(1) lookups
+    const highPrioritySet = new Set(highPriorityArtists);
+    
+    // Split the list into high priority and normal priority
+    const highPriority: string[] = [];
+    const normalPriority: string[] = [];
+    
+    filteredList.forEach(artist => {
+      if (highPrioritySet.has(artist)) {
+        highPriority.push(artist);
+      } else {
+        normalPriority.push(artist);
+      }
+    });
+    
+    // Shuffle within each priority group
+    const shuffledHighPriority = [...highPriority].sort(() => Math.random() - 0.5);
+    const shuffledNormalPriority = [...normalPriority].sort(() => Math.random() - 0.5);
+    
+    // Create the prioritized list (high priority first, then normal)
+    filteredList = [...shuffledHighPriority, ...shuffledNormalPriority];
+    
+    console.log(`Prioritized ${shuffledHighPriority.length} high-touring-likelihood artists`);
+  } else {
+    // Traditional random shuffle
+    filteredList = [...filteredList].sort(() => Math.random() - 0.5);
+  }
   
   // Return the limited list
-  return shuffledList.slice(0, limit);
+  return filteredList.slice(0, limit);
 }
