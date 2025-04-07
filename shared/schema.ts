@@ -28,6 +28,7 @@ export const insertBandSchema = createInsertSchema(bands).omit({
 // Venue schema
 export const venues = pgTable("venues", {
   id: serial("id").primaryKey(),
+  bandsintownId: text("bandsintown_id"),
   name: text("name").notNull(),
   address: text("address").notNull(),
   city: text("city").notNull(),
