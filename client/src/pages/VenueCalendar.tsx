@@ -28,75 +28,70 @@ const EventCard = ({ event }: { event: ExtendedTourDate }) => {
     <Card key={event.id} className="overflow-hidden border">
       <CardContent className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="md:col-span-1">
-            {event.poster ? (
-              <div className="aspect-[3/4] rounded-md overflow-hidden">
-                <img 
-                  src={posterUrl} 
-                  alt={`Poster for ${eventTitle}`}
-                  className="w-full h-full object-cover"
-                />
+              <div className="md:col-span-1">
+                {event.poster ? (
+                  <div className="aspect-[3/4] rounded-md overflow-hidden">
+                    <img 
+                      src={posterUrl} 
+                      alt={`Poster for ${eventTitle}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="bg-muted rounded-md aspect-[3/4] flex flex-col items-center justify-center">
+                    <Music className="h-12 w-12 mb-2 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">No poster yet</span>
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="bg-muted rounded-md aspect-[3/4] flex flex-col items-center justify-center">
-                <Music className="h-12 w-12 mb-2 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">No poster yet</span>
+              <div className="md:col-span-3">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h3 className="text-xl font-semibold">
+                      {event.isOpenDate ? 'Open Date' : event.title}
+                    </h3>
+                    <div className="flex items-center mt-1 text-muted-foreground text-sm">
+                      <Music className="h-3 w-3 mr-1" />
+                      {event.tourId && event.title ? 
+                        `${event.title} Tour` : 
+                        (event.tourId ? `Tour ID: ${event.tourId}` : 'No tour assigned')}
+                    </div>
+                  </div>
+                  {!event.isOpenDate && (
+                    <Badge variant={
+                      event.status === 'confirmed' ? 'default' :
+                      event.status === 'cancelled' ? 'destructive' :
+                      'secondary'
+                    }>
+                      {event.status || 'Pending'}
+                    </Badge>
+                  )}
+                </div>
+
+                <div className="flex items-center text-muted-foreground text-sm">
+                  <CalendarDays className="h-3 w-3 mr-1" />
+                  <span className="font-medium">
+                    {formatDate(event.date, 'EEEE, MMMM d, yyyy')}
+                  </span>
+                </div>
+
+                {event.notes && (
+                  <div className="mt-4 text-sm text-muted-foreground">
+                    {event.notes}
+                  </div>
+                )}
+
+                <div className="mt-4 flex justify-end space-x-2">
+                  <Button variant="outline" size="sm">Details</Button>
+                  {new Date(event.date) >= new Date() && !event.isOpenDate && (
+                    <Button size="sm">Confirm</Button>
+                  )}
+                  {event.isOpenDate && (
+                    <Button size="sm" variant="secondary">Find Artist</Button>
+                  )}
+                </div>
               </div>
-            )}
-          </div>
-          <div className="md:col-span-2">
-            <h3 className="text-lg font-semibold">
-              {event.isOpenDate ? 'Open Date' : eventTitle}
-            </h3>
-            <div className="flex items-center mt-1 text-muted-foreground text-sm">
-              <CalendarDays className="h-3 w-3 mr-1" />
-              <span className="font-medium">
-                {formatDate(event.date, 'EEEE, MMMM d, yyyy')}
-              </span>
             </div>
-            {event.tourId && (
-              <div className="flex items-center mt-1 text-muted-foreground text-sm">
-                <Music className="h-3 w-3 mr-1" />
-                {event.title ? 
-                  `${event.title} Tour` : 
-                  (event.tourId ? `Tour ID: ${event.tourId}` : 'No tour assigned')}
-              </div>
-            )}
-            <div className="flex mt-2 text-sm">
-              <div className="flex items-center text-muted-foreground">
-                <MapPin className="h-3 w-3 mr-1" />
-                {event.city}, {event.state}
-              </div>
-            </div>
-            {event.notes && (
-              <div className="mt-2 text-sm text-muted-foreground">
-                {event.notes}
-              </div>
-            )}
-          </div>
-          <div className="md:col-span-1 flex flex-col justify-center items-end">
-            <div className="inline-flex justify-end space-x-2">
-              <Button variant="outline" size="sm">Details</Button>
-              {new Date(event.date) >= new Date() && !event.isOpenDate && (
-                <Button size="sm">Confirm</Button>
-              )}
-              {event.isOpenDate && (
-                <Button size="sm" variant="secondary">Find Artist</Button>
-              )}
-            </div>
-            {!event.isOpenDate && (
-              <div className="mt-2">
-                <Badge variant={
-                  event.status === 'confirmed' ? 'default' :
-                  event.status === 'cancelled' ? 'destructive' :
-                  'secondary'
-                } className="text-xs">
-                  {event.status || 'Pending'}
-                </Badge>
-              </div>
-            )}
-          </div>
-        </div>
       </CardContent>
     </Card>
   );
@@ -116,27 +111,27 @@ const VenueCalendar: React.FC = () => {
       try {
         const response = await axios.get(`/api/venues/${venue.id}/dates`);
         console.log("Received venue dates:", response.data);
-        
+
         // Get tours to find band names
         const toursResponse = await axios.get('/api/tours');
         const tours = toursResponse.data;
-        
+
         // Get all bands for matching
         const bandsResponse = await axios.get('/api/bands');
         const bands = bandsResponse.data;
-        
+
         // Enhance tour dates with band names
         const enhancedDates = response.data.map((date: TourDate) => {
           const tour = tours.find((t: any) => t.id === date.tourId);
           const band = tour ? bands.find((b: any) => b.id === tour.bandId) : null;
-          
+
           return {
             ...date,
             title: band?.name || `Event on ${formatDate(date.date)}`,
             bandId: band?.id
           };
         });
-        
+
         console.log("Enhanced dates with band info:", enhancedDates);
         return enhancedDates as ExtendedTourDate[];
       } catch (err) {
@@ -226,7 +221,7 @@ const VenueCalendar: React.FC = () => {
                 <TabsTrigger value="open">Open Dates</TabsTrigger>
               </TabsList>
             </CardHeader>
-            
+
             <CardContent className="pt-4">
               {/* The TabsContent components must be children of the Tabs component */}
               <TabsContent value="upcoming" className="mt-0">
@@ -268,7 +263,7 @@ const VenueCalendar: React.FC = () => {
                   />
                 )}
               </TabsContent>
-              
+
               <TabsContent value="open" className="mt-0">
                 {isLoading ? (
                   <div className="flex justify-center p-6">
