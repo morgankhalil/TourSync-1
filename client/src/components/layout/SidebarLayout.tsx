@@ -49,8 +49,10 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
       {/* Sidebar */}
       <aside
         className={`fixed md:relative z-50 md:z-auto h-full ${
-          isSidebarOpen || !isMobile ? 'translate-x-0' : '-translate-x-full'
-        } transition-transform duration-200 ease-in-out w-[280px] max-w-[80vw] md:max-w-none bg-background`}
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        } transition-transform duration-200 ease-in-out w-[280px] max-w-[80vw] md:max-w-none bg-background ${
+          isMobile ? 'shadow-lg' : ''
+        }`}
       >
         <Sidebar />
       </aside>

@@ -1,60 +1,50 @@
+import React from 'react';
+import { Link, useLocation } from 'wouter';
+import { Home, Search, Calendar, Settings, User, Menu } from 'lucide-react';
+import { useSidebar } from '@/context/SidebarContext';
 
-import { Link, useLocation } from "wouter";
-import { CalendarDays, Home, Music, Search, MapPin } from "lucide-react";
-import { useActiveVenue } from "@/hooks/useActiveVenue";
-
-const MobileNavigation = () => {
+export default function MobileNavigation() {
   const [location] = useLocation();
-  const { activeVenue } = useActiveVenue();
-
-  const isActive = (path: string) => {
-    if (path === "/") return location === "/";
-    return location.startsWith(path);
-  };
-
-  // Check if we're on a venue profile page
-  const isOnVenueProfile = location.startsWith('/venues/');
+  const { toggleSidebar, isSidebarOpen, closeSidebar } = useSidebar();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 md:hidden bg-background border-t border-border shadow-lg flex justify-around items-center py-2 z-40 safe-area-bottom">
-      <Link href="/dashboard">
-        <a className="block w-full">
-          <div className={`p-2 flex flex-col items-center cursor-pointer ${isActive("/dashboard") ? "text-primary font-medium" : "text-foreground/60"}`}>
-            <Home size={22} strokeWidth={2} />
-            <span className="text-[0.65rem] mt-1 mobile-nav-item">Dashboard</span>
-          </div>
+    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 px-4 flex justify-around items-center z-40 safe-area-bottom">
+      <Link href="/dashboard" onClick={() => isSidebarOpen && closeSidebar()}>
+        <a className={`flex flex-col items-center p-2 ${location === '/dashboard' ? 'text-primary' : 'text-gray-600'}`}>
+          <Home size={24} />
+          <span className="text-xs mt-1 mobile-nav-item">Dashboard</span>
         </a>
       </Link>
 
-      <Link href="/artist-discovery">
-        <a className="block w-full">
-          <div className={`p-2 flex flex-col items-center cursor-pointer ${isActive("/artist-discovery") ? "text-primary font-medium" : "text-foreground/60"}`}>
-            <Search size={22} strokeWidth={2} />
-            <span className="text-[0.65rem] mt-1 mobile-nav-item">Discover</span>
-          </div>
+      <Link href="/artist-discovery" onClick={() => isSidebarOpen && closeSidebar()}>
+        <a className={`flex flex-col items-center p-2 ${location === '/artist-discovery' ? 'text-primary' : 'text-gray-600'}`}>
+          <Search size={24} />
+          <span className="text-xs mt-1 mobile-nav-item">Discover</span>
         </a>
       </Link>
 
-      {/* Link to the active venue's profile */}
-      <Link href={activeVenue ? `/venues/${activeVenue.id}` : "/venues"}>
-        <a className="block w-full">
-          <div className={`p-2 flex flex-col items-center cursor-pointer ${isOnVenueProfile ? "text-primary font-medium" : "text-foreground/60"}`}>
-            <MapPin size={22} strokeWidth={2} />
-            <span className="text-[0.65rem] mt-1 mobile-nav-item">My Venue</span>
-          </div>
+      <button 
+        onClick={toggleSidebar}
+        className={`flex flex-col items-center p-2 ${isSidebarOpen ? 'text-primary' : 'text-gray-600'}`}
+        aria-label="Toggle menu"
+      >
+        <Menu size={24} />
+        <span className="text-xs mt-1 mobile-nav-item">Menu</span>
+      </button>
+
+      <Link href="/venue-calendar" onClick={() => isSidebarOpen && closeSidebar()}>
+        <a className={`flex flex-col items-center p-2 ${location === '/venue-calendar' ? 'text-primary' : 'text-gray-600'}`}>
+          <Calendar size={24} />
+          <span className="text-xs mt-1 mobile-nav-item">Calendar</span>
         </a>
       </Link>
 
-      <Link href="/calendar">
-        <a className="block w-full">
-          <div className={`p-2 flex flex-col items-center cursor-pointer ${isActive("/calendar") ? "text-primary font-medium" : "text-foreground/60"}`}>
-            <CalendarDays size={22} strokeWidth={2} />
-            <span className="text-[0.65rem] mt-1 mobile-nav-item">Calendar</span>
-          </div>
+      <Link href="/settings" onClick={() => isSidebarOpen && closeSidebar()}>
+        <a className={`flex flex-col items-center p-2 ${location === '/settings' ? 'text-primary' : 'text-gray-600'}`}>
+          <Settings size={24} />
+          <span className="text-xs mt-1 mobile-nav-item">Settings</span>
         </a>
       </Link>
     </nav>
   );
-};
-
-export default MobileNavigation;
+}

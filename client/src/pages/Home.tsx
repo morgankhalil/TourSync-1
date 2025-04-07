@@ -8,12 +8,14 @@ const Home = () => {
   const { openSidebar } = useSidebar();
   const isMobile = useMediaQuery("(max-width: 768px)");
 
-  // Automatically open sidebar on desktop
+  // Automatically open sidebar on desktop, ensure closed on mobile
   useEffect(() => {
-    if (!isMobile) {
+    if (isMobile) {
+      closeSidebar();
+    } else {
       openSidebar();
     }
-  }, [isMobile, openSidebar]);
+  }, [isMobile, openSidebar, closeSidebar]);
 
   return (
     <div className="flex flex-1 overflow-hidden">

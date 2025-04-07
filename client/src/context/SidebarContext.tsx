@@ -28,9 +28,13 @@ export const SidebarProvider: React.FC<SidebarProviderProps> = ({ children }) =>
   const [location] = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(!isMobile);
 
-  // Update sidebar state when mobile status changes
+  // Update sidebar state when mobile status changes - force close on mobile
   useEffect(() => {
-    setIsSidebarOpen(!isMobile);
+    if (isMobile) {
+      setIsSidebarOpen(false);
+    } else {
+      setIsSidebarOpen(true);
+    }
   }, [isMobile]);
 
   // Close sidebar when route changes on mobile

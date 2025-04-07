@@ -4,6 +4,7 @@ import * as React from "react"
 const MOBILE_BREAKPOINT = 768
 
 export function useIsMobile() {
+  // Adding a small buffer to ensure consistent mobile detection
   const isMobile = useMediaQuery(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
   return isMobile;
 }
