@@ -88,6 +88,28 @@ const EditVenue = () => {
               <Label htmlFor="capacity">Capacity</Label>
               <Input id="capacity" name="capacity" type="number" defaultValue={activeVenue.capacity} />
             </div>
+            <div>
+              <Label htmlFor="latitude">Latitude</Label>
+              <Input 
+                id="latitude" 
+                name="latitude" 
+                type="number" 
+                step="any"
+                placeholder="e.g. 43.1566"
+                defaultValue={activeVenue.latitude} 
+              />
+            </div>
+            <div>
+              <Label htmlFor="longitude">Longitude</Label>
+              <Input 
+                id="longitude" 
+                name="longitude" 
+                type="number" 
+                step="any"
+                placeholder="e.g. -77.6088"
+                defaultValue={activeVenue.longitude} 
+              />
+            </div>
             <div className="flex gap-2">
               <Button type="submit" disabled={updateVenueMutation.isPending}>
                 {updateVenueMutation.isPending ? <Spinner className="mr-2" /> : null}
