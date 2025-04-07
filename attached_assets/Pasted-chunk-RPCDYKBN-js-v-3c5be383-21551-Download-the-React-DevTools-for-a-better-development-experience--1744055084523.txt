@@ -1,0 +1,41 @@
+chunk-RPCDYKBN.js?v=3c5be383:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+chunk-RPCDYKBN.js?v=3c5be383:521 Warning: validateDOMNesting(...): <a> cannot appear as a descendant of <a>.
+    at a
+    at a
+    at https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3c5be383:205:18
+    at div
+    at div
+    at header
+    at TopNav (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/layout/TopNav.tsx:45:39)
+    at div
+    at AppLayout (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/layout/AppLayout.tsx:27:37)
+    at SidebarProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/context/SidebarContext.tsx:35:35)
+    at ActiveVenueProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/hooks/useActiveVenue.tsx:37:39)
+    at App
+    at QueryClientProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=3c5be383:2805:3)
+printWarning @ chunk-RPCDYKBN.js?v=3c5be383:521
+error @ chunk-RPCDYKBN.js?v=3c5be383:505
+validateDOMNesting @ chunk-RPCDYKBN.js?v=3c5be383:8256
+createInstance @ chunk-RPCDYKBN.js?v=3c5be383:8328
+completeWork @ chunk-RPCDYKBN.js?v=3c5be383:16290
+completeUnitOfWork @ chunk-RPCDYKBN.js?v=3c5be383:19224
+performUnitOfWork @ chunk-RPCDYKBN.js?v=3c5be383:19206
+workLoopSync @ chunk-RPCDYKBN.js?v=3c5be383:19137
+renderRootSync @ chunk-RPCDYKBN.js?v=3c5be383:19116
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js?v=3c5be383:18678
+workLoop @ chunk-RPCDYKBN.js?v=3c5be383:197
+flushWork @ chunk-RPCDYKBN.js?v=3c5be383:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=3c5be383:384
+Show 13 more frames
+Show less
+useActiveVenue.tsx:93 Fetching all venues
+useActiveVenue.tsx:159 Current venue ID: null, Venue object: null
+useActiveVenue.tsx:159 Current venue ID: null, Venue object: null
+useActiveVenue.tsx:99 Loaded 4 venues
+useActiveVenue.tsx:145 Setting default venue to: {id: 45, name: 'Empty Bottle', address: '1035 N Western Ave', city: 'Chicago', state: 'IL', …}
+useActiveVenue.tsx:76 Fetching specific venue with ID: 45
+useActiveVenue.tsx:159 Current venue ID: 45, Venue object: {id: 45, name: 'Empty Bottle', address: '1035 N Western Ave', city: 'Chicago', state: 'IL', …}
+useActiveVenue.tsx:82 Loaded venue data: {id: 45, name: 'Empty Bottle', address: '1035 N Western Ave', city: 'Chicago', state: 'IL', …}
+useActiveVenue.tsx:141 Setting active venue from fetched data: {id: 45, name: 'Empty Bottle', address: '1035 N Western Ave', city: 'Chicago', state: 'IL', …}
+useActiveVenue.tsx:141 Setting active venue from fetched data: {id: 45, name: 'Empty Bottle', address: '1035 N Western Ave', city: 'Chicago', state: 'IL', …}
+useActiveVenue.tsx:159 Current venue ID: 45, Venue object: {id: 45, name: 'Empty Bottle', address: '1035 N Western Ave', city: 'Chicago', state: 'IL', …}

@@ -54,61 +54,51 @@ export default function TopNav() {
           </Button>
           
           {/* Logo */}
-          <Link href="/">
-            <a className="font-bold text-xl flex items-center">
-              <span className="text-primary">Venue</span>
-              <span>Connect</span>
-            </a>
+          <Link href="/" className="font-bold text-xl flex items-center">
+            <span className="text-primary">Venue</span>
+            <span>Connect</span>
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-4">
-            <Link href="/dashboard">
-              <a className={cn(
-                "flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                isActive("/dashboard") 
-                  ? "bg-primary/10 text-primary" 
-                  : "hover:bg-accent hover:text-accent-foreground"
-              )}>
-                <LayoutDashboard className="h-4 w-4" />
-                <span>Dashboard</span>
-              </a>
+            <Link href="/dashboard" className={cn(
+              "flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+              isActive("/dashboard") 
+                ? "bg-primary/10 text-primary" 
+                : "hover:bg-accent hover:text-accent-foreground"
+            )}>
+              <LayoutDashboard className="h-4 w-4" />
+              <span>Dashboard</span>
             </Link>
             
-            <Link href="/calendar">
-              <a className={cn(
-                "flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                isActive("/calendar") 
-                  ? "bg-primary/10 text-primary" 
-                  : "hover:bg-accent hover:text-accent-foreground"
-              )}>
-                <Calendar className="h-4 w-4" />
-                <span>Calendar</span>
-              </a>
+            <Link href="/calendar" className={cn(
+              "flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+              isActive("/calendar") 
+                ? "bg-primary/10 text-primary" 
+                : "hover:bg-accent hover:text-accent-foreground"
+            )}>
+              <Calendar className="h-4 w-4" />
+              <span>Calendar</span>
             </Link>
             
-            <Link href="/artist-discovery">
-              <a className={cn(
-                "flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                (isActive("/artist-discovery") || isActive("/discovery")) 
-                  ? "bg-primary/10 text-primary" 
-                  : "hover:bg-accent hover:text-accent-foreground"
-              )}>
-                <Music className="h-4 w-4" />
-                <span>Discovery</span>
-              </a>
+            <Link href="/artist-discovery" className={cn(
+              "flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+              (isActive("/artist-discovery") || isActive("/discovery")) 
+                ? "bg-primary/10 text-primary" 
+                : "hover:bg-accent hover:text-accent-foreground"
+            )}>
+              <Music className="h-4 w-4" />
+              <span>Discovery</span>
             </Link>
             
-            <Link href="/tours">
-              <a className={cn(
-                "flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                isActive("/tour") 
-                  ? "bg-primary/10 text-primary" 
-                  : "hover:bg-accent hover:text-accent-foreground"
-              )}>
-                <BarChart3 className="h-4 w-4" />
-                <span>Tours</span>
-              </a>
+            <Link href="/tours" className={cn(
+              "flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+              isActive("/tour") 
+                ? "bg-primary/10 text-primary" 
+                : "hover:bg-accent hover:text-accent-foreground"
+            )}>
+              <BarChart3 className="h-4 w-4" />
+              <span>Tours</span>
             </Link>
           </nav>
         </div>
@@ -184,12 +174,12 @@ export default function TopNav() {
                 Sleeping Village
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <Link href="/settings">
-                <DropdownMenuItem className="cursor-pointer">
+              <DropdownMenuItem asChild>
+                <Link href="/settings" className="flex items-center cursor-pointer">
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Settings</span>
-                </DropdownMenuItem>
-              </Link>
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
