@@ -80,12 +80,15 @@ const Header = () => {
           </Link>
         </div>
 
-        {/* User Profile */}
-        <Link href="/profile">
-          <button className="w-8 h-8 rounded-full bg-accent flex items-center justify-center">
-            <User size={16} />
-          </button>
-        </Link>
+        {/* Auth & User Profile */}
+        <div className="flex items-center gap-4">
+          <div id="replit-auth-button" className="replit-auth-button"></div>
+          <Link href="/profile">
+            <button className="w-8 h-8 rounded-full bg-accent flex items-center justify-center">
+              <User size={16} />
+            </button>
+          </Link>
+        </div>
       </div>
     </header>
   );
