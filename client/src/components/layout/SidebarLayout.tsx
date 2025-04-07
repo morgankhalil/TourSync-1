@@ -1,4 +1,3 @@
-
 import React, { ReactNode, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import MobileNavigation from './MobileNavigation';
@@ -30,7 +29,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
           variant="ghost"
           size="icon"
           onClick={toggleSidebar}
-          className="fixed top-4 left-4 z-50 md:hidden"
+          className="fixed top-4 left-4 z-50 md:hidden bg-background"
         >
           <Menu size={24} />
         </Button>

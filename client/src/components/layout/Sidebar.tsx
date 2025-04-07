@@ -42,7 +42,7 @@ const Sidebar = () => {
 
   // Determine the sidebar classes based on mobile and open state
   const sidebarClasses = isMobile
-    ? `${isSidebarOpen ? "fixed top-0 left-0 bottom-0 z-50" : "hidden"} bg-sidebar-bg w-[85%] max-w-xs h-screen overflow-y-auto custom-scrollbar`
+    ? `fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} bg-sidebar-bg w-[280px] h-screen overflow-y-auto custom-scrollbar shadow-lg`
     : "hidden md:block bg-sidebar-bg w-full h-full border-r border-gray-200 flex-shrink-0 overflow-y-auto custom-scrollbar";
 
   // Helper to check if a navigation item is active
