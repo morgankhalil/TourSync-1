@@ -13,6 +13,13 @@ const Home = () => {
   
   const { data: venues = [], isLoading } = useQuery<Venue[]>({
     queryKey: ['/api/venues'],
+    queryFn: async () => {
+      const response = await fetch('/api/venues');
+      if (!response.ok) {
+        throw new Error('Failed to fetch venues');
+      }
+      return response.json();
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
