@@ -178,6 +178,7 @@ const Sidebar = () => {
           </h3>
           
           <div className="space-y-2">
+            <div id="replit-auth-button" className="replit-auth-button mb-2"></div>
             <Link href="/performances/add">
               <Button variant="outline" size="sm" className="w-full flex items-center justify-center">
                 <Plus size={14} className="mr-1" />
