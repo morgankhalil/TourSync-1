@@ -237,6 +237,9 @@ export default function EnhancedArtistDiscovery() {
       return;
     }
 
+    // Log current venue to help with debugging
+    console.log("Current activeVenue:", activeVenue);
+
     setIsLoading(true);
     setErrorMessage(null);
     setSearchResults([]);
@@ -306,10 +309,12 @@ export default function EnhancedArtistDiscovery() {
       console.log('Clearing Bandsintown API cache...');
       await EnhancedBandsintownDiscoveryClient.clearCache();
       
-      // Perform the search
-      console.log('Starting band discovery search...');
+      // Perform the search - get current venueId to ensure we're using the latest selection
+      const currentVenueId = activeVenue.id;
+      console.log(`Using venueId ${currentVenueId} (${activeVenue.name}) for discovery search`);
+      
       const response = await EnhancedBandsintownDiscoveryClient.findBandsNearVenue({
-        venueId: activeVenue.id,
+        venueId: currentVenueId,
         startDate: formattedStartDate,
         endDate: formattedEndDate,
         radius,
