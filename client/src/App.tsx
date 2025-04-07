@@ -1,6 +1,7 @@
 import { Route, Switch } from 'wouter';
 import Dashboard from './pages/Dashboard';
 import ArtistDiscovery from './pages/ArtistDiscovery';
+import EnhancedArtistDiscovery from './pages/EnhancedArtistDiscovery';
 import VenueCalendar from './pages/VenueCalendar';
 import BandDetailPage from './pages/BandDetailPage';
 import { Toaster } from './components/ui/toaster';
@@ -14,6 +15,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Dashboard} />
       <Route path="/discovery" component={ArtistDiscovery} />
+      <Route path="/discovery-v2" component={EnhancedArtistDiscovery} />
       <Route path="/calendar" component={VenueCalendar} />
       <Route path="/bands/:id" component={BandDetailPage} />
     </Switch>

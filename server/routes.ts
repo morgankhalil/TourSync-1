@@ -7,6 +7,7 @@ import { fromZodError } from "zod-validation-error";
 import { registerTouringRoutes } from "./routes/touring";
 import { registerBandsintownRoutes } from "./routes/bandsintown";
 import { registerBandsintownDiscoveryRoutes } from "./routes/bandsintown-discovery";
+import { registerBandsintownDiscoveryV2Routes } from "./routes/bandsintown-discovery-v2";
 import { registerConfigRoutes } from "./routes/config";
 import { registerVenuePerformancesRoutes } from "./routes/venue-performances";
 
@@ -19,6 +20,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register Bandsintown discovery routes (direct API-based, no database storage)
   registerBandsintownDiscoveryRoutes(app);
+  
+  // Register enhanced Bandsintown discovery routes (with improved caching and expanded artist db)
+  registerBandsintownDiscoveryV2Routes(app);
   
   // Register configuration routes
   registerConfigRoutes(app);

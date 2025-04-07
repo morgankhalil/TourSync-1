@@ -1,0 +1,550 @@
+import { useEffect, useState } from "react";
+import { useActiveVenue } from "../hooks/useActiveVenue";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EnhancedBandsintownDiscoveryClient, DiscoveryResult, DiscoveryStats } from "@/services/bandsintown-discovery-v2";
+import { EnhancedBandMapView } from "../components/maps/EnhancedBandMapView";
+import { AlertCircle, CalendarDays, Info, MapPin, AlertTriangle, RefreshCw, Music, Zap } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { format, addDays } from "date-fns";
+import { DatePicker } from "../components/DatePicker";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { getFitDescription, generateRoutingDescription, getDaysDescription, getDetourDescription } from "@/lib/routing-utils";
+
+export default function EnhancedArtistDiscovery() {
+  const { activeVenue } = useActiveVenue();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchResults, setSearchResults] = useState<DiscoveryResult[]>([]);
+  const [searchStats, setSearchStats] = useState<DiscoveryStats | null>(null);
+  const [selectedArtist, setSelectedArtist] = useState<DiscoveryResult | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  
+  // Search parameters
+  const today = new Date();
+  const [startDate, setStartDate] = useState<Date>(today);
+  const [endDate, setEndDate] = useState<Date>(addDays(today, 90));
+  const [radius, setRadius] = useState(100);
+  const [maxResults, setMaxResults] = useState(20);
+  const [lookAheadDays, setLookAheadDays] = useState(90);
+  const [useEnhancedDiscovery, setUseEnhancedDiscovery] = useState(true);
+  
+  // Reset when venue changes
+  useEffect(() => {
+    setSearchResults([]);
+    setSelectedArtist(null);
+    setErrorMessage(null);
+  }, [activeVenue]);
+
+  // Handle search
+  const handleSearch = async () => {
+    if (!activeVenue) {
+      toast({
+        title: "No venue selected",
+        description: "Please select a venue first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage(null);
+    setSearchResults([]);
+    setSelectedArtist(null);
+
+    try {
+      // Get the formatted date strings
+      const formattedStartDate = format(startDate, "yyyy-MM-dd");
+      const formattedEndDate = format(endDate, "yyyy-MM-dd");
+      
+      // Clear Bandsintown cache to ensure fresh results
+      await EnhancedBandsintownDiscoveryClient.clearCache();
+      
+      // Perform the search
+      const response = await EnhancedBandsintownDiscoveryClient.findBandsNearVenue({
+        venueId: activeVenue.id,
+        startDate: formattedStartDate,
+        endDate: formattedEndDate,
+        radius,
+        maxBands: maxResults,
+        lookAheadDays,
+      });
+      
+      setSearchResults(response.data);
+      setSearchStats(response.stats);
+      
+      if (response.data.length === 0) {
+        setErrorMessage("No results found. Try expanding your search parameters or date range.");
+      }
+      
+      // Show total results in toast
+      toast({
+        title: "Search Complete",
+        description: `Found ${response.data.length} bands passing near ${activeVenue.name}`,
+      });
+      
+    } catch (error) {
+      console.error("Error searching for bands:", error);
+      setErrorMessage("An error occurred while searching for bands. Please try again later.");
+      
+      toast({
+        title: "Search Error",
+        description: "Failed to complete the band search. See console for details.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // View artist details
+  const handleViewArtist = (artist: DiscoveryResult) => {
+    setSelectedArtist(artist);
+  };
+
+  return (
+    <div className="container py-6">
+      <h1 className="text-3xl font-bold mb-6">
+        Enhanced Band Discovery
+        <Badge variant="outline" className="ml-3 bg-purple-100">
+          V2
+        </Badge>
+      </h1>
+      
+      <Alert className="mb-6 bg-blue-50">
+        <Info className="h-4 w-4" />
+        <AlertTitle>Venue Route Intelligence</AlertTitle>
+        <AlertDescription>
+          This enhanced discovery tool identifies bands with shows already booked in cities near your venue.
+          The algorithm looks for bands with tour gaps between their scheduled shows when they'll be passing near your location.
+        </AlertDescription>
+      </Alert>
+      
+      {!activeVenue && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>No venue selected</AlertTitle>
+          <AlertDescription>
+            Please select a venue from the sidebar to start discovering artists.
+          </AlertDescription>
+        </Alert>
+      )}
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle>Date Range</CardTitle>
+            <CardDescription>
+              Select the dates you have available for booking
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="startDate">Start Date</Label>
+              <DatePicker date={startDate} setDate={setStartDate} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="endDate">End Date</Label>
+              <DatePicker date={endDate} setDate={setEndDate} />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle>Search Options</CardTitle>
+            <CardDescription>
+              Configure the discovery parameters
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <Label htmlFor="radius">Search Radius: {radius} miles</Label>
+              </div>
+              <Slider 
+                id="radius"
+                min={25} 
+                max={300} 
+                step={25} 
+                value={[radius]} 
+                onValueChange={(value) => setRadius(value[0])} 
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <Label htmlFor="lookAhead">Look Ahead: {lookAheadDays} days</Label>
+              </div>
+              <Slider 
+                id="lookAhead"
+                min={30} 
+                max={180} 
+                step={30} 
+                value={[lookAheadDays]} 
+                onValueChange={(value) => setLookAheadDays(value[0])} 
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="maxResults">Maximum Results</Label>
+              <Select 
+                value={maxResults.toString()} 
+                onValueChange={(value) => setMaxResults(Number(value))}
+              >
+                <SelectTrigger id="maxResults">
+                  <SelectValue placeholder="Select max results" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10 bands</SelectItem>
+                  <SelectItem value="20">20 bands</SelectItem>
+                  <SelectItem value="50">50 bands</SelectItem>
+                  <SelectItem value="100">100 bands</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle>Discovery Mode</CardTitle>
+            <CardDescription>
+              Configure your discovery approach
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <Label htmlFor="enhanced-mode" className="font-medium">
+                  Enhanced Discovery
+                </Label>
+                <p className="text-sm text-gray-500 mt-1">
+                  Larger artist pool, better routing algorithm
+                </p>
+              </div>
+              <Switch
+                id="enhanced-mode"
+                checked={useEnhancedDiscovery}
+                onCheckedChange={setUseEnhancedDiscovery}
+              />
+            </div>
+            
+            <Button 
+              onClick={handleSearch} 
+              disabled={!activeVenue || isLoading} 
+              className="w-full"
+            >
+              {isLoading ? (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  Searching...
+                </>
+              ) : (
+                <>
+                  <Zap className="mr-2 h-4 w-4" />
+                  Discover Bands
+                </>
+              )}
+            </Button>
+            
+            {searchStats && (
+              <div className="text-xs text-gray-500 mt-2">
+                <p>Queried {searchStats.artistsQueried} artists in {(searchStats.elapsedTimeMs / 1000).toFixed(1)}s</p>
+                <p>Found {searchStats.artistsWithEvents} with upcoming events</p>
+                <p>API cache: {searchStats.apiCacheStats.hits} hits, {searchStats.apiCacheStats.misses} misses</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+      
+      {isLoading && (
+        <div className="mb-6">
+          <p className="text-sm text-gray-500 mb-2">Searching for bands passing near {activeVenue?.name}...</p>
+          <Progress value={45} className="h-2" />
+        </div>
+      )}
+      
+      {errorMessage && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Search Error</AlertTitle>
+          <AlertDescription>{errorMessage}</AlertDescription>
+        </Alert>
+      )}
+      
+      {searchResults.length > 0 && (
+        <Tabs defaultValue="list" className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="list">List View</TabsTrigger>
+            <TabsTrigger value="map">Map View</TabsTrigger>
+            {selectedArtist && <TabsTrigger value="details">Artist Details</TabsTrigger>}
+          </TabsList>
+          
+          <TabsContent value="list" className="mt-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {searchResults.map((artist) => {
+                const fitInfo = getFitDescription(artist.route.routingScore);
+                
+                return (
+                  <Card key={artist.name} className="overflow-hidden flex flex-col">
+                    <div className="h-48 overflow-hidden">
+                      <img 
+                        src={artist.image} 
+                        alt={artist.name} 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="flex justify-between items-center">
+                        <span>{artist.name}</span>
+                        <Badge className={fitInfo.color}>{fitInfo.text}</Badge>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="py-2 flex-grow">
+                      <div className="text-sm mb-3">
+                        <div className="flex items-center mb-1">
+                          <MapPin className="h-4 w-4 mr-1 text-gray-400" />
+                          <span>
+                            {artist.route.distanceToVenue} miles from {activeVenue?.name} 
+                            {artist.route.detourDistance > 0 && ` (+${artist.route.detourDistance} mile detour)`}
+                          </span>
+                        </div>
+                        <div className="flex items-center mb-1">
+                          <CalendarDays className="h-4 w-4 mr-1 text-gray-400" />
+                          <span>{getDaysDescription(artist.route.daysAvailable)}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Music className="h-4 w-4 mr-1 text-gray-400" />
+                          <span>{artist.upcomingEvents} upcoming shows</span>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-500 mt-2">
+                        {generateRoutingDescription(artist.name, artist.route)}
+                      </p>
+                    </CardContent>
+                    <CardFooter>
+                      <Button 
+                        variant="outline" 
+                        className="w-full" 
+                        onClick={() => handleViewArtist(artist)}
+                      >
+                        View Details
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                );
+              })}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="map" className="mt-0">
+            <Card>
+              <CardContent className="p-1 h-[600px]">
+                {activeVenue && (
+                  <EnhancedBandMapView 
+                    venueLocation={{
+                      lat: parseFloat(activeVenue.latitude),
+                      lng: parseFloat(activeVenue.longitude)
+                    }}
+                    artists={searchResults.map(artist => ({
+                      name: artist.name,
+                      origin: artist.route.origin ? {
+                        lat: artist.route.origin.lat,
+                        lng: artist.route.origin.lng,
+                        label: `${artist.route.origin.city}, ${artist.route.origin.state}`,
+                        date: artist.route.origin.date
+                      } : null,
+                      destination: artist.route.destination ? {
+                        lat: artist.route.destination.lat,
+                        lng: artist.route.destination.lng,
+                        label: `${artist.route.destination.city}, ${artist.route.destination.state}`,
+                        date: artist.route.destination.date
+                      } : null
+                    }))}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          {selectedArtist && (
+            <TabsContent value="details" className="mt-0">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="md:col-span-1">
+                  <Card>
+                    <div className="h-64 overflow-hidden">
+                      <img 
+                        src={selectedArtist.image} 
+                        alt={selectedArtist.name} 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <CardHeader>
+                      <CardTitle>{selectedArtist.name}</CardTitle>
+                      <CardDescription>
+                        {selectedArtist.genre || "Unknown Genre"}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div>
+                          <h4 className="text-sm font-semibold mb-1">Upcoming Events</h4>
+                          <p>{selectedArtist.upcomingEvents} scheduled shows</p>
+                        </div>
+                        
+                        <div>
+                          <h4 className="text-sm font-semibold mb-1">Distance to Venue</h4>
+                          <p>{selectedArtist.route.distanceToVenue} miles from {activeVenue?.name}</p>
+                        </div>
+                        
+                        <div>
+                          <h4 className="text-sm font-semibold mb-1">Detour Distance</h4>
+                          <p>{getDetourDescription(selectedArtist.route.detourDistance)} ({selectedArtist.route.detourDistance} miles)</p>
+                        </div>
+                        
+                        <div>
+                          <h4 className="text-sm font-semibold mb-1">Days Available</h4>
+                          <p>{getDaysDescription(selectedArtist.route.daysAvailable)}</p>
+                        </div>
+                        
+                        <div>
+                          <h4 className="text-sm font-semibold mb-1">Routing Fit</h4>
+                          <p>
+                            <Badge className={getFitDescription(selectedArtist.route.routingScore).color}>
+                              {getFitDescription(selectedArtist.route.routingScore).text}
+                            </Badge>
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                    <CardFooter className="flex flex-col items-start">
+                      <Button 
+                        variant="outline" 
+                        className="w-full mb-2"
+                        onClick={() => window.open(selectedArtist.url, "_blank")}
+                      >
+                        View on Bandsintown
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                </div>
+                
+                <div className="md:col-span-2">
+                  <Card className="mb-6">
+                    <CardHeader>
+                      <CardTitle>Routing Information</CardTitle>
+                      <CardDescription>
+                        How {selectedArtist.name} could fit your venue in their tour
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="mt-2 mb-6">
+                        <Alert className={`bg-opacity-20 ${getFitDescription(selectedArtist.route.routingScore).color.replace('text-', 'bg-')}`}>
+                          <AlertTitle>{getFitDescription(selectedArtist.route.routingScore).text}</AlertTitle>
+                          <AlertDescription>
+                            {getFitDescription(selectedArtist.route.routingScore).description}
+                          </AlertDescription>
+                        </Alert>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        {selectedArtist.route.origin && (
+                          <div>
+                            <h4 className="text-sm font-semibold mb-2">Previous Show</h4>
+                            <div className="bg-gray-50 p-3 rounded-md">
+                              <p className="font-medium">
+                                {format(new Date(selectedArtist.route.origin.date), "EEEE, MMMM d, yyyy")}
+                              </p>
+                              <p className="text-gray-600">
+                                {selectedArtist.route.origin.city}, {selectedArtist.route.origin.state}
+                              </p>
+                              <p className="text-sm text-gray-500 mt-1">
+                                {selectedArtist.route.distanceToVenue} miles from your venue
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div>
+                          <h4 className="text-sm font-semibold mb-2">Potential Show at Your Venue</h4>
+                          <div className="bg-green-50 border border-green-200 p-3 rounded-md">
+                            <p className="font-medium">
+                              {selectedArtist.route.origin && selectedArtist.route.destination ? 
+                                `${selectedArtist.route.daysAvailable} day window between shows` : 
+                                'Potential show date (near other tour date)'}
+                            </p>
+                            <p className="text-gray-600">
+                              {activeVenue?.name} - {activeVenue?.city}, {activeVenue?.state}
+                            </p>
+                            <p className="text-sm text-gray-500 mt-1">
+                              Adding this venue would add {selectedArtist.route.detourDistance} miles to their journey
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {selectedArtist.route.destination && (
+                          <div>
+                            <h4 className="text-sm font-semibold mb-2">Next Show</h4>
+                            <div className="bg-gray-50 p-3 rounded-md">
+                              <p className="font-medium">
+                                {format(new Date(selectedArtist.route.destination.date), "EEEE, MMMM d, yyyy")}
+                              </p>
+                              <p className="text-gray-600">
+                                {selectedArtist.route.destination.city}, {selectedArtist.route.destination.state}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Upcoming Shows</CardTitle>
+                      <CardDescription>
+                        All scheduled shows for {selectedArtist.name}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {selectedArtist.events.length === 0 ? (
+                        <p className="text-gray-500">No upcoming shows scheduled.</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {selectedArtist.events.map((event, index) => (
+                            <div key={event.id} className="flex justify-between py-2">
+                              <div>
+                                <p className="font-medium">
+                                  {format(new Date(event.datetime), "MMM d, yyyy")}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  {event.venue.name}, {event.venue.city}, {event.venue.region}
+                                </p>
+                              </div>
+                              {index === 0 && <Badge variant="outline" className="h-fit">Next Show</Badge>}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </TabsContent>
+          )}
+        </Tabs>
+      )}
+    </div>
+  );
+}
