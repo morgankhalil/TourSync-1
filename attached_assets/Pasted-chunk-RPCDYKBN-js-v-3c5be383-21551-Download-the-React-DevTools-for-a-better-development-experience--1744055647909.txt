@@ -1,0 +1,45 @@
+chunk-RPCDYKBN.js?v=3c5be383:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+chunk-RPCDYKBN.js?v=3c5be383:521 Warning: validateDOMNesting(...): <a> cannot appear as a descendant of <a>.
+    at a
+    at a
+    at https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3c5be383:205:18
+    at nav
+    at div
+    at div
+    at div
+    at div
+    at https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-VZNMAICS.js?v=3c5be383:41:13
+    at https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-scroll-area.js?v=3c5be383:114:13
+    at div
+    at https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-VZNMAICS.js?v=3c5be383:41:13
+    at Provider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LSQNWB54.js?v=3c5be383:38:15)
+    at https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-scroll-area.js?v=3c5be383:52:7
+    at _c (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/ui/scroll-area.tsx:21:11)
+    at aside
+    at Sidebar (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/layout/Sidebar.tsx:47:43)
+    at div
+    at div
+    at AppLayout (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/layout/AppLayout.tsx:27:37)
+    at SidebarProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/context/SidebarContext.tsx:35:35)
+    at ActiveVenueProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/hooks/useActiveVenue.tsx:37:39)
+    at App
+    at QueryClientProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=3c5be383:2805:3)
+printWarning @ chunk-RPCDYKBN.js?v=3c5be383:521
+Show 1 more frame
+Show less
+useActiveVenue.tsx:93 Fetching all venues
+useActiveVenue.tsx:159 Current venue ID: null, Venue object: null
+useActiveVenue.tsx:159 Current venue ID: null, Venue object: null
+useActiveVenue.tsx:99 Loaded 4 venues
+useActiveVenue.tsx:145 Setting default venue to: Object
+useActiveVenue.tsx:76 Fetching specific venue with ID: 45
+useActiveVenue.tsx:159 Current venue ID: 45, Venue object: Object
+useActiveVenue.tsx:82 Loaded venue data: Object
+useActiveVenue.tsx:141 Setting active venue from fetched data: Object
+useActiveVenue.tsx:141 Setting active venue from fetched data: Object
+useActiveVenue.tsx:159 Current venue ID: 45, Venue object: Object
+VenueCalendar.tsx:120 Current date for comparison: Mon Apr 07 2025 15:53:34 GMT-0400 (Eastern Daylight Time)
+VenueCalendar.tsx:120 Current date for comparison: Mon Apr 07 2025 15:53:34 GMT-0400 (Eastern Daylight Time)
+calendar:1 A soft navigation has been detected: https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/calendar
+VenueCalendar.tsx:120 Current date for comparison: Mon Apr 07 2025 15:53:34 GMT-0400 (Eastern Daylight Time)
+VenueCalendar.tsx:120 Current date for comparison: Mon Apr 07 2025 15:53:34 GMT-0400 (Eastern Daylight Time)

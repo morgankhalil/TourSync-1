@@ -123,7 +123,8 @@ type ApiRequestOptions = {
  * Default fetcher function for React Query
  * This will be used when no queryFn is provided to useQuery
  */
-export async function defaultFetcher<T = any>({ queryKey }: { queryKey: any[] }): Promise<T> {
+export async function defaultFetcher<T = any>(context: any): Promise<T> {
+  const { queryKey } = context;
   // The first element of queryKey should be the URL
   const [url, params] = queryKey;
 
