@@ -1,6 +1,6 @@
 
 import { Link, useLocation } from "wouter";
-import { CalendarDays, Star, Music, Search, MapPin } from "lucide-react";
+import { CalendarDays, Home, Music, Search, MapPin } from "lucide-react";
 import { useActiveVenue } from "@/hooks/useActiveVenue";
 
 const MobileNavigation = () => {
@@ -19,7 +19,7 @@ const MobileNavigation = () => {
     <nav className="fixed bottom-0 left-0 right-0 md:hidden bg-background border-t border-border shadow-lg flex justify-around items-center py-2 z-50">
       <Link href="/dashboard">
         <span className={`p-2 flex flex-col items-center cursor-pointer ${isActive("/dashboard") ? "text-primary font-medium" : "text-foreground/60"}`}>
-          <CalendarDays size={20} strokeWidth={2} />
+          <Home size={20} strokeWidth={2} />
           <span className="text-[0.6rem] mt-1">Dashboard</span>
         </span>
       </Link>

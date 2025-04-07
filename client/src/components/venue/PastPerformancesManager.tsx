@@ -270,34 +270,34 @@ export default function PastPerformancesManager({ venueId }: PastPerformancesMan
                                         )}
                                       </div>
                                     </div>
-                                    
+
                                     {performance.genre && (
                                       <p className="text-sm mt-2">
                                         <span className="font-semibold">Genre:</span> {performance.genre}
                                       </p>
                                     )}
-                                    
+
                                     <div className="flex flex-wrap gap-x-4 mt-2">
                                       {performance.drawSize && (
                                         <p className="text-sm">
                                           <span className="font-semibold">Attendance:</span> {performance.drawSize}
                                         </p>
                                       )}
-                                      
+
                                       {performance.ticketPrice && (
                                         <p className="text-sm">
                                           <span className="font-semibold">Ticket:</span> ${(performance.ticketPrice / 100).toFixed(2)}
                                         </p>
                                       )}
                                     </div>
-                                    
+
                                     {performance.notes && (
                                       <p className="text-sm mt-2 text-muted-foreground">
                                         {performance.notes}
                                       </p>
                                     )}
                                   </div>
-                                  
+
                                   {performance.poster && (
                                     <div className="sm:w-24 w-full flex justify-center">
                                       <img 
@@ -308,7 +308,7 @@ export default function PastPerformancesManager({ venueId }: PastPerformancesMan
                                     </div>
                                   )}
                                 </div>
-                                
+
                                 <div className="flex gap-2 mt-4 justify-end">
                                   <Button
                                     variant="outline"

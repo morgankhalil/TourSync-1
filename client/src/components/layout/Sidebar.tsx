@@ -137,12 +137,12 @@ const Sidebar = () => {
               ))}
             </div>
           ) : upcomingPerformances.length > 0 ? (
-            <div className="space-y-2">
+            <div className="space-y-2 max-w-full">
               {upcomingPerformances.map((performance) => (
                 <Card key={performance.id} className="p-2 text-sm">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="font-medium">{performance.artistName}</p>
+                  <div className="flex justify-between items-start">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium truncate">{performance.artistName}</p>
                       <p className="text-xs text-gray-500">
                         {isToday(new Date(performance.date)) 
                           ? 'Today' 
@@ -152,7 +152,7 @@ const Sidebar = () => {
                       </p>
                     </div>
                     {performance.status && (
-                      <Badge variant={performance.status === 'confirmed' ? 'default' : 'outline'} className="text-xs">
+                      <Badge variant={performance.status === 'confirmed' ? 'default' : 'outline'} className="text-xs ml-2 shrink-0">
                         {performance.status}
                       </Badge>
                     )}

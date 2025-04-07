@@ -23,26 +23,43 @@
         .map-container {
           height: 60vh;
         }
-        
+
         /* Optimize touch targets for mobile */
         button, a, [role="button"] {
           min-height: 44px;
           min-width: 44px;
+          padding: 10px; /* Added padding for better touch target */
         }
-        
+
         /* Add bottom padding to ensure content isn't hidden behind mobile nav */
         main, .main-content {
           padding-bottom: 80px;
         }
-        
+
         /* Make font sizes more readable on small screens */
         body {
           font-size: 16px;
         }
-        
+
         /* Adjust card padding for mobile */
         .card {
           padding: 12px;
+        }
+
+        /* Additional mobile-specific styles */
+        .mobile-only {
+          display: block;
+        }
+        .desktop-only {
+          display: none;
+        }
+      }
+      @media (min-width: 769px) {
+        .mobile-only {
+          display: none;
+        }
+        .desktop-only {
+          display: block;
         }
       }
     </style>

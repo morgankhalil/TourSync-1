@@ -1,10 +1,10 @@
 
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import MobileNavigation from './MobileNavigation';
 import { useSidebar } from '@/context/SidebarContext';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Menu } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface SidebarLayoutProps {
@@ -15,6 +15,13 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
   const { isSidebarOpen, closeSidebar, toggleSidebar } = useSidebar();
   const isMobile = useIsMobile();
 
+  // Close sidebar when switching to mobile view
+  useEffect(() => {
+    if (isMobile) {
+      closeSidebar();
+    }
+  }, [isMobile, closeSidebar]);
+
   return (
     <div className="flex h-full overflow-hidden">
       {/* Mobile menu button */}
@@ -24,8 +31,9 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
           size="icon"
           onClick={toggleSidebar}
           className="fixed top-4 left-4 z-50 md:hidden"
+          aria-label="Toggle menu"
         >
-          <Menu size={24} />
+          {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
         </Button>
       )}
       
@@ -47,7 +55,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
       </div>
       
       {/* Main content */}
-      <div className="flex-1 overflow-auto pb-16 md:pb-0">
+      <div className="flex-1 overflow-auto pb-16 md:pb-0 pt-14 md:pt-0">
         {children}
       </div>
 
