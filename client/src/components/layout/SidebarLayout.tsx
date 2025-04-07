@@ -30,7 +30,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
           variant="ghost"
           size="icon"
           onClick={toggleSidebar}
-          className="fixed top-4 left-4 z-50"
+          className="fixed top-4 left-4 z-50 md:hidden"
         >
           <Menu size={24} />
         </Button>
@@ -41,16 +41,20 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
         <div
           className="fixed inset-0 bg-black/50 z-40"
           onClick={closeSidebar}
+          aria-hidden="true"
         />
       )}
 
       {/* Sidebar */}
       <div
-        className={`${
-          isMobile
-            ? 'fixed left-0 top-0 bottom-0 z-50 transform transition-transform duration-300 ease-in-out w-[280px]'
-            : 'relative w-[280px]'
-        } ${isMobile && !isSidebarOpen ? '-translate-x-full' : 'translate-x-0'}`}
+        className={`
+          ${isMobile ? 'fixed' : 'relative'} 
+          left-0 top-0 bottom-0 
+          ${isMobile ? 'z-50' : ''} 
+          transform transition-transform duration-300 ease-in-out 
+          w-[280px] bg-background
+          ${isMobile && !isSidebarOpen ? '-translate-x-full' : 'translate-x-0'}
+        `}
       >
         <Sidebar />
       </div>

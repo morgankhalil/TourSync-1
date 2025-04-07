@@ -86,9 +86,16 @@
             z-index: 50;
           }
 
-          /* Fix sidebar on mobile -  The key change is to hide the sidebar completely on mobile */
-          .sidebar-mobile {
-            display: none; /*Completely hide the sidebar on mobile*/
+          /* Fix sidebar on mobile */
+          @media (max-width: 768px) {
+            .sidebar {
+              position: fixed;
+              left: -100%;
+              transition: left 0.3s ease-in-out;
+            }
+            .sidebar.open {
+              left: 0;
+            }
           }
 
           /* Additional mobile-specific styles */
