@@ -1,12 +1,40 @@
+
 import { db } from '../db';
 import { addDays } from 'date-fns';
-import { venues, tours, tourDates, venueAvailability } from '@shared/schema';
+import { venues, tours, tourDates, venueAvailability, bands } from '@shared/schema';
 
 async function importEmptyBottleEvents() {
   try {
     console.log('Starting Empty Bottle data import...');
 
-    // 1. Create the Empty Bottle venue if it doesn't exist
+    // 1. Create sample bands first
+    const sampleBands = [
+      {
+        name: "The Spring Awakeners",
+        genre: "Indie Rock",
+        contactEmail: "contact@springawakeners.com",
+        formedYear: 2020,
+        hometown: "Chicago, IL",
+        description: "Up and coming indie rock band"
+      },
+      {
+        name: "Underground Soundsystem",
+        genre: "Electronic",
+        contactEmail: "contact@undergroundsound.com",
+        formedYear: 2019,
+        hometown: "Detroit, MI",
+        description: "Electronic music collective"
+      }
+    ];
+
+    console.log('Creating sample bands...');
+    const createdBands = [];
+    for (const bandData of sampleBands) {
+      const [band] = await db.insert(bands).values(bandData).returning();
+      createdBands.push(band);
+    }
+
+    // 2. Create the Empty Bottle venue
     const existingVenue = await db.query.venues.findFirst({
       where: (venues, { eq, and }) => 
         and(eq(venues.name, 'Empty Bottle'), eq(venues.city, 'Chicago'))
@@ -47,7 +75,7 @@ async function importEmptyBottleEvents() {
       venue = existingVenue;
     }
 
-    // 2. Generate availability for next 6 months
+    // 3. Generate availability for next 6 months
     const startDate = new Date();
     const endDate = addDays(startDate, 180);
     let currentDate = startDate;
@@ -61,13 +89,13 @@ async function importEmptyBottleEvents() {
       currentDate = addDays(currentDate, 1);
     }
 
-    // 3. Create sample tours
+    // 4. Create sample tours with the actual band IDs
     const sampleTours = [
       {
         name: "Spring Awakening Tour",
         startDate: new Date('2025-04-01').toISOString(),
         endDate: new Date('2025-05-15').toISOString(),
-        bandId: 1,
+        bandId: createdBands[0].id,
         notes: "Midwest leg of national tour",
         isActive: true
       },
@@ -75,43 +103,13 @@ async function importEmptyBottleEvents() {
         name: "Underground Sound Tour",
         startDate: new Date('2025-04-15').toISOString(),
         endDate: new Date('2025-05-30').toISOString(),
-        bandId: 2,
+        bandId: createdBands[1].id,
         notes: "Independent venues showcase",
         isActive: true
       }
     ];
 
-    // Create sample bands first
-    const sampleBands = [
-      {
-        name: "The Spring Awakeners",
-        genre: "Indie Rock",
-        formedYear: 2020,
-        hometown: "Chicago, IL",
-        description: "Up and coming indie rock band",
-      },
-      {
-        name: "Underground Soundsystem",
-        genre: "Electronic",
-        formedYear: 2019,
-        hometown: "Detroit, MI", 
-        description: "Electronic music collective",
-      }
-    ];
-
-    const bands = [];
-    for (const bandData of sampleBands) {
-      const [band] = await db.insert(bands).values(bandData).returning();
-      bands.push(band);
-    }
-
-    // Now create tours with the actual band IDs
-    for (let i = 0; i < sampleTours.length; i++) {
-      const tourData = {
-        ...sampleTours[i],
-        bandId: bands[i].id
-      };
-      
+    for (const tourData of sampleTours) {
       const [tour] = await db.insert(tours).values(tourData).returning();
 
       await db.insert(tourDates).values({
@@ -120,14 +118,14 @@ async function importEmptyBottleEvents() {
         date: new Date(new Date(tourData.startDate).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(),
         city: "Chicago",
         state: "IL",
-        status: "confirmed", 
+        status: "confirmed",
         notes: `Performing at ${venue.name}`,
         venueName: venue.name,
         isOpenDate: false
       });
     }
 
-    console.log('Successfully imported Empty Bottle data');
+    console.log('Successfully imported Empty Bottle data with bands and tours');
   } catch (error) {
     console.error('Error importing Empty Bottle data:', error);
     throw error;
