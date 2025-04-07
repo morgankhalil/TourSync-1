@@ -24,14 +24,43 @@ const wss = new WebSocketServer({ noServer: true });
 
 // Handle WebSocket upgrade
 const PORT = 5000;
+let retryCount = 0;
+const MAX_RETRIES = 3;
 
 function shutdownGracefully() {
   console.log('Shutting down gracefully...');
   process.exit(0);
 }
 
+async function startServer(port: number): Promise<void> {
+  try {
+    await new Promise((resolve, reject) => {
+      const server = app.listen(port, '0.0.0.0', () => {
+        log(`Server running at http://0.0.0.0:${port}`);
+        resolve(undefined);
+      }).on('error', (err: any) => {
+        if (err.code === 'EADDRINUSE' && retryCount < MAX_RETRIES) {
+          retryCount++;
+          log(`Port ${port} in use, killing existing processes...`);
+          require('child_process').exec('pkill -f "node"', (error: any) => {
+            if (error) console.error('Failed to kill processes:', error);
+            setTimeout(() => startServer(port), 1000);
+          });
+        } else {
+          reject(err);
+        }
+      });
+    });
+  } catch (err) {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  }
+}
+
 process.on('SIGTERM', shutdownGracefully);
 process.on('SIGINT', shutdownGracefully);
+
+startServer(PORT);
 
 const startServer = () => {
   try {
