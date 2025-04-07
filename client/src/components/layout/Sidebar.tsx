@@ -1,201 +1,223 @@
-import { Plus, Edit, Calendar, Clock, Music, Users, MapPin, Star, Mail, Settings, BarChart3, BarChart2 } from "lucide-react";
-import { useSidebar } from "@/context/SidebarContext";
-import { useMediaQuery } from "@/hooks/use-mobile";
-import { X } from "lucide-react";
+import { 
+  Calendar, 
+  Clock, 
+  Music, 
+  MapPin, 
+  LineChart, 
+  Route, 
+  Users, 
+  LogIn, 
+  Search,
+  MessageSquareText,
+  BarChart3,
+  Home,
+  Building2,
+  Settings,
+  Compass
+} from "lucide-react";
 import { Link, useLocation } from "wouter";
-import { format, isToday, isTomorrow, addDays } from "date-fns";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useActiveVenue } from "@/hooks/useActiveVenue";
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-// Define the performance type
-interface Performance {
-  id: string;
-  artistName: string;
-  date: string | Date;
-  status?: string;
-  drawSize?: number;
-  ticketPrice?: number;
+interface SidebarProps {
+  onNavClick?: () => void;
 }
 
-const Sidebar = () => {
-  const { isSidebarOpen, closeSidebar } = useSidebar();
-  const isMobile = useMediaQuery("(max-width: 768px)");
-  const { activeVenue } = useActiveVenue();
+const navItems = [
+  {
+    title: "Home",
+    href: "/",
+    icon: Home,
+  },
+  {
+    title: "Dashboard",
+    href: "/dashboard",
+    icon: BarChart3,
+  },
+  {
+    title: "Calendar",
+    href: "/calendar",
+    icon: Calendar,
+  },
+  {
+    title: "Artist Discovery",
+    href: "/discovery",
+    icon: Music,
+  },
+  {
+    title: "Tour Manager",
+    href: "/tours",
+    icon: Route,
+  },
+  {
+    title: "Venues",
+    href: "/venues",
+    icon: Building2,
+  },
+  {
+    title: "Messages",
+    href: "/messages",
+    icon: MessageSquareText,
+    badge: "4"
+  },
+  {
+    title: "Analytics",
+    href: "/analytics",
+    icon: LineChart,
+  },
+];
+
+const Sidebar = ({ onNavClick }: SidebarProps) => {
   const [location] = useLocation();
-
-  // Fetch upcoming performances for this venue
-  const { data: performances = [], isLoading: isPerformancesLoading } = useQuery<Performance[]>({
-    queryKey: ["/api/venues", activeVenue?.id, "performances"],
-    enabled: !!activeVenue?.id,
-  });
-
-  // Get upcoming performances (just for display in sidebar)
-  const upcomingPerformances = performances
-    .filter((p) => new Date(p.date) >= new Date())
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(0, 5);
-
-  // Determine the sidebar classes based on mobile and open state
-  const sidebarClasses = isMobile
-    ? `fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} bg-sidebar-bg w-[280px] h-screen overflow-y-auto custom-scrollbar shadow-lg`
-    : "hidden md:block bg-sidebar-bg w-full h-full border-r border-gray-200 flex-shrink-0 overflow-y-auto custom-scrollbar";
+  const { activeVenue } = useActiveVenue();
 
   // Helper to check if a navigation item is active
   const isActive = (path: string) => {
-    if (path === "/") return location === "/";
-    return location.startsWith(path);
+    if (path === "/" && location === "/") return true;
+    if (path !== "/" && location.startsWith(path)) return true;
+    return false;
   };
 
-  return (
-    <aside className={`${sidebarClasses} ${isMobile ? 'fixed inset-y-0 left-0 w-[280px] bg-background shadow-lg' : ''}`}>
-      {isMobile && isSidebarOpen && (
-        <button 
-          onClick={closeSidebar} 
-          className="absolute top-2 right-2 p-1 text-gray-500 hover:text-gray-700"
-        >
-          <X size={20} />
-        </button>
-      )}
+  // Generate mock upcoming shows for the sidebar
+  const upcomingShows = [
+    { id: 1, name: "Electric Dreams", date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), status: "confirmed" },
+    { id: 2, name: "Midnight Echoes", date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), status: "confirmed" },
+    { id: 3, name: "Velvet Thunder", date: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000), status: "pending" },
+  ];
 
-      <div className="p-4">
-        {/* Venue Information */}
-        <div className="mb-6">
-          {activeVenue ? (
-            <div className="flex flex-col items-center mb-4">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-2">
-                <MapPin size={24} className="text-primary" />
+  return (
+    <ScrollArea className="h-full py-3">
+      <div className="px-3 py-2 flex-1">
+        {/* App Logo & Title */}
+        <Link href="/">
+          <div className="flex items-center px-2 mb-6 h-12">
+            <div className="flex items-center gap-2 font-semibold">
+              <div className="bg-primary rounded w-8 h-8 flex items-center justify-center text-primary-foreground">
+                <Music className="h-4 w-4" />
               </div>
-              <h2 className="font-inter font-semibold text-lg">{activeVenue.name}</h2>
-              <p className="text-sm text-gray-500 text-center">
+              <span className="font-semibold">Venue Connect</span>
+            </div>
+          </div>
+        </Link>
+
+        {/* Active Venue */}
+        {activeVenue && (
+          <div className="mb-4 bg-muted/40 rounded-lg p-4">
+            <div className="flex flex-col items-center mb-2">
+              <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center">
+                <MapPin className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="mt-2 font-medium truncate text-center">{activeVenue.name}</h3>
+              <p className="text-xs text-muted-foreground">
                 {activeVenue.city}, {activeVenue.state}
               </p>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center mb-4">
-              <Skeleton className="w-16 h-16 rounded-full mb-2" />
-              <Skeleton className="h-6 w-32 mb-1" />
-              <Skeleton className="h-4 w-24" />
-            </div>
-          )}
-
-          {/* Primary Navigation */}
-          <nav className="space-y-1">
-            <Link href="/dashboard">
-              <span className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${isActive("/dashboard") ? "bg-primary text-white" : "text-gray-700 hover:bg-gray-100"}`}>
-                <Calendar className="mr-2 h-4 w-4" />
-                <span>Dashboard</span>
-              </span>
-            </Link>
-
-            <Link href="/artist-discovery">
-              <span className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${isActive("/artist-discovery") || isActive("/opportunities") || isActive("/bands") ? "bg-primary text-white" : "text-gray-700 hover:bg-gray-100"}`}>
-                <Music className="mr-2 h-4 w-4" />
-                <span>Artist Discovery</span>
-              </span>
-            </Link>
-
-            <Link href="/calendar">
-              <span className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${isActive("/calendar") ? "bg-primary text-white" : "text-gray-700 hover:bg-gray-100"}`}>
-                <Clock className="mr-2 h-4 w-4" />
-                <span>Availability Calendar</span>
-              </span>
-            </Link>
-
-            {activeVenue && (
-              <Link href={`/venues/${activeVenue.id}`}>
-                <span className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${isActive(`/venues/${activeVenue.id}`) ? "bg-primary text-white" : "text-gray-700 hover:bg-gray-100"}`}>
-                  <Star className="mr-2 h-4 w-4" />
-                  <span>Venue Profile</span>
-                </span>
+              <Link href={`/venue/${activeVenue.id}`}>
+                <Button variant="ghost" size="sm" className="mt-2 w-full text-xs">
+                  Manage Venue
+                </Button>
               </Link>
-            )}
-
-            <Link href="/analytics">
-              <span className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${isActive("/analytics") ? "bg-primary text-white" : "text-gray-700 hover:bg-gray-100"}`}>
-                <BarChart3 className="mr-2 h-4 w-4" />
-                <span>Performance Analytics</span>
-              </span>
-            </Link>
-          </nav>
-        </div>
-
-        {/* Upcoming Shows */}
-        <div className="mb-6">
-          <h3 className="font-inter font-semibold text-sm text-gray-500 mb-3 uppercase tracking-wider">
-            Upcoming Shows
-          </h3>
-
-          {isPerformancesLoading ? (
-            <div className="space-y-2">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-16 w-full" />
-              ))}
             </div>
-          ) : upcomingPerformances.length > 0 ? (
-            <div className="space-y-2 max-w-full">
-              {upcomingPerformances.map((performance) => (
-                <Card key={performance.id} className="p-2 text-sm">
-                  <div className="flex justify-between items-start">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium truncate">{performance.artistName}</p>
-                      <p className="text-xs text-gray-500">
-                        {isToday(new Date(performance.date)) 
-                          ? 'Today' 
-                          : isTomorrow(new Date(performance.date))
-                            ? 'Tomorrow'
-                            : format(new Date(performance.date), "EEE, MMM d")}
-                      </p>
-                    </div>
-                    {performance.status && (
-                      <Badge variant={performance.status === 'confirmed' ? 'default' : 'outline'} className="text-xs ml-2 shrink-0">
-                        {performance.status}
-                      </Badge>
-                    )}
-                  </div>
-                </Card>
-              ))}
+          </div>
+        )}
 
+        {/* Main Navigation */}
+        <div className="space-y-1 py-2">
+          <div className="text-xs font-medium text-muted-foreground px-2 mb-2">
+            Main
+          </div>
+          <TooltipProvider delayDuration={0}>
+            {navItems.map((item) => (
+              <Tooltip key={item.href}>
+                <TooltipTrigger asChild>
+                  <Link href={item.href}>
+                    <Button
+                      variant={isActive(item.href) ? "secondary" : "ghost"}
+                      className={cn(
+                        "w-full justify-start gap-3",
+                        isActive(item.href) && "bg-secondary font-medium"
+                      )}
+                      onClick={onNavClick}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                      {item.badge && (
+                        <Badge variant="default" className="ml-auto h-5 px-1.5 bg-primary">
+                          {item.badge}
+                        </Badge>
+                      )}
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">{item.title}</TooltipContent>
+              </Tooltip>
+            ))}
+          </TooltipProvider>
+        </div>
+        
+        <Separator className="my-4" />
+        
+        {/* Upcoming Shows */}
+        <div className="space-y-2">
+          <div className="text-xs font-medium text-muted-foreground px-2 pb-2">
+            Upcoming Shows
+          </div>
+          
+          {upcomingShows.length > 0 ? (
+            <div className="space-y-2 px-2">
+              {upcomingShows.map((show) => (
+                <div
+                  key={show.id}
+                  className="flex items-start justify-between rounded-md border p-2 text-sm"
+                >
+                  <div className="space-y-1">
+                    <p className="font-medium truncate pr-4">{show.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {show.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </p>
+                  </div>
+                  <Badge variant={show.status === 'confirmed' ? 'default' : 'outline'} className="text-xs">
+                    {show.status}
+                  </Badge>
+                </div>
+              ))}
+              
               <Link href="/performances">
-                <Button variant="ghost" size="sm" className="w-full text-xs text-primary">
+                <Button variant="ghost" size="sm" className="w-full text-xs">
                   View All Shows
                 </Button>
               </Link>
             </div>
           ) : (
-            <p className="text-sm text-gray-500 text-center py-4">No upcoming shows</p>
+            <div className="text-center py-3 px-2">
+              <p className="text-xs text-muted-foreground">No upcoming shows</p>
+            </div>
           )}
         </div>
-
-        {/* Quick Actions */}
-        <div>
-          <h3 className="font-inter font-semibold text-sm text-gray-500 mb-3 uppercase tracking-wider">
-            Quick Actions
-          </h3>
-
-          <div className="space-y-2">
-            <div id="replit-auth-button" className="replit-auth-button mb-2"></div>
-            <Link href="/performances/add">
-              <Button variant="outline" size="sm" className="w-full flex items-center justify-center">
-                <Plus size={14} className="mr-1" />
-                Add Performance
-              </Button>
-            </Link>
-
-            <Link href="/calendar/manage">
-              <Button variant="outline" size="sm" className="w-full flex items-center justify-center">
-                <Calendar size={14} className="mr-1" />
-                Update Availability
-              </Button>
-            </Link>
-          </div>
+        
+        <Separator className="my-4" />
+        
+        {/* Settings & Help */}
+        <div className="space-y-1 py-2">
+          <Link href="/settings">
+            <Button variant="ghost" className="w-full justify-start gap-3">
+              <Settings className="h-4 w-4" />
+              <span>Settings</span>
+            </Button>
+          </Link>
+          <Link href="/help">
+            <Button variant="ghost" className="w-full justify-start gap-3">
+              <Compass className="h-4 w-4" />
+              <span>Help & Resources</span>
+            </Button>
+          </Link>
         </div>
       </div>
-    </aside>
+    </ScrollArea>
   );
 };
 
