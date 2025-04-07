@@ -1,4 +1,3 @@
-
 import { db } from '../db';
 import { addDays } from 'date-fns';
 import { venues, tours, tourDates, venueAvailability, bands } from '@shared/schema';
@@ -7,7 +6,7 @@ import { BandsintownApiService } from '../services/bandsintown-api';
 async function importEmptyBottleEvents() {
   try {
     console.log('Starting Empty Bottle data import...');
-    
+
     // Validate required environment variables
     if (!process.env.BANDSINTOWN_API_KEY) {
       throw new Error('BANDSINTOWN_API_KEY environment variable is not set');
@@ -38,7 +37,7 @@ async function importEmptyBottleEvents() {
     if (!apiKey) {
       throw new Error('BANDSINTOWN_API_KEY environment variable is not set');
     }
-    
+
     // Initialize Bandsintown API service
     const bandsintownApi = new BandsintownApiService(apiKey);
 
@@ -106,10 +105,19 @@ async function importEmptyBottleEvents() {
         const tourStartDate = new Date(event.datetime);
         const tourEndDate = addDays(tourStartDate, 30); // Assume 30-day tour
 
+        // Validate and normalize dates
+        const normalizedStartDate = new Date(tourStartDate);
+        const normalizedEndDate = new Date(tourEndDate);
+
+        if (isNaN(normalizedStartDate.getTime()) || isNaN(normalizedEndDate.getTime())) {
+          console.error(`Invalid date for tour: ${event.lineup[0]}`);
+          continue;
+        }
+
         const [tour] = await db.insert(tours).values({
-          name: `${event.lineup[0]} ${tourStartDate.getFullYear()} Tour`,
-          startDate: tourStartDate.toISOString(),
-          endDate: tourEndDate.toISOString(),
+          name: `${event.lineup[0]} ${normalizedStartDate.getFullYear()} Tour`,
+          startDate: normalizedStartDate.toISOString().split('T')[0], // Store as YYYY-MM-DD
+          endDate: normalizedEndDate.toISOString().split('T')[0],
           bandId: band.id,
           notes: event.description || "Midwest Tour",
           isActive: true

@@ -200,3 +200,44 @@ export function getArtistsToQueryOld(options: {
   // Return the limited list
   return filteredList.slice(0, limit);
 }
+
+export async function insertArtist(artist: InsertArtist) {
+  // Validate required fields
+  if (!artist.name || !artist.id) {
+    throw new Error('Artist name and ID are required');
+  }
+
+  // Normalize genres array
+  if (artist.genres) {
+    artist.genres = artist.genres.map(g => g.toLowerCase().trim());
+  }
+
+  // Validate URLs
+  const urlFields = ['imageUrl', 'url', 'website'];
+  urlFields.forEach(field => {
+    if (artist[field] && !isValidUrl(artist[field])) {
+      throw new Error(`Invalid URL for ${field}`);
+    }
+  });
+
+  // Validate draw size
+  if (artist.drawSize && (artist.drawSize < 0 || !Number.isInteger(artist.drawSize))) {
+    throw new Error('Draw size must be a positive integer');
+  }
+
+  try {
+    return await db.insert(artists).values(artist).returning();
+  } catch (error) {
+    console.error('Error inserting artist:', error);
+    throw new Error('Failed to insert artist into database');
+  }
+}
+
+function isValidUrl(string: string): boolean {
+  try {
+    new URL(string);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
