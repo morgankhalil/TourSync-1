@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import VenueSelector from '@/components/venue/VenueSelector';
 
 const Dashboard: React.FC = () => {
   const { activeVenue } = useActiveVenue();
