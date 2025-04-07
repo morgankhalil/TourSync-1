@@ -19,8 +19,8 @@ const API_CACHE = new NodeCache({ stdTTL: 3600, checkperiod: 120 });
 const API_BASE_URL = 'https://rest.bandsintown.com';
 const MAX_RETRIES = 2;
 const RETRY_DELAY = 1000; // 1 second
-const BATCH_SIZE = 10; // Process 10 artists at a time to avoid rate limits
-const BATCH_DELAY = 2000; // 2 seconds between batches
+const BATCH_SIZE = 5; // Process 5 artists at a time to avoid rate limits
+const BATCH_DELAY = 5000; // 5 seconds between batches
 
 // Cache keys
 const CACHE_KEYS = {
@@ -255,11 +255,22 @@ export class BandsintownApiService {
     dateFrom?: string, 
     dateTo?: string
   ): Promise<ArtistWithEvents[]> {
-    const promises = artistNames.map(name => 
-      this.getArtistWithEvents(name, dateFrom, dateTo)
-    );
+    // Process artists sequentially to better respect rate limits
+    const results: (ArtistWithEvents | null)[] = [];
     
-    const results = await Promise.all(promises);
+    for (const name of artistNames) {
+      try {
+        const artistData = await this.getArtistWithEvents(name, dateFrom, dateTo);
+        results.push(artistData);
+        
+        // Small delay between individual artist requests
+        await new Promise(resolve => setTimeout(resolve, 500));
+      } catch (error) {
+        console.error(`Error fetching data for artist ${name}:`, error);
+        results.push(null);
+      }
+    }
+    
     return results.filter(artist => artist !== null) as ArtistWithEvents[];
   }
 
@@ -278,25 +289,37 @@ export class BandsintownApiService {
     console.log(`Processing ${artistNames.length} artists in ${batchCount} batches of ${BATCH_SIZE}`);
     
     for (let i = 0; i < artistNames.length; i += BATCH_SIZE) {
-      const batch = artistNames.slice(i, i + BATCH_SIZE);
-      const batchNumber = Math.floor(i / BATCH_SIZE) + 1;
-      
-      console.log(`Processing batch ${batchNumber}/${batchCount} (${batch.length} artists)`);
-      
-      const batchResults = await this.processArtistBatch(batch, dateFrom, dateTo);
-      results.push(...batchResults);
-      
-      const completedCount = Math.min(i + BATCH_SIZE, artistNames.length);
-      if (onProgress) {
-        onProgress(completedCount, artistNames.length);
-      }
-      
-      if (i + BATCH_SIZE < artistNames.length) {
-        console.log(`Waiting ${BATCH_DELAY}ms before next batch...`);
-        await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+      try {
+        const batch = artistNames.slice(i, i + BATCH_SIZE);
+        const batchNumber = Math.floor(i / BATCH_SIZE) + 1;
+        
+        console.log(`Processing batch ${batchNumber}/${batchCount} (${batch.length} artists)`);
+        
+        const batchResults = await this.processArtistBatch(batch, dateFrom, dateTo);
+        
+        if (batchResults && batchResults.length > 0) {
+          console.log(`Batch ${batchNumber} returned ${batchResults.length} results`);
+          results.push(...batchResults);
+        } else {
+          console.log(`Batch ${batchNumber} returned no results`);
+        }
+        
+        const completedCount = Math.min(i + BATCH_SIZE, artistNames.length);
+        if (onProgress) {
+          onProgress(completedCount, artistNames.length);
+        }
+        
+        if (i + BATCH_SIZE < artistNames.length) {
+          console.log(`Waiting ${BATCH_DELAY}ms before next batch...`);
+          await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+        }
+      } catch (error) {
+        console.error(`Error processing batch starting at index ${i}:`, error);
+        // Continue with the next batch rather than failing completely
       }
     }
     
+    console.log(`Completed processing all batches, found ${results.length} artists with events`);
     return results;
   }
 

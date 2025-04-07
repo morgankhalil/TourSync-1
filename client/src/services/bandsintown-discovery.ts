@@ -39,15 +39,24 @@ class BandsintownDiscoveryService {
       
       console.log(`[Service] Requesting artist discovery data with${useDemo ? ' DEMO MODE' : ' LIVE API'}`);
       
-      if (useDemo) {
-        console.log(`[Service] URL with demo param: ${url}`);
+      // Set a longer timeout for this API call since it might take a while
+      const response = await axios.post(url, apiParams, { 
+        timeout: 120000 // 2 minute timeout
+      });
+      
+      const resultCount = (response.data.data || []).length;
+      console.log(`[Service] Response received with ${resultCount} bands`);
+      
+      if (resultCount === 0) {
+        console.warn('[Service] No bands found in discovery results');
       }
       
-      const response = await axios.post(url, apiParams);
-      console.log(`[Service] Response received with ${(response.data.data || []).length} bands`);
       return response.data.data || [];
     } catch (error) {
       console.error('Error finding bands near venue:', error);
+      if (axios.isAxiosError(error) && error.code === 'ECONNABORTED') {
+        throw new Error('The discovery request timed out. Please try again or use demo mode.');
+      }
       throw error;
     }
   }

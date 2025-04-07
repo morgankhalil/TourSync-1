@@ -119,4 +119,44 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
       });
     }
   });
+  
+  /**
+   * GET /api/bandsintown-v2/demo-data
+   * Get demo discovery data for testing
+   */
+  router.get('/api/bandsintown-v2/demo-data', async (req: Request, res: Response) => {
+    try {
+      const { venueId } = req.query;
+      
+      if (!venueId) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Missing venueId parameter'
+        });
+      }
+      
+      const numericVenueId = parseInt(venueId as string, 10);
+      const now = new Date();
+      const twoMonthsLater = new Date();
+      twoMonthsLater.setMonth(twoMonthsLater.getMonth() + 2);
+      
+      const result = await discoveryService.findBandsNearVenue({
+        venueId: numericVenueId,
+        startDate: now.toISOString().split('T')[0],
+        endDate: twoMonthsLater.toISOString().split('T')[0],
+        radius: 100,
+        maxBands: 10,
+        useDemo: true
+      });
+      
+      res.json(result);
+    } catch (error) {
+      console.error('Error getting demo data:', error);
+      res.status(500).json({
+        status: 'error',
+        message: 'Failed to get demo data',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
 }
