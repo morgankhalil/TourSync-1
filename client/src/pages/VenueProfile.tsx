@@ -280,6 +280,7 @@ export default function VenueProfile() {
               </Card>
             </TabsContent>
           </Tabs>
+        </div>
       </div>
     );
 }
