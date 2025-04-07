@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { MapPin, Calendar as CalendarIcon, Filter, Music, Users, Clock, Route as RouteIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { Band, Tour, Venue, TourDate } from '@shared/schema';
-import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
+import { GoogleMap, LoadScript, Marker, InfoWindow, Polyline } from '@react-google-maps/api';
 import { VenueCalendarSidebar } from '@/components/venue/VenueCalendarSidebar';
 import { useActiveVenue } from '@/hooks/useActiveVenue';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -352,14 +352,16 @@ export function ArtistDiscovery() {
                   {/* Draw the tour path if there are multiple points */}
                   {pathCoordinates.length >= 2 && (
                     <React.Fragment>
-                      {new window.google.maps.Polyline({
-                        path: pathCoordinates,
-                        geodesic: true,
-                        strokeColor: tourColor,
-                        strokeOpacity: 1.0,
-                        strokeWeight: 3,
-                        // We would need to use a reference to the Google Map instance here instead of 'map'
-                      })}
+                      {/* Use the Polyline component to draw tour routes */}
+                      <Polyline
+                        path={pathCoordinates}
+                        options={{
+                          geodesic: true,
+                          strokeColor: tourColor,
+                          strokeOpacity: 1.0,
+                          strokeWeight: 3
+                        }}
+                      />
                     </React.Fragment>
                   )}
                 </React.Fragment>
