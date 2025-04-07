@@ -37,8 +37,14 @@ class BandsintownDiscoveryService {
       // Strip useDemo from params before sending to API
       const { useDemo, ...apiParams } = params;
       
-      console.log(`Requesting artist discovery data with${useDemo ? ' demo mode' : ' live API'}`);
+      console.log(`[Service] Requesting artist discovery data with${useDemo ? ' DEMO MODE' : ' LIVE API'}`);
+      
+      if (useDemo) {
+        console.log(`[Service] URL with demo param: ${url}`);
+      }
+      
       const response = await axios.post(url, apiParams);
+      console.log(`[Service] Response received with ${(response.data.data || []).length} bands`);
       return response.data.data || [];
     } catch (error) {
       console.error('Error finding bands near venue:', error);

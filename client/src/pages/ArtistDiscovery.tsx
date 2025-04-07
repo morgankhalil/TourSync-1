@@ -28,7 +28,8 @@ const ArtistDiscovery: React.FC = () => {
 
   // Query to find bands near the active venue using real-time Bandsintown API
   const { data: bandsNearVenue, isLoading, error, refetch } = useQuery({
-    queryKey: activeVenue ? ['discover-bands-near-venue', activeVenue.id, startDate, endDate, radius] : ['skip-query'],
+    // Include useDemoMode in queryKey to trigger refetch when it changes
+    queryKey: activeVenue ? ['discover-bands-near-venue', activeVenue.id, startDate, endDate, radius, useDemoMode] : ['skip-query'],
     queryFn: async () => {
       if (!activeVenue) {
         throw new Error('Please select a venue first');
@@ -36,6 +37,9 @@ const ArtistDiscovery: React.FC = () => {
       if (!activeVenue.latitude || !activeVenue.longitude) {
         throw new Error(`Venue "${activeVenue.name}" is missing location data. Please update the venue coordinates in venue settings.`);
       }
+      
+      // Log the current mode for debugging
+      console.log(`Searching for bands with demo mode ${useDemoMode ? 'ENABLED' : 'DISABLED'}`);
       
       // Use the direct discovery service that polls Bandsintown API in real-time
       // If useDemoMode is true, force use of sample data instead of API
