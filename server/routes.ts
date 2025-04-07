@@ -15,66 +15,66 @@ import { registerEnvVarsRoutes } from "./routes/env-vars";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register touring routes from dedicated module
   registerTouringRoutes(app);
-  
+
   // Register Bandsintown integration routes
   registerBandsintownRoutes(app);
-  
+
   // Register Bandsintown discovery routes (direct API-based, no database storage)
   registerBandsintownDiscoveryRoutes(app);
-  
+
   // Register enhanced Bandsintown discovery routes (with improved caching and expanded artist db)
   registerBandsintownDiscoveryV2Routes(app);
-  
+
   // Register configuration routes
   registerConfigRoutes(app);
-  
+
   // Register venue performances routes
   registerVenuePerformancesRoutes(app);
-  
+
   // Register environment variables routes
   registerEnvVarsRoutes(app);
-  
+
   // Get all tour dates for a venue
   app.get("/api/venues/:id/dates", async (req, res) => {
     try {
       const venueId = parseInt(req.params.id);
       const venue = await storage.getVenue(venueId);
-      
+
       if (!venue) {
         return res.status(404).json({ message: "Venue not found" });
       }
-      
+
       // Get all tour dates for the venue
       const dates = await storage.getTourDates(0); // We pass 0 to get all dates
       const venueDates = dates.filter(date => date.venueId === venueId);
-      
+
       res.json(venueDates);
     } catch (error) {
       console.error("Error fetching venue dates:", error);
       res.status(500).json({ message: "Error fetching venue dates" });
     }
   });
-  
+
   // Get venue availability
   app.get("/api/venues/:id/availability", async (req, res) => {
     try {
       const venueId = parseInt(req.params.id);
       const venue = await storage.getVenue(venueId);
-      
+
       if (!venue) {
         return res.status(404).json({ message: "Venue not found" });
       }
-      
+
       // Get venue availability
       const availability = await storage.getVenueAvailability(venueId);
-      
+
       res.json(availability);
     } catch (error) {
       console.error("Error fetching venue availability:", error);
       res.status(500).json({ message: "Error fetching venue availability" });
     }
   });
-  
+
   // Band routes
   app.get("/api/bands", async (_req, res) => {
     try {
@@ -90,11 +90,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const band = await storage.getBand(id);
-      
+
       if (!band) {
         return res.status(404).json({ message: "Band not found" });
       }
-      
+
       res.json(band);
     } catch (error) {
       console.error("Error fetching band:", error);
@@ -112,7 +112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const validationError = fromZodError(error);
         return res.status(400).json({ message: validationError.message });
       }
-      
+
       console.error("Error creating band:", error);
       res.status(500).json({ message: "Error creating band" });
     }
@@ -123,18 +123,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const validatedData = insertBandSchema.partial().parse(req.body);
       const updatedBand = await storage.updateBand(id, validatedData);
-      
+
       if (!updatedBand) {
         return res.status(404).json({ message: "Band not found" });
       }
-      
+
       res.json(updatedBand);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const validationError = fromZodError(error);
         return res.status(400).json({ message: validationError.message });
       }
-      
+
       console.error("Error updating band:", error);
       res.status(500).json({ message: "Error updating band" });
     }
@@ -144,11 +144,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const success = await storage.deleteBand(id);
-      
+
       if (!success) {
         return res.status(404).json({ message: "Band not found" });
       }
-      
+
       res.status(204).end();
     } catch (error) {
       console.error("Error deleting band:", error);
@@ -164,11 +164,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const lat = parseFloat(req.query.lat as string);
         const lng = parseFloat(req.query.lng as string);
         const radius = parseFloat(req.query.radius as string);
-        
+
         const venues = await storage.getVenuesByLocation(lat, lng, radius);
         return res.json(venues);
       }
-      
+
       const venues = await storage.getVenues();
       res.json(venues);
     } catch (error) {
@@ -181,11 +181,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const venue = await storage.getVenue(id);
-      
+
       if (!venue) {
         return res.status(404).json({ message: "Venue not found" });
       }
-      
+
       res.json(venue);
     } catch (error) {
       console.error("Error fetching venue:", error);
@@ -203,7 +203,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const validationError = fromZodError(error);
         return res.status(400).json({ message: validationError.message });
       }
-      
+
       console.error("Error creating venue:", error);
       res.status(500).json({ message: "Error creating venue" });
     }
@@ -214,18 +214,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const validatedData = insertVenueSchema.partial().parse(req.body);
       const updatedVenue = await storage.updateVenue(id, validatedData);
-      
+
       if (!updatedVenue) {
         return res.status(404).json({ message: "Venue not found" });
       }
-      
+
       res.json(updatedVenue);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const validationError = fromZodError(error);
         return res.status(400).json({ message: validationError.message });
       }
-      
+
       console.error("Error updating venue:", error);
       res.status(500).json({ message: "Error updating venue" });
     }
@@ -235,11 +235,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const success = await storage.deleteVenue(id);
-      
+
       if (!success) {
         return res.status(404).json({ message: "Venue not found" });
       }
-      
+
       res.status(204).end();
     } catch (error) {
       console.error("Error deleting venue:", error);
@@ -263,20 +263,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const tours = await storage.getTours(bandId);
-      
+
       // Update cache
       cache[cacheKey] = {
         timestamp: Date.now(),
         data: tours,
       };
-      
+
       res.json(tours);
     } catch (error) {
       console.error("Error fetching tours:", error);
       res.status(500).json({ message: "Error fetching tours" });
     }
   });
-  
+
   // Get all tour dates across all tours (for venue view)
   app.get("/api/tours/all-dates", async (req, res) => {
     try {
@@ -284,12 +284,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all tours
       const tours = await storage.getTours();
       console.log("Tours fetched:", tours.length);
-      
+
       if (!tours || tours.length === 0) {
         console.log("No tours found, returning empty array");
         return res.json([]);
       }
-      
+
       // Get dates for each tour and combine them
       const allDatePromises = tours.map(async (tour) => {
         // Ensure we have a valid tour id
@@ -306,14 +306,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return [];
         }
       });
-      
+
       const allDatesArrays = await Promise.all(allDatePromises);
       console.log("All date arrays fetched:", allDatesArrays.length);
-      
+
       // Flatten the array of arrays
       const allDates = allDatesArrays.flat();
       console.log("Total dates found:", allDates.length);
-      
+
       return res.json(allDates);
     } catch (error) {
       console.error("Error fetching all tour dates:", error);
@@ -325,11 +325,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const tour = await storage.getTour(id);
-      
+
       if (!tour) {
         return res.status(404).json({ message: "Tour not found" });
       }
-      
+
       res.json(tour);
     } catch (error) {
       console.error("Error fetching tour:", error);
@@ -347,7 +347,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const validationError = fromZodError(error);
         return res.status(400).json({ message: validationError.message });
       }
-      
+
       console.error("Error creating tour:", error);
       res.status(500).json({ message: "Error creating tour" });
     }
@@ -358,18 +358,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const validatedData = insertTourSchema.partial().parse(req.body);
       const updatedTour = await storage.updateTour(id, validatedData);
-      
+
       if (!updatedTour) {
         return res.status(404).json({ message: "Tour not found" });
       }
-      
+
       res.json(updatedTour);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const validationError = fromZodError(error);
         return res.status(400).json({ message: validationError.message });
       }
-      
+
       console.error("Error updating tour:", error);
       res.status(500).json({ message: "Error updating tour" });
     }
@@ -379,11 +379,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const success = await storage.deleteTour(id);
-      
+
       if (!success) {
         return res.status(404).json({ message: "Tour not found" });
       }
-      
+
       res.status(204).end();
     } catch (error) {
       console.error("Error deleting tour:", error);
@@ -407,11 +407,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const tourDate = await storage.getTourDate(id);
-      
+
       if (!tourDate) {
         return res.status(404).json({ message: "Tour date not found" });
       }
-      
+
       res.json(tourDate);
     } catch (error) {
       console.error("Error fetching tour date:", error);
@@ -429,7 +429,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const validationError = fromZodError(error);
         return res.status(400).json({ message: validationError.message });
       }
-      
+
       console.error("Error creating tour date:", error);
       res.status(500).json({ message: "Error creating tour date" });
     }
@@ -440,18 +440,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const validatedData = insertTourDateSchema.partial().parse(req.body);
       const updatedTourDate = await storage.updateTourDate(id, validatedData);
-      
+
       if (!updatedTourDate) {
         return res.status(404).json({ message: "Tour date not found" });
       }
-      
+
       res.json(updatedTourDate);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const validationError = fromZodError(error);
         return res.status(400).json({ message: validationError.message });
       }
-      
+
       console.error("Error updating tour date:", error);
       res.status(500).json({ message: "Error updating tour date" });
     }
@@ -461,11 +461,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const success = await storage.deleteTourDate(id);
-      
+
       if (!success) {
         return res.status(404).json({ message: "Tour date not found" });
       }
-      
+
       res.status(204).end();
     } catch (error) {
       console.error("Error deleting tour date:", error);
@@ -495,7 +495,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const validationError = fromZodError(error);
         return res.status(400).json({ message: validationError.message });
       }
-      
+
       console.error("Error creating venue availability:", error);
       res.status(500).json({ message: "Error creating venue availability" });
     }
@@ -506,18 +506,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const validatedData = insertVenueAvailabilitySchema.partial().parse(req.body);
       const updatedAvailability = await storage.updateVenueAvailability(id, validatedData);
-      
+
       if (!updatedAvailability) {
         return res.status(404).json({ message: "Venue availability not found" });
       }
-      
+
       res.json(updatedAvailability);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const validationError = fromZodError(error);
         return res.status(400).json({ message: validationError.message });
       }
-      
+
       console.error("Error updating venue availability:", error);
       res.status(500).json({ message: "Error updating venue availability" });
     }
@@ -527,26 +527,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const success = await storage.deleteVenueAvailability(id);
-      
+
       if (!success) {
         return res.status(404).json({ message: "Venue availability not found" });
       }
-      
+
       res.status(204).end();
     } catch (error) {
       console.error("Error deleting venue availability:", error);
       res.status(500).json({ message: "Error deleting venue availability" });
     }
   });
-  
+
   // Get tour dates associated with a specific venue
   app.get("/api/venues/:id/tour-dates", async (req, res) => {
     try {
       const venueId = parseInt(req.params.id);
-      
+
       // Get all tours
       const tours = await storage.getTours();
-      
+
       // Get all tour dates
       const allDatePromises = tours.map(tour => {
         // Ensure we have a valid tour id
@@ -556,40 +556,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         return storage.getTourDates(tour.id);
       });
-      
+
       const allDatesArrays = await Promise.all(allDatePromises);
       const allDates = allDatesArrays.flat();
-      
+
       // Filter dates for the specified venue
       const venueDates = allDates.filter(date => date.venueId === venueId);
-      
+
       res.json(venueDates);
     } catch (error) {
       console.error("Error fetching venue tour dates:", error);
       res.status(500).json({ message: "Error fetching venue tour dates" });
     }
   });
-  
+
   // Get tours that are near a specific venue
   app.get("/api/venues/:id/nearby-tours", async (req, res) => {
     try {
       const venueId = parseInt(req.params.id);
       const venue = await storage.getVenue(venueId);
-      
+
       if (!venue) {
         return res.status(404).json({ message: "Venue not found" });
       }
-      
+
       // Default radius in miles
       const radius = req.query.radius ? parseFloat(req.query.radius as string) : 100;
-      
+
       // Fetch tours with venues along a route that's near this venue
       const lat = parseFloat(venue.latitude);
       const lng = parseFloat(venue.longitude);
-      
+
       // Get all tours
       const allTours = await storage.getTours();
-      
+
       // For each tour, check if it has any venues near this venue
       const nearbyToursPromises = allTours.map(async (tour) => {
         // Skip tours with invalid IDs
@@ -597,24 +597,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.warn("Invalid tour ID encountered:", tour);
           return null;
         }
-        
+
         const tourDates = await storage.getTourDates(tour.id);
-        
+
         // Check if this tour has any dates with venues near our venue
         const hasNearbyVenue = tourDates.some(date => {
           if (!date.venueId) return false;
-          
+
           // For demo purposes, we'll include all tours - in a real implementation,
           // you'd check the actual distance between venue coordinates
           return true;
         });
-        
+
         return hasNearbyVenue ? tour : null;
       });
-      
+
       const nearbyToursWithNulls = await Promise.all(nearbyToursPromises);
       const nearbyTours = nearbyToursWithNulls.filter(tour => tour !== null);
-      
+
       res.json(nearbyTours);
     } catch (error) {
       console.error("Error fetching nearby tours:", error);
@@ -643,7 +643,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })),
         radius: z.number().default(50)
       });
-      
+
       const { waypoints, radius } = schema.parse(req.body);
       const venues = await storage.findVenuesAlongRoute(waypoints, radius);
       res.json(venues);
@@ -652,7 +652,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const validationError = fromZodError(error);
         return res.status(400).json({ message: validationError.message });
       }
-      
+
       console.error("Error finding venues along route:", error);
       res.status(500).json({ message: "Error finding venues along route" });
     }
@@ -669,7 +669,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         endLng: z.number(),
         radius: z.number().default(100)
       });
-      
+
       const { startDate, endDate, startLat, startLng, endLat, endLng, radius } = schema.parse(req.body);
       const venues = await storage.findAvailableVenuesBetweenDates(
         startDate,
@@ -680,21 +680,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         endLng,
         radius
       );
-      
+
       res.json(venues);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const validationError = fromZodError(error);
         return res.status(400).json({ message: validationError.message });
       }
-      
+
       console.error("Error finding venues between dates:", error);
       res.status(500).json({ message: "Error finding venues between dates" });
     }
   });
-  
+
   // Tour Optimization Routes
-  
+
   // Find venues near an existing venue
   app.get("/api/venues/:id/nearby", async (req, res) => {
     try {
@@ -702,9 +702,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const radius = req.query.radius ? parseFloat(req.query.radius as string) : 50;
       const excludeIdsParam = req.query.excludeIds as string;
       const excludeIds = excludeIdsParam ? excludeIdsParam.split(",").map(id => parseInt(id.trim())) : [];
-      
+
       let venues = await storage.findVenuesNearExistingVenue(venueId, radius, excludeIds);
-      
+
       // If no venues found, return all venues except excluded ones and the current one
       if (venues.length === 0) {
         const allVenues = await storage.getVenues();
@@ -713,20 +713,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
           !excludeIds.includes(v.id)
         );
       }
-      
+
       res.json(venues);
     } catch (error) {
       console.error("Error finding nearby venues:", error);
       res.status(500).json({ message: "Error finding nearby venues" });
     }
   });
-  
+
   // Find gaps in a tour schedule
   app.get("/api/tours/:id/gaps", async (req, res) => {
     try {
       const tourId = parseInt(req.params.id);
       const minGapDays = req.query.minDays ? parseInt(req.query.minDays as string) : 2;
-      
+
       const gaps = await storage.findTourGaps(tourId, minGapDays);
       res.json(gaps);
     } catch (error) {
@@ -734,7 +734,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error finding tour gaps" });
     }
   });
-  
+
   // Find venues to fill a gap in a tour
   app.post("/api/tours/:id/fill-gap", async (req, res) => {
     try {
@@ -743,12 +743,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         gapEndDate: z.string().transform(val => new Date(val)),
         radius: z.number().default(50)
       });
-      
+
       const tourId = parseInt(req.params.id);
       const { gapStartDate, gapEndDate, radius } = schema.parse(req.body);
-      
+
       let venues = await storage.findVenuesForTourGap(tourId, gapStartDate, gapEndDate, radius);
-      
+
       // If no venues found, return all venues except those already in the tour
       if (venues.length === 0) {
         const allVenues = await storage.getVenues();
@@ -756,17 +756,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const tourVenueIds = tourDates
           .filter(td => td.venueId !== undefined)
           .map(td => td.venueId as number);
-        
+
         venues = allVenues.filter(venue => !tourVenueIds.includes(venue.id));
       }
-      
+
       res.json(venues);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const validationError = fromZodError(error);
         return res.status(400).json({ message: validationError.message });
       }
-      
+
       console.error("Error finding venues for tour gap:", error);
       res.status(500).json({ message: "Error finding venues for tour gap" });
     }
@@ -796,6 +796,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Previously defined at this location
 
   // Maps API key endpoint is now handled in config routes
+
+  import { storage } from './storage';
+
+  // Venues endpoints
+  app.get('/api/venues', async (req, res) => {
+    try {
+      const venues = await storage.getVenues();
+      res.json(venues);
+    } catch (error) {
+      console.error('Error fetching venues:', error);
+      res.status(500).json({ error: 'Failed to fetch venues' });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
