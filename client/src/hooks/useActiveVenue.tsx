@@ -5,6 +5,7 @@ import { Venue } from '../types';
 
 interface ActiveVenueContextType {
   activeVenue: Venue | null;
+  venue: Venue | null; // Add this for backward compatibility
   setActiveVenue: (venue: Venue | null) => void;
   venueId: number | null;
   setVenueId: (id: number | null) => void;
@@ -14,6 +15,7 @@ interface ActiveVenueContextType {
 
 const defaultActiveVenueContext: ActiveVenueContextType = {
   activeVenue: null,
+  venue: null, // Add venue property for backward compatibility
   setActiveVenue: () => {},
   venueId: null,
   setVenueId: () => {},
@@ -69,6 +71,7 @@ export const ActiveVenueProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const contextValue: ActiveVenueContextType = {
     activeVenue, 
+    venue: activeVenue, // Add venue property that mirrors activeVenue for backward compatibility
     setActiveVenue, 
     venueId, 
     setVenueId, 

@@ -24,8 +24,8 @@ import { Separator } from "@/components/ui/separator";
 import { getFitDescription, generateRoutingDescription, getDaysDescription, getDetourDescription } from "@/lib/routing-utils";
 
 export default function EnhancedArtistDiscovery() {
-  // Use the context directly with its correct property name
-  const { activeVenue } = useActiveVenue();
+  // Use the venue property from context for consistency
+  const { venue: activeVenue } = useActiveVenue();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [searchResults, setSearchResults] = useState<DiscoveryResult[]>([]);
