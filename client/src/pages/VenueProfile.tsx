@@ -17,10 +17,12 @@ export default function VenueProfile() {
   const [, setLocation] = useLocation();
   const venueId = params.id ? parseInt(params.id) : null;
   const [activeTab, setActiveTab] = useState("details");
+  const { activeVenue, setActiveVenue } = useActiveVenue();
 
   useEffect(() => {
     if (!venueId) {
       setLocation("/venues");
+      return;
     }
   }, [venueId, setLocation]);
 
@@ -65,6 +67,13 @@ export default function VenueProfile() {
       </div>
     );
   }
+
+  // Set active venue when data is loaded
+  useEffect(() => {
+    if (venue && (!activeVenue || activeVenue.id !== venue.id)) {
+      setActiveVenue(venue);
+    }
+  }, [venue, activeVenue, setActiveVenue]);
 
   return (
     <div className="container mx-auto py-6 max-w-7xl">
