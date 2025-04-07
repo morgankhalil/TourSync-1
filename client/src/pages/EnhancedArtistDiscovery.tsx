@@ -45,6 +45,55 @@ export default function EnhancedArtistDiscovery() {
     setErrorMessage(null);
   }, [activeVenue]);
 
+  // Handle incremental search results
+  const handleIncrementalResults = (newResults: DiscoveryResult[]) => {
+    // Update the search results with the new ones
+    setSearchResults(prevResults => {
+      // Create a map of existing results by name to avoid duplicates
+      const existingResultsMap = new Map(prevResults.map(result => [result.name, result]));
+      
+      // Add new results if they don't already exist
+      newResults.forEach(result => {
+        if (!existingResultsMap.has(result.name)) {
+          existingResultsMap.set(result.name, result);
+        }
+      });
+      
+      // Convert back to array and sort by routing score (lower is better)
+      const updatedResults = Array.from(existingResultsMap.values())
+        .sort((a, b) => a.route.routingScore - b.route.routingScore);
+      
+      return updatedResults;
+    });
+    
+    // Update the stats
+    setSearchStats(prevStats => {
+      if (!prevStats) {
+        return {
+          artistsQueried: 0,
+          artistsWithEvents: 0,
+          artistsPassingNear: newResults.length,
+          totalEventsFound: 0,
+          elapsedTimeMs: 0,
+          apiCacheStats: { keys: 0, hits: 0, misses: 0 }
+        };
+      }
+      
+      return {
+        ...prevStats,
+        artistsPassingNear: prevStats.artistsPassingNear + newResults.length
+      };
+    });
+    
+    // Toast to show incremental results
+    if (newResults.length > 0) {
+      toast({
+        title: "New Match Found!",
+        description: `Found ${newResults.length} new band(s) passing near ${activeVenue?.name}`,
+      });
+    }
+  };
+
   // Handle search
   const handleSearch = async () => {
     if (!activeVenue) {
@@ -87,6 +136,7 @@ export default function EnhancedArtistDiscovery() {
         radius,
         maxBands: maxResults,
         lookAheadDays,
+        onIncrementalResults: handleIncrementalResults,
       });
       
       console.log(`Discovery search complete. Found ${response.data?.length || 0} results`);
@@ -95,6 +145,7 @@ export default function EnhancedArtistDiscovery() {
         throw new Error('Invalid response from discovery API - missing data array');
       }
       
+      // Final results update
       setSearchResults(response.data);
       if (response.stats) {
         setSearchStats(response.stats);

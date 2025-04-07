@@ -131,7 +131,8 @@ export class EnhancedBandsintownDiscoveryClient {
         radius: (options.radius || 100).toString(),
         maxBands: (options.maxBands || 20).toString(),
         lookAheadDays: (options.lookAheadDays || 90).toString(),
-        useDemoMode: (options.useDemoMode || false).toString()
+        useDemoMode: (options.useDemoMode || false).toString(),
+        streaming: options.onIncrementalResults ? 'true' : 'false'
       });
 
       const response = await fetch(`/api/bandsintown-discovery-v2/discover?${queryParams}`);
@@ -140,6 +141,77 @@ export class EnhancedBandsintownDiscoveryClient {
         throw new Error('Discovery API request failed');
       }
 
+      // If incremental results callback is provided, set up streaming response handling
+      if (options.onIncrementalResults) {
+        // Get a reader from the response body
+        const reader = response.body!.getReader();
+        const decoder = new TextDecoder();
+        let allResults: DiscoveryResult[] = [];
+        let buffer = '';
+        let stats: DiscoveryStats | null = null;
+        let venue: any = null;
+
+        // Process the stream
+        while (true) {
+          const { value, done } = await reader.read();
+          
+          if (done) break;
+          
+          // Decode the chunk and add it to our buffer
+          buffer += decoder.decode(value, { stream: true });
+          
+          // Process complete lines in the buffer
+          const lines = buffer.split('\n');
+          
+          // Keep the last line in the buffer if it's incomplete
+          buffer = lines.pop() || '';
+          
+          for (const line of lines) {
+            if (!line.trim()) continue; // Skip empty lines
+            
+            try {
+              const data = JSON.parse(line);
+              
+              if (data.status === 'in-progress' && data.results) {
+                // Call the incremental results callback with the new results
+                options.onIncrementalResults(data.results);
+                
+                // Add to our accumulated results
+                allResults = [...allResults, ...data.results];
+              } else if (data.status === 'complete') {
+                // Final complete result set
+                if (data.results) {
+                  allResults = data.results;
+                }
+                if (data.stats) {
+                  stats = data.stats;
+                }
+                if (data.venue) {
+                  venue = data.venue;
+                }
+              }
+            } catch (err) {
+              console.error('Error parsing streaming response:', err, 'Line:', line);
+            }
+          }
+        }
+        
+        // Return the final accumulated result
+        return {
+          data: allResults,
+          stats: stats || {
+            artistsQueried: 0,
+            artistsWithEvents: 0,
+            artistsPassingNear: 0,
+            totalEventsFound: 0,
+            elapsedTimeMs: 0,
+            apiCacheStats: { keys: 0, hits: 0, misses: 0 }
+          },
+          venue: venue || { id: options.venueId, name: '', address: '', city: '', state: '', zipCode: '', latitude: '0', longitude: '0' }
+        };
+      }
+      
+      // For non-streaming requests, just return the JSON response
       return await response.json();
     } catch (error) {
       console.error('Failed to perform band discovery:', error);

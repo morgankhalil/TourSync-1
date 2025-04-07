@@ -418,13 +418,12 @@ export class EnhancedBandsintownDiscoveryService {
           bandDiscoveryResults.push(newResult);
           incremental.results.push(newResult);
           
-          // Send incremental results when we have at least 3 new artists or it's been 10+ seconds
-          if (incremental.results.length >= 3 || (Date.now() - incremental.lastSent > 10000)) {
-            if (options.onIncrementalResults && incremental.results.length > 0) {
-              options.onIncrementalResults([...incremental.results]);
-              incremental.results = [];
-              incremental.lastSent = Date.now();
-            }
+          // Send incremental results as soon as we get a match (one at a time)
+          // This allows the UI to update immediately when we find a good match
+          if (options.onIncrementalResults && incremental.results.length > 0) {
+            options.onIncrementalResults([...incremental.results]);
+            incremental.results = [];
+            incremental.lastSent = Date.now();
           }
         }
       }

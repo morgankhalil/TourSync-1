@@ -44,7 +44,8 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
         genres,
         maxBands,
         maxDistance,
-        lookAheadDays
+        lookAheadDays,
+        streaming
       } = req.query;
 
       // Validate required parameters
@@ -61,6 +62,7 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
       const numericMaxBands = maxBands ? parseInt(maxBands as string, 10) : 20;
       const numericMaxDistance = maxDistance ? parseInt(maxDistance as string, 10) : 200;
       const numericLookAheadDays = lookAheadDays ? parseInt(lookAheadDays as string, 10) : 90;
+      const useStreaming = streaming === 'true';
 
       // Parse genre array
       const genresArray = genres ? (genres as string).split(',') : [];
@@ -75,11 +77,13 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
         }
       };
 
-      // Set appropriate headers for streaming
-      res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Transfer-Encoding', 'chunked');
-      res.setHeader('Cache-Control', 'no-cache');
-      res.setHeader('Connection', 'keep-alive');
+      // Set appropriate headers for streaming if requested
+      if (useStreaming) {
+        res.setHeader('Content-Type', 'text/plain');
+        res.setHeader('Transfer-Encoding', 'chunked');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+      }
       
       // Create a flag to track if any incremental results were sent
       let incrementalResultsSent = false;
@@ -97,10 +101,15 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
           lookAheadDays: numericLookAheadDays,
           onProgress,
           onIncrementalResults: (newResults) => {
-            if (newResults && newResults.length > 0) {
+            if (useStreaming && newResults && newResults.length > 0) {
               try {
                 // Send each batch as a newline-delimited JSON
-                res.write(JSON.stringify({results: newResults, status: "in-progress"}) + '\n');
+                const venue = { id: numericVenueId };
+                res.write(JSON.stringify({
+                  results: newResults, 
+                  status: "in-progress",
+                  venue
+                }) + '\n');
                 incrementalResultsSent = true;
               } catch (err) {
                 console.error('Error sending incremental results:', err);
@@ -112,10 +121,15 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
         console.log(`Discovery complete. Found ${result.data.length} bands near venue ${numericVenueId}`);
 
         // If we sent incremental results, end the response
-        if (incrementalResultsSent) {
+        if (useStreaming && incrementalResultsSent) {
           try {
-            // Send the final complete result
-            res.write(JSON.stringify({results: result.data, status: "complete"}) + '\n');
+            // Send the final complete result with stats and venue
+            res.write(JSON.stringify({
+              results: result.data, 
+              status: "complete",
+              stats: result.stats,
+              venue: result.venue
+            }) + '\n');
             res.end();
           } catch (err) {
             console.error('Error sending final streaming response:', err);
@@ -125,14 +139,14 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
             }
           }
         } else {
-          // If no incremental results were sent, just send the final result as normal JSON
+          // If no incremental results were sent or not using streaming, just send the final result as normal JSON
           res.json(result);
         }
       } catch (innerError) {
         console.error('Error during band discovery process:', innerError);
         
         // If we already started streaming, try to end the response with an error
-        if (incrementalResultsSent) {
+        if (useStreaming && incrementalResultsSent) {
           try {
             res.write(JSON.stringify({
               status: "error", 
