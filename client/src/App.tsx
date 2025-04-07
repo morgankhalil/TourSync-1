@@ -14,7 +14,8 @@ export default function App() {
     <>
       <AppLayout>
         <Switch>
-          <Route path="/" component={Dashboard} />
+          <Route path="/" component={Home} />
+          <Route path="/dashboard" component={Dashboard} />
           <Route path="/calendar" component={VenueCalendar} />
           <Route path="/venue/:id" component={VenueProfile} />
           <Route path="/tours" component={TourDashboard} />
