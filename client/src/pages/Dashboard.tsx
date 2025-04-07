@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useActiveVenue } from '@/hooks/useActiveVenue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Link, useLocation } from 'wouter';
 import { addDays, format } from 'date-fns';
+import { useEffect } from 'react';
 
 const Dashboard = () => {
   const { activeVenue, isLoading: isVenueLoading } = useActiveVenue();
@@ -14,7 +15,7 @@ const Dashboard = () => {
   
   // Redirect to the specific venue dashboard if a venue is selected
   useEffect(() => {
-    if (!isVenueLoading && activeVenue) {
+    if (!isVenueLoading && activeVenue && activeVenue.id) {
       // Use proper navigation to venue dashboard
       setLocation(`/venue/${activeVenue.id}/dashboard`);
     } else if (!isVenueLoading && !activeVenue) {
@@ -57,7 +58,7 @@ const Dashboard = () => {
   return (
     <div className="container mx-auto p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">{activeVenue?.name} Dashboard</h1>
+        <h1 className="text-3xl font-bold">Venue Dashboard</h1>
         <p className="text-muted-foreground mt-2">
           Manage your venue's performance and opportunities
         </p>

@@ -111,10 +111,6 @@ export const ActiveVenueProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setVenueId(venue.id);
       setActiveVenue(venue);
       
-      // Navigate to the venue dashboard using proper client-side navigation
-      // Uncomment this if you want automatic navigation on venue selection
-      // window.location.href = `/venue/${venue.id}/dashboard`;
-      
       // Show toast notification
       toast({
         title: "Venue Selected",
@@ -132,8 +128,7 @@ export const ActiveVenueProvider: React.FC<{ children: React.ReactNode }> = ({ c
           queryClient.invalidateQueries({ queryKey: [`/api/venues/${venue.id}`] });
           queryClient.invalidateQueries({ queryKey: ['/api/bandsintown-discovery-v2'] });
           
-          // Navigate to venue dashboard after data is loaded
-          window.location.href = `/venue/${venue.id}/dashboard`;
+          // Don't use window.location.href - let components handle navigation
         })
         .catch(error => {
           console.error("Failed to fetch venue data:", error);
