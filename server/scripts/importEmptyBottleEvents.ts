@@ -2,39 +2,16 @@
 import { db } from '../db';
 import { addDays } from 'date-fns';
 import { venues, tours, tourDates, venueAvailability, bands } from '@shared/schema';
+import { BandsintownApiService } from '../services/bandsintown-api';
 
 async function importEmptyBottleEvents() {
   try {
     console.log('Starting Empty Bottle data import...');
 
-    // 1. Create sample bands first
-    const sampleBands = [
-      {
-        name: "The Spring Awakeners",
-        genre: "Indie Rock",
-        contactEmail: "contact@springawakeners.com",
-        formedYear: 2020,
-        hometown: "Chicago, IL",
-        description: "Up and coming indie rock band"
-      },
-      {
-        name: "Underground Soundsystem",
-        genre: "Electronic",
-        contactEmail: "contact@undergroundsound.com",
-        formedYear: 2019,
-        hometown: "Detroit, MI",
-        description: "Electronic music collective"
-      }
-    ];
+    // Initialize Bandsintown API service
+    const bandsintownApi = new BandsintownApiService(process.env.BANDSINTOWN_API_KEY || '');
 
-    console.log('Creating sample bands...');
-    const createdBands = [];
-    for (const bandData of sampleBands) {
-      const [band] = await db.insert(bands).values(bandData).returning();
-      createdBands.push(band);
-    }
-
-    // 2. Create the Empty Bottle venue
+    // 1. Create or get the Empty Bottle venue
     const existingVenue = await db.query.venues.findFirst({
       where: (venues, { eq, and }) => 
         and(eq(venues.name, 'Empty Bottle'), eq(venues.city, 'Chicago'))
@@ -75,57 +52,76 @@ async function importEmptyBottleEvents() {
       venue = existingVenue;
     }
 
-    // 3. Generate availability for next 6 months
+    // 2. Fetch upcoming shows from Bandsintown
+    const events = await bandsintownApi.getVenueEvents("Empty Bottle", "Chicago, IL");
+    console.log(`Found ${events.length} upcoming events`);
+
+    // 3. Create bands and tours from the events
+    for (const event of events) {
+      // Create band if doesn't exist
+      const [band] = await db.insert(bands).values({
+        name: event.lineup[0], // Use headliner
+        genre: "Rock", // Default genre
+        contactEmail: `booking@${event.lineup[0].toLowerCase().replace(/\s+/g, '')}.com`,
+        formedYear: new Date().getFullYear() - Math.floor(Math.random() * 10),
+        hometown: "Chicago, IL",
+        description: `${event.lineup[0]} is performing at Empty Bottle`
+      })
+      .onConflictDoNothing()
+      .returning();
+
+      if (band) {
+        // Create a tour for the band
+        const tourStartDate = new Date(event.datetime);
+        const tourEndDate = addDays(tourStartDate, 30); // Assume 30-day tour
+
+        const [tour] = await db.insert(tours).values({
+          name: `${event.lineup[0]} ${tourStartDate.getFullYear()} Tour`,
+          startDate: tourStartDate.toISOString(),
+          endDate: tourEndDate.toISOString(),
+          bandId: band.id,
+          notes: event.description || "Midwest Tour",
+          isActive: true
+        }).returning();
+
+        // Create tour date for this show
+        await db.insert(tourDates).values({
+          tourId: tour.id,
+          venueId: venue.id,
+          date: event.datetime,
+          city: "Chicago",
+          state: "IL",
+          status: "confirmed",
+          notes: event.description || `Performing at ${venue.name}`,
+          venueName: venue.name,
+          isOpenDate: false
+        });
+
+        console.log(`Created tour date for ${band.name} on ${new Date(event.datetime).toLocaleDateString()}`);
+      }
+    }
+
+    // 4. Generate venue availability excluding event dates
     const startDate = new Date();
     const endDate = addDays(startDate, 180);
     let currentDate = startDate;
 
     while (currentDate <= endDate) {
+      const dateStr = currentDate.toISOString();
+      const hasEvent = events.some(event => 
+        new Date(event.datetime).toDateString() === currentDate.toDateString()
+      );
+
       await db.insert(venueAvailability).values({
         venueId: venue.id,
-        date: currentDate.toISOString(),
-        isAvailable: Math.random() > 0.3 // 70% chance of being available
+        date: dateStr,
+        isAvailable: !hasEvent // Available if no event
       });
+
       currentDate = addDays(currentDate, 1);
     }
 
-    // 4. Create sample tours with the actual band IDs
-    const sampleTours = [
-      {
-        name: "Spring Awakening Tour",
-        startDate: new Date('2025-04-01').toISOString(),
-        endDate: new Date('2025-05-15').toISOString(),
-        bandId: createdBands[0].id,
-        notes: "Midwest leg of national tour",
-        isActive: true
-      },
-      {
-        name: "Underground Sound Tour",
-        startDate: new Date('2025-04-15').toISOString(),
-        endDate: new Date('2025-05-30').toISOString(),
-        bandId: createdBands[1].id,
-        notes: "Independent venues showcase",
-        isActive: true
-      }
-    ];
-
-    for (const tourData of sampleTours) {
-      const [tour] = await db.insert(tours).values(tourData).returning();
-
-      await db.insert(tourDates).values({
-        tourId: tour.id,
-        venueId: venue.id,
-        date: new Date(new Date(tourData.startDate).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-        city: "Chicago",
-        state: "IL",
-        status: "confirmed",
-        notes: `Performing at ${venue.name}`,
-        venueName: venue.name,
-        isOpenDate: false
-      });
-    }
-
-    console.log('Successfully imported Empty Bottle data with bands and tours');
+    console.log('Successfully imported Empty Bottle data with real events');
   } catch (error) {
     console.error('Error importing Empty Bottle data:', error);
     throw error;
