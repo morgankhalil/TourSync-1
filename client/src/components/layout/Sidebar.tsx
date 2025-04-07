@@ -75,6 +75,8 @@ const navItems = [
 const Sidebar = ({ onNavClick }: SidebarProps) => {
   const [location] = useLocation();
   const { activeVenue } = useActiveVenue();
+  
+  console.log("Sidebar - Active Venue:", activeVenue);
 
   // Helper to check if a navigation item is active
   const isActive = (path: string) => {

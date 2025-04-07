@@ -26,6 +26,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 export default function TopNav() {
   const { activeVenue } = useActiveVenue();
   const [searchOpen, setSearchOpen] = useState(false);
+  
+  console.log("TopNav - Active Venue:", activeVenue);
 
   return (
     <header className="h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 sticky top-0">
