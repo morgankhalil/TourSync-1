@@ -118,3 +118,59 @@ export type InsertTourDate = z.infer<typeof insertTourDateSchema>;
 
 export type VenueAvailability = typeof venueAvailability.$inferSelect;
 export type InsertVenueAvailability = z.infer<typeof insertVenueAvailabilitySchema>;
+export interface Venue {
+  id: number;
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  latitude: string;
+  longitude: string;
+  capacity?: number;
+  website?: string;
+  phone?: string;
+  email?: string;
+}
+
+export interface Artist {
+  id: string;
+  name: string;
+  genres?: string[];
+  image_url?: string;
+  url?: string;
+  website?: string;
+  draw_size?: number;
+}
+
+export interface ArtistDiscoveryRecord {
+  artistId: string;
+  lastChecked: string;
+  timesChecked: number;
+}
+
+export interface Event {
+  id: string;
+  datetime: string;
+  venue: {
+    name: string;
+    city: string;
+    region: string;
+    country: string;
+    latitude: string;
+    longitude: string;
+  };
+}
+
+export interface DiscoveryStats {
+  artistsQueried: number;
+  artistsWithEvents: number;
+  artistsPassingNear: number;
+  totalEventsFound: number;
+  elapsedTimeMs: number;
+  apiCacheStats: {
+    keys: number;
+    hits: number;
+    misses: number;
+  };
+}
