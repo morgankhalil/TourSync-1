@@ -100,9 +100,6 @@ export class EnhancedBandsintownDiscoveryService {
     await this.apiService.validateApiKey();
     console.log('Enhanced Bandsintown Discovery Service initialized');
   }
-  private apiService: BandsintownApiService;
-
-  constructor(apiKey: string) {
     this.apiService = new BandsintownApiService(apiKey);
   }
 
