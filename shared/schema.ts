@@ -118,6 +118,18 @@ export type InsertTourDate = z.infer<typeof insertTourDateSchema>;
 
 export type VenueAvailability = typeof venueAvailability.$inferSelect;
 export type InsertVenueAvailability = z.infer<typeof insertVenueAvailabilitySchema>;
+
+// Artist discovery tracking
+export const artistDiscovery = pgTable("artist_discovery", {
+  artistId: text("artist_id").primaryKey(),
+  lastChecked: text("last_checked").notNull(),
+  timesChecked: integer("times_checked").notNull().default(1)
+});
+
+export const insertArtistDiscoverySchema = createInsertSchema(artistDiscovery);
+
+export type ArtistDiscovery = typeof artistDiscovery.$inferSelect;
+export type InsertArtistDiscovery = z.infer<typeof insertArtistDiscoverySchema>;
 export interface Venue {
   id: number;
   name: string;
