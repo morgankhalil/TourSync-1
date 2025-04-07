@@ -420,14 +420,11 @@ export function ArtistDiscovery() {
         </div>
         
         {/* View Mode Tabs */}
-        <Tabs defaultValue="opportunities" value={viewMode} onValueChange={handleViewModeChange} className="mb-6">
+        <Tabs value={viewMode} onValueChange={handleViewModeChange} className="mb-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="opportunities">Booking Opportunities</TabsTrigger>
             <TabsTrigger value="tours">Tour Routes</TabsTrigger>
           </TabsList>
-        </Tabs>
-        
-        <Tabs value={viewMode} onValueChange={handleViewModeChange}>
           <TabsContent value="opportunities" className="mt-0">
           {/* Filter Cards - Only show in opportunities view */}
           <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -669,11 +666,9 @@ export function ArtistDiscovery() {
             </TabsContent>
           </Tabs>
         </TabsContent>
-        </Tabs>
         
         {/* Tour Routes View Mode */}
-        <Tabs value={viewMode} onValueChange={handleViewModeChange}>
-          <TabsContent value="tours" className="mt-0">
+        <TabsContent value="tours" className="mt-0">
           <div className="mb-6">
             <h2 className="text-xl font-medium mb-2">Touring Bands</h2>
             <p className="text-muted-foreground">
