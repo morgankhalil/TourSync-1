@@ -9,6 +9,7 @@ import { EnhancedBandsintownDiscoveryClient, DiscoveryResult, DiscoveryStats } f
 import { EnhancedBandMapView } from "../components/maps/EnhancedBandMapView";
 import { SimpleMapView } from "../components/maps/SimpleMapView";
 import { BasicMapView } from "../components/maps/BasicMapView";
+import { StaticMapView } from "../components/maps/StaticMapView";
 import { AlertCircle, CalendarDays, Info, MapPin, AlertTriangle, RefreshCw, Music, Zap } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -622,7 +623,7 @@ export default function EnhancedArtistDiscovery() {
             <Card>
               <CardContent className="p-1 h-[600px]">
                 {activeVenue && (
-                  <BasicMapView 
+                  <StaticMapView 
                     locations={[
                       // Venue location
                       {
