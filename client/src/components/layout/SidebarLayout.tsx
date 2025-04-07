@@ -23,17 +23,17 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
   }, [isMobile, closeSidebar]);
 
   return (
-    <div className="flex flex-col md:flex-row h-full overflow-hidden">
+    <div className="flex flex-col md:flex-row h-full w-full overflow-hidden">
       {/* Mobile menu button */}
       {isMobile && (
         <Button
           variant="ghost"
           size="icon"
           onClick={toggleSidebar}
-          className="fixed top-4 left-4 z-50 md:hidden"
+          className="fixed top-2 left-2 z-50 md:hidden"
           aria-label="Toggle menu"
         >
-          {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+          {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
         </Button>
       )}
       
