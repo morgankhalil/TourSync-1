@@ -32,7 +32,7 @@ const ActiveVenueContext = createContext<ActiveVenueContextType>(defaultActiveVe
 export const ActiveVenueProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [venueId, setVenueId] = useState<number | null>(45); // Default to Empty Bottle venue (ID 45)
+  const [venueId, setVenueId] = useState<number | null>(null);
   const [activeVenue, setActiveVenue] = useState<Venue | null>(null);
   
   // Function to refresh venue data
@@ -141,15 +141,14 @@ export const ActiveVenueProvider: React.FC<{ children: React.ReactNode }> = ({ c
       console.log(`Setting active venue from fetched data:`, venue);
       setActiveVenue(venue);
     } else if (venues && venues.length > 0 && !activeVenue) {
-      // If we have venues but no active venue, set Empty Bottle or first available
-      const emptyBottle = venues.find(v => v.name === "Empty Bottle") || venues[0];
-      console.log(`Setting default venue to:`, emptyBottle);
-      setActiveVenue(emptyBottle);
-      setVenueId(emptyBottle.id);
+      const firstVenue = venues[0];
+      console.log(`Setting default venue to:`, firstVenue);
+      setActiveVenue(firstVenue);
+      setVenueId(firstVenue.id);
       
       toast({
         title: "Default venue selected",
-        description: `Selected venue: ${emptyBottle.name}`,
+        description: `Selected venue: ${firstVenue.name}`,
         duration: 3000
       });
     }
