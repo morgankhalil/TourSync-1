@@ -1,13 +1,22 @@
+
 import * as React from "react"
 
 const MOBILE_BREAKPOINT = 768
 
 export function useIsMobile() {
-  return useMediaQuery(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+  const isMobile = useMediaQuery(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+  return isMobile;
 }
 
 export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = React.useState<boolean>(false);
+  const [matches, setMatches] = React.useState<boolean>(() => {
+    // For SSR or initial render, check if window exists
+    if (typeof window !== 'undefined') {
+      return window.matchMedia(query).matches;
+    }
+    // Default to false if we're in SSR
+    return false;
+  });
 
   React.useEffect(() => {
     // Handle SSR case where window might not be available
@@ -19,8 +28,8 @@ export function useMediaQuery(query: string): boolean {
     setMatches(media.matches);
     
     // Set up event listener
-    const listener = () => {
-      setMatches(media.matches);
+    const listener = (e: MediaQueryListEvent) => {
+      setMatches(e.matches);
     };
     
     // Use the appropriate event listener method based on browser support

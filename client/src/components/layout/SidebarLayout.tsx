@@ -48,15 +48,15 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
       
       {/* Sidebar */}
       <aside
-        className={`fixed md:relative z-50 md:z-auto h-screen md:h-full ${
+        className={`fixed md:relative z-50 md:z-auto h-full ${
           isSidebarOpen || !isMobile ? 'translate-x-0' : '-translate-x-full'
-        } transition-transform duration-200 ease-in-out w-[280px] max-w-[80vw] md:max-w-none`}
+        } transition-transform duration-200 ease-in-out w-[280px] max-w-[80vw] md:max-w-none bg-background`}
       >
         <Sidebar />
       </aside>
       
       {/* Main content */}
-      <main className="flex-1 overflow-auto pb-20 md:pb-0 pt-14 md:pt-0 w-full">
+      <main className="flex-1 overflow-auto w-full pb-16 md:pb-0 pt-14 md:pt-0">
         {children}
       </main>
 

@@ -353,6 +353,7 @@ export default function PastPerformancesManager({ venueId }: PastPerformancesMan
                           <Input 
                             placeholder="Enter artist name" 
                             {...field} 
+                            className="min-h-10"
                           />
                         </FormControl>
                         <FormMessage />
@@ -370,6 +371,7 @@ export default function PastPerformancesManager({ venueId }: PastPerformancesMan
                           <Input 
                             type="date" 
                             {...field} 
+                            className="min-h-10"
                           />
                         </FormControl>
                         <FormDescription>Format: YYYY-MM-DD</FormDescription>

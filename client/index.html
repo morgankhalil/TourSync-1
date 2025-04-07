@@ -20,69 +20,97 @@
         height: calc(100vh - 64px);
       }
       @media (max-width: 768px) {
-        .map-container {
-          height: 60vh;
-        }
-
-        /* Optimize touch targets for mobile */
-        button, a, [role="button"] {
-          min-height: 44px;
-          min-width: 44px;
-          padding: 10px; /* Added padding for better touch target */
-        }
-        
-        /* Fix for wrapping issues in mobile nav */
-        .mobile-nav-item {
-          white-space: nowrap;
-          text-overflow: ellipsis;
-          overflow: hidden;
-        }
-
-        /* Add bottom padding to ensure content isn't hidden behind mobile nav */
-        main, .main-content {
-          padding-bottom: 80px;
-        }
-        
-        /* Account for safe areas on newer devices */
-        @supports (padding: max(0px)) {
-          main, .main-content {
-            padding-bottom: max(80px, calc(80px + env(safe-area-inset-bottom, 0px)));
+          .map-container {
+            height: 60vh;
           }
-          
-          .fixed-bottom {
+
+          /* Optimize touch targets for mobile */
+          button, a, [role="button"] {
+            min-height: 44px;
+            min-width: 44px;
+          }
+
+          /* Fix for wrapping issues in mobile nav */
+          .mobile-nav-item {
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            max-width: 100%;
+          }
+
+          /* Add bottom padding to ensure content isn't hidden behind mobile nav */
+          main, .main-content {
+            padding-bottom: 80px;
+          }
+
+          /* Safe area support for notched phones */
+          .safe-area-bottom {
             padding-bottom: env(safe-area-inset-bottom, 0px);
           }
-        }
 
-        /* Make font sizes more readable on small screens */
-        body {
-          font-size: 16px;
-        }
+          /* Account for safe areas on newer devices */
+          @supports (padding: max(0px)) {
+            main, .main-content {
+              padding-bottom: max(80px, calc(80px + env(safe-area-inset-bottom, 0px)));
+            }
 
-        /* Adjust card padding for mobile */
-        .card {
-          padding: 12px;
-        }
-        
-        /* Fix mobile overflows */
-        .mobile-scroll {
-          overflow-x: auto;
-          -webkit-overflow-scrolling: touch;
-        }
-        
-        /* Prevent zoom on inputs */
-        input, select, textarea {
-          font-size: 16px !important;
-        }
+            .fixed-bottom {
+              padding-bottom: env(safe-area-inset-bottom, 0px);
+            }
+          }
 
-        /* Additional mobile-specific styles */
-        .mobile-only {
-          display: block;
+          /* Make font sizes more readable on small screens */
+          body {
+            font-size: 16px;
+          }
+
+          /* Adjust card padding for mobile */
+          .card {
+            padding: 12px;
+          }
+
+          /* Fix mobile overflows */
+          .mobile-scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+          }
+
+          /* Prevent zoom on inputs */
+          input, select, textarea {
+            font-size: 16px !important;
+          }
+
+          /* Fix mobile navigation */
+          .mobile-nav {
+            height: auto;
+            z-index: 50;
+          }
+
+          /* Fix sidebar on mobile */
+          .sidebar-mobile {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 85%;
+            max-width: 300px;
+            z-index: 100;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+          }
+
+          .sidebar-mobile.open {
+            transform: translateX(0);
+          }
+
+          /* Additional mobile-specific styles */
+          .mobile-only {
+            display: block;
+          }
+          .desktop-only {
+            display: none;
+          }
         }
-        .desktop-only {
-          display: none;
-        }
-      }
       @media (min-width: 769px) {
         .mobile-only {
           display: none;
