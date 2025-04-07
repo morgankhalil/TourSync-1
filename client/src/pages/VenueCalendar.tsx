@@ -50,7 +50,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { DatePicker } from '@/components/DatePicker';
+import { DatePicker } from '@/components/ui/date-picker';
 
 interface CalendarEvent {
   id: number;
