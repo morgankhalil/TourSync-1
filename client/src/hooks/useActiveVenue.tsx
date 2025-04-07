@@ -53,13 +53,13 @@ export const ActiveVenueProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const { data: venue, isLoading, error: venueError } = useQuery({
     queryKey: ['/api/venues', venueId],
     queryFn: async () => {
-      console.log(`Fetching specific venue with ID: ${venueId}`);
+      console.log(`!!! Fetching specific venue with ID: ${venueId}`);
       const response = await fetch(`/api/venues/${venueId}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch venue with ID ${venueId}`);
       }
       const data = await response.json() as Venue;
-      console.log(`Loaded venue data:`, data);
+      console.log(`!!! Loaded venue data:`, data);
       return data;
     },
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
@@ -89,7 +89,7 @@ export const ActiveVenueProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   // When venue ID changes, log information
   useEffect(() => {
-    console.log(`Current venue ID: ${venueId}, Venue object:`, activeVenue);
+    console.log(`!!!!! Current venue ID: ${venueId}, Venue object:`, activeVenue);
   }, [venueId, activeVenue]);
 
   const contextValue: ActiveVenueContextType = {
