@@ -8,13 +8,23 @@ import { WebSocketServer } from 'ws';
 const app = express();
 app.use(express.json());
 
-// Create WebSocket server
-const wss = new WebSocketServer({ noServer: true });
+// Create WebSocket server with proper error handling
+const wss = new WebSocketServer({ 
+  noServer: true,
+  perMessageDeflate: false // Disable compression to avoid potential frame errors
+});
+
+wss.on('error', (error) => {
+  console.error('WebSocket Server Error:', error);
+});
 
 // Handle process termination
 function shutdownGracefully() {
   console.log('Shutting down gracefully...');
-  process.exit(0);
+  wss.close(() => {
+    console.log('WebSocket server closed');
+    process.exit(0);
+  });
 }
 
 process.on('SIGTERM', shutdownGracefully);
