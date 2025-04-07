@@ -100,12 +100,6 @@ export class EnhancedBandsintownDiscoveryService {
     await this.apiService.validateApiKey();
     console.log('Enhanced Bandsintown Discovery Service initialized');
   }
-    this.apiService = new BandsintownApiService(apiKey);
-    this.cache = new NodeCache({ 
-      stdTTL: 3600,
-      checkperiod: 120
-    });
-  }
 
   /**
    * Check connection status to the Bandsintown API
