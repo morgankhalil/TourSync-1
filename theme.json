@@ -1,6 +1,11 @@
+
 {
   "primary": "#3B82F6",
-  "variant": "tint",
+  "variant": "professional",
   "appearance": "system",
-  "radius": 0.5
+  "radius": 0.6,
+  "accent": {
+    "light": "#F3F4F6",
+    "dark": "#374151"
+  }
 }

@@ -228,7 +228,14 @@ export default function VenueProfile() {
         </TabsContent>
 
         <TabsContent value="performances">
-          <PastPerformancesManager venueId={venueId} />
+          <Card>
+            <CardHeader>
+              <CardTitle>Past Performances</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <PastPerformancesManager venueId={venueId} />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="calendar">

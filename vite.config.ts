@@ -1,3 +1,4 @@
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import themePlugin from "@replit/vite-plugin-shadcn-theme-json";
@@ -18,6 +19,18 @@ export default defineConfig({
         ]
       : []),
   ],
+  optimizeDeps: {
+    exclude: [
+      '@hookform/resolvers/zod',
+      'react-hook-form',
+      'zod',
+      'drizzle-orm/pg-core',
+      'drizzle-zod',
+      '@radix-ui/react-accordion',
+      '@radix-ui/react-separator',
+      '@radix-ui/react-checkbox'
+    ]
+  },
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
