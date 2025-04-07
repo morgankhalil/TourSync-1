@@ -4,7 +4,7 @@ import Sidebar from './Sidebar';
 import MobileNavigation from './MobileNavigation';
 import { useSidebar } from '@/context/SidebarContext';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Menu, X } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface SidebarLayoutProps {
@@ -23,44 +23,40 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
   }, [isMobile, closeSidebar]);
 
   return (
-    <div className="flex flex-col md:flex-row h-full w-full overflow-hidden">
+    <div className="flex h-full w-full overflow-hidden">
       {/* Mobile menu button */}
       {isMobile && (
         <Button
           variant="ghost"
           size="icon"
           onClick={toggleSidebar}
-          className="fixed top-2 left-2 z-50 md:hidden"
-          aria-label="Toggle menu"
+          className="fixed top-4 left-4 z-50"
         >
-          {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
+          <Menu size={24} />
         </Button>
       )}
-      
-      {/* Mobile overlay */}
+
+      {/* Sidebar with mobile overlay */}
       {isMobile && isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40" 
+        <div
+          className="fixed inset-0 bg-black/50 z-40"
           onClick={closeSidebar}
-          aria-hidden="true"
         />
       )}
-      
+
       {/* Sidebar */}
-      {(!isMobile || isSidebarOpen) && (
-        <aside
-          className={`fixed md:relative z-50 md:z-auto h-full ${
-            isMobile ? (isSidebarOpen ? 'translate-x-0' : '-translate-x-full') : ''
-          } transition-transform duration-200 ease-in-out w-[280px] max-w-[80vw] md:max-w-none bg-background ${
-            isMobile ? 'shadow-lg' : ''
-          }`}
-        >
-          <Sidebar />
-        </aside>
-      )}
-      
+      <div
+        className={`${
+          isMobile
+            ? 'fixed left-0 top-0 bottom-0 z-50 transform transition-transform duration-300 ease-in-out w-[280px]'
+            : 'relative w-[280px]'
+        } ${isMobile && !isSidebarOpen ? '-translate-x-full' : 'translate-x-0'}`}
+      >
+        <Sidebar />
+      </div>
+
       {/* Main content */}
-      <main className="flex-1 overflow-auto w-full pb-16 md:pb-0 pt-14 md:pt-0">
+      <main className="flex-1 overflow-auto relative">
         {children}
       </main>
 
