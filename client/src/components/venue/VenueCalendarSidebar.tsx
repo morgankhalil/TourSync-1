@@ -5,9 +5,20 @@ import { Card, CardContent, CardTitle, CardHeader, CardDescription, CardFooter }
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Venue, VenueAvailability, TourDate } from '@shared/schema';
-import { format, isSameDay, addDays, subDays, isToday, isSameMonth } from 'date-fns';
-import { Calendar as CalendarIcon, Clock, Plus, Music, Users, ArrowRight } from 'lucide-react';
+import { format, isSameDay, isToday } from 'date-fns';
+import { Calendar as CalendarIcon, Plus, Music } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+// Helper function to format dates
+const formatDate = (dateString: string) => {
+  return format(new Date(dateString), 'MMM d, yyyy');
+};
+
+// Extended types for our components
+interface ExtendedTourDate extends TourDate {
+  title?: string;
+  bandId?: number;
+}
 
 interface VenueCalendarSidebarProps {
   selectedDate: Date | undefined;
@@ -59,7 +70,7 @@ export function VenueCalendarSidebar({
   const focusedDateEvents = React.useMemo(() => {
     if (!focusedDate || !eventsData) return [];
     
-    return (eventsData as TourDate[]).filter(
+    return (eventsData as ExtendedTourDate[]).filter(
       event => isSameDay(new Date(event.date), focusedDate)
     );
   }, [focusedDate, eventsData]);
@@ -87,13 +98,13 @@ export function VenueCalendarSidebar({
         </CardDescription>
       </CardHeader>
       
-      <CardContent className="px-2 pb-0 flex-grow">
+      <CardContent className="px-0 pb-0 flex-grow">
         <Calendar
           mode="single"
           selected={selectedDate}
           onSelect={handleDateSelect}
           onDayMouseEnter={(date) => setFocusedDate(date)}
-          className="rounded-md"
+          className="w-full border-none"
           modifiers={{
             booked: bookedDates,
             available: availableDates
@@ -107,37 +118,6 @@ export function VenueCalendarSidebar({
             available: {
               backgroundColor: 'hsl(var(--success) / 0.1)',
               color: 'hsl(var(--success))'
-            }
-          }}
-          components={{
-            Day: (props) => {
-              const date = props.date;
-              const isSelected = selectedDate && isSameDay(date, selectedDate);
-              const isBooked = bookedDates.some(bookedDate => isSameDay(bookedDate, date));
-              const isAvailable = availableDates.some(availableDate => isSameDay(availableDate, date));
-              
-              return (
-                <div
-                  {...props}
-                  className={cn(
-                    props.className,
-                    isSelected && 'bg-primary text-primary-foreground',
-                    !props.outside && !isSelected && isToday(date) && 'text-accent-foreground font-bold',
-                    props.outside && 'text-muted-foreground opacity-50',
-                    (isBooked || isAvailable) && 'font-medium'
-                  )}
-                >
-                  <time dateTime={format(date, 'yyyy-MM-dd')}>
-                    {format(date, 'd')}
-                  </time>
-                  
-                  {/* Add dots to indicate events */}
-                  {!props.outside && (isBooked || isAvailable) && (
-                    <div className="h-1 w-1 mx-auto mt-1 rounded-full 
-                      bg-primary/50" />
-                  )}
-                </div>
-              );
             }
           }}
         />
@@ -171,20 +151,25 @@ export function VenueCalendarSidebar({
             <div className="mt-3 space-y-2">
               <p className="text-xs font-semibold text-muted-foreground uppercase">Events</p>
               
-              {focusedDateEvents.map((event, idx) => (
-                <div key={idx} className="text-sm border rounded-md p-2">
-                  <div className="font-medium">{event.title || 'Untitled Event'}</div>
-                  <div className="flex items-center text-xs text-muted-foreground mt-1">
-                    <Music className="h-3 w-3 mr-1" />
-                    {event.bandId ? `Band #${event.bandId}` : 'No band assigned'}
-                  </div>
-                  {event.notes && (
-                    <div className="text-xs mt-1 text-muted-foreground">
-                      {event.notes}
+              {focusedDateEvents.map((event, idx) => {
+                // Create a display title based on venue name or a default
+                const displayTitle = event.venueName || `Event on ${formatDate(event.date)}`;
+                
+                return (
+                  <div key={idx} className="text-sm border rounded-md p-2">
+                    <div className="font-medium">{displayTitle}</div>
+                    <div className="flex items-center text-xs text-muted-foreground mt-1">
+                      <Music className="h-3 w-3 mr-1" />
+                      {event.tourId ? `Tour ID: ${event.tourId}` : 'No tour assigned'}
                     </div>
-                  )}
-                </div>
-              ))}
+                    {event.notes && (
+                      <div className="text-xs mt-1 text-muted-foreground">
+                        {event.notes}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
           
