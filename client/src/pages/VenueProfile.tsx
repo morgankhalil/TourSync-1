@@ -19,7 +19,6 @@ export default function VenueProfile() {
   const venueId = params.id ? parseInt(params.id) : null;
   const [activeTab, setActiveTab] = useState("details");
   const { activeVenue, setActiveVenue } = useActiveVenue();
-  const [, setLocation] = useLocation();
 
   useEffect(() => {
     if (!venueId && !activeVenue) {
