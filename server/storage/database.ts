@@ -20,16 +20,16 @@ export class DatabaseStorage implements IStorage {
   async getArtists(options: { limit?: number; genres?: string[] } = {}): Promise<Artist[]> {
     const { limit, genres } = options;
     let query = db.select().from(artists);
-    
+
     if (genres?.length) {
       // Filter by genres if provided
       query = query.where(sql`${artists.genres} ?& ${genres}`);
     }
-    
+
     if (limit) {
       query = query.limit(limit);
     }
-    
+
     return query;
   }
 
@@ -127,8 +127,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createVenue(venue: InsertVenue): Promise<Venue> {
-    const [newVenue] = await db.insert(venues).values(venue).returning();
-    return newVenue;
+    // Check for existing venue with same name and location
+    const existing = await db.select()
+      .from(venues)
+      .where(sql`LOWER(name) = LOWER(${venue.name})`)
+      .where(sql`LOWER(city) = LOWER(${venue.city})`)
+      .where(sql`LOWER(state) = LOWER(${venue.state})`);
+
+    if (existing.length > 0) {
+      return existing[0];
+    }
+
+    const result = await db.insert(venues).values(venue).returning();
+    return result[0];
   }
 
   async updateVenue(id: number, venue: Partial<InsertVenue>): Promise<Venue | undefined> {
