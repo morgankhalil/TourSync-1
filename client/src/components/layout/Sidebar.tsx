@@ -1,4 +1,4 @@
-import { Plus, Edit, Calendar, Clock, Music, Users, MapPin, Star, Mail, Settings, BarChart3 } from "lucide-react";
+import { Plus, Edit, Calendar, Clock, Music, Users, MapPin, Star, Mail, Settings, BarChart3, BarChart2 } from "lucide-react";
 import { useSidebar } from "@/context/SidebarContext";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import { X } from "lucide-react";
@@ -27,13 +27,13 @@ const Sidebar = () => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const { activeVenue } = useActiveVenue();
   const [location] = useLocation();
-  
+
   // Fetch upcoming performances for this venue
   const { data: performances = [], isLoading: isPerformancesLoading } = useQuery<Performance[]>({
     queryKey: ["/api/venues", activeVenue?.id, "performances"],
     enabled: !!activeVenue?.id,
   });
-  
+
   // Get upcoming performances (just for display in sidebar)
   const upcomingPerformances = performances
     .filter((p) => new Date(p.date) >= new Date())
@@ -82,7 +82,7 @@ const Sidebar = () => {
               <Skeleton className="h-4 w-24" />
             </div>
           )}
-          
+
           {/* Primary Navigation */}
           <nav className="space-y-1">
             <Link href="/dashboard">
@@ -91,21 +91,21 @@ const Sidebar = () => {
                 <span>Dashboard</span>
               </span>
             </Link>
-            
+
             <Link href="/artist-discovery">
               <span className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${isActive("/artist-discovery") || isActive("/opportunities") || isActive("/bands") ? "bg-primary text-white" : "text-gray-700 hover:bg-gray-100"}`}>
                 <Music className="mr-2 h-4 w-4" />
                 <span>Artist Discovery</span>
               </span>
             </Link>
-            
+
             <Link href="/calendar">
               <span className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${isActive("/calendar") ? "bg-primary text-white" : "text-gray-700 hover:bg-gray-100"}`}>
                 <Clock className="mr-2 h-4 w-4" />
                 <span>Availability Calendar</span>
               </span>
             </Link>
-            
+
             {activeVenue && (
               <Link href={`/venues/${activeVenue.id}`}>
                 <span className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${isActive(`/venues/${activeVenue.id}`) ? "bg-primary text-white" : "text-gray-700 hover:bg-gray-100"}`}>
@@ -114,7 +114,7 @@ const Sidebar = () => {
                 </span>
               </Link>
             )}
-            
+
             <Link href="/analytics">
               <span className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${isActive("/analytics") ? "bg-primary text-white" : "text-gray-700 hover:bg-gray-100"}`}>
                 <BarChart3 className="mr-2 h-4 w-4" />
@@ -129,7 +129,7 @@ const Sidebar = () => {
           <h3 className="font-inter font-semibold text-sm text-gray-500 mb-3 uppercase tracking-wider">
             Upcoming Shows
           </h3>
-          
+
           {isPerformancesLoading ? (
             <div className="space-y-2">
               {Array.from({ length: 3 }).map((_, i) => (
@@ -159,7 +159,7 @@ const Sidebar = () => {
                   </div>
                 </Card>
               ))}
-              
+
               <Link href="/performances">
                 <Button variant="ghost" size="sm" className="w-full text-xs text-primary">
                   View All Shows
@@ -170,13 +170,13 @@ const Sidebar = () => {
             <p className="text-sm text-gray-500 text-center py-4">No upcoming shows</p>
           )}
         </div>
-        
+
         {/* Quick Actions */}
         <div>
           <h3 className="font-inter font-semibold text-sm text-gray-500 mb-3 uppercase tracking-wider">
             Quick Actions
           </h3>
-          
+
           <div className="space-y-2">
             <div id="replit-auth-button" className="replit-auth-button mb-2"></div>
             <Link href="/performances/add">
@@ -185,7 +185,7 @@ const Sidebar = () => {
                 Add Performance
               </Button>
             </Link>
-            
+
             <Link href="/calendar/manage">
               <Button variant="outline" size="sm" className="w-full flex items-center justify-center">
                 <Calendar size={14} className="mr-1" />

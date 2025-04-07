@@ -362,4 +362,39 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
   );
 };
 
+import React from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Tour, TourDate, Venue } from '@/types';
+
+interface TourOptimizationPanelProps {
+  tour: Tour | null;
+  tourDates: TourDate[];
+  onSelectVenue: (venue: Venue) => void;
+}
+
+const TourOptimizationPanel: React.FC<TourOptimizationPanelProps> = ({
+  tour,
+  tourDates,
+  onSelectVenue
+}) => {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Tour Optimization</CardTitle>
+        <CardDescription>Find and fill open dates with recommended venues</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {tourDates.filter(date => date.isOpenDate || !date.venueId).map(date => (
+            <div key={date.id} className="p-4 border rounded-lg">
+              <div className="font-medium">{new Date(date.date).toLocaleDateString()}</div>
+              <div className="text-sm text-muted-foreground">Looking for venues...</div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 export default TourOptimizationPanel;
