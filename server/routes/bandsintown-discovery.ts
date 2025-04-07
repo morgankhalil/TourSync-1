@@ -497,7 +497,8 @@ async function generateDemoDiscoveryData(venueId: number, startDate: string, end
           },
           distanceToVenue: 35,
           detourDistance: 50,
-          daysAvailable: 4
+          daysAvailable: 4,
+          routingScore: 70
         },
         genre: "Indie Rock",
         bandsintownId: "12345",
@@ -526,7 +527,8 @@ async function generateDemoDiscoveryData(venueId: number, startDate: string, end
           },
           distanceToVenue: 55,
           detourDistance: 65,
-          daysAvailable: 5
+          daysAvailable: 5,
+          routingScore: 90
         },
         genre: "Folk",
         bandsintownId: "67890",
@@ -549,7 +551,8 @@ async function generateDemoDiscoveryData(venueId: number, startDate: string, end
           destination: null,  // Single event band
           distanceToVenue: 75,
           detourDistance: 150,
-          daysAvailable: 2
+          daysAvailable: 2,
+          routingScore: 130
         },
         genre: "Punk Rock",
         bandsintownId: "24680",
