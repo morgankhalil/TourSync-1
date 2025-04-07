@@ -2,17 +2,23 @@ import { useQuery } from "@tanstack/react-query";
 import { Venue } from "@shared/schema";
 
 export const useVenues = () => {
-  // For demo purposes, we're loading all venues
   const { data: venues, isLoading, error } = useQuery<Venue[]>({
     queryKey: ['/api/venues'],
+    queryFn: async () => {
+      const response = await fetch('/api/venues');
+      if (!response.ok) {
+        throw new Error('Failed to fetch venues');
+      }
+      return response.json();
+    },
+    retry: 3,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
 
-  // For nearby venues, we would typically filter by location
-  // In a real app, this would use coordinates based on the current map view
   const nearbyVenues = venues?.slice(0, 5);
 
   return {
-    venues,
+    venues: venues || [],
     nearbyVenues,
     isLoading,
     error
