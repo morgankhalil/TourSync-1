@@ -1,3 +1,4 @@
+
 /**
  * Enhanced Bandsintown Discovery API Routes
  * This provides a more powerful version of the discovery API
@@ -6,17 +7,32 @@
 
 import { Router, Request, Response } from 'express';
 import { EnhancedBandsintownDiscoveryService } from '../services/bandsintown-discovery-enhanced';
+import { fromZodError } from 'zod-validation-error';
+import { z } from 'zod';
 
 // Create the enhanced discovery service
 const BANDSINTOWN_API_KEY = process.env.BANDSINTOWN_API_KEY;
 const discoveryService = new EnhancedBandsintownDiscoveryService(BANDSINTOWN_API_KEY || '');
+
+// Validation schema for discovery request
+const discoverRequestSchema = z.object({
+  venueId: z.number().int().positive(),
+  startDate: z.string().refine(val => !isNaN(Date.parse(val))),
+  endDate: z.string().refine(val => !isNaN(Date.parse(val))),
+  radius: z.number().optional(),
+  genres: z.array(z.string()).optional(),
+  maxBands: z.number().optional(),
+  maxDistance: z.number().optional(),
+  lookAheadDays: z.number().optional(),
+  streaming: z.boolean().optional()
+});
 
 export function registerBandsintownDiscoveryV2Routes(router: Router) {
   /**
    * GET /api/bandsintown-discovery-v2/status
    * Check the status of the Bandsintown API connection
    */
-  router.get('/api/bandsintown-discovery-v2/status', async (req: Request, res: Response) => {
+  router.get('/api/bandsintown-discovery-v2/status', async (_req: Request, res: Response) => {
     try {
       const status = await discoveryService.checkStatus();
       res.json(status);
@@ -25,16 +41,16 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
       res.status(500).json({
         status: 'error',
         message: 'Failed to check Bandsintown API status',
-        error: error.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
-  
+
   /**
    * POST /api/bandsintown-discovery-v2/clear-cache
    * Clear the API cache - useful when changing venues or search parameters
    */
-  router.post('/api/bandsintown-discovery-v2/clear-cache', (req: Request, res: Response) => {
+  router.post('/api/bandsintown-discovery-v2/clear-cache', (_req: Request, res: Response) => {
     try {
       console.log('Clearing Bandsintown API cache...');
       discoveryService.clearCache();
@@ -58,36 +74,27 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
    */
   router.get('/api/bandsintown-discovery-v2/discover', async (req: Request, res: Response) => {
     try {
+      const validation = discoverRequestSchema.safeParse(req.query);
+
+      if (!validation.success) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Invalid request parameters',
+          errors: fromZodError(validation.error)
+        });
+      }
+
       const {
         venueId,
         startDate,
         endDate,
-        radius,
-        genres,
-        maxBands,
-        maxDistance,
-        lookAheadDays,
-        streaming
-      } = req.query;
-
-      // Validate required parameters
-      if (!venueId || !startDate || !endDate) {
-        return res.status(400).json({
-          status: 'error',
-          message: 'Missing required parameters: venueId, startDate, endDate'
-        });
-      }
-
-      // Parse numeric parameters
-      const numericVenueId = parseInt(venueId as string, 10);
-      const numericRadius = radius ? parseInt(radius as string, 10) : 50;
-      const numericMaxBands = maxBands ? parseInt(maxBands as string, 10) : 20;
-      const numericMaxDistance = maxDistance ? parseInt(maxDistance as string, 10) : 200;
-      const numericLookAheadDays = lookAheadDays ? parseInt(lookAheadDays as string, 10) : 90;
-      const useStreaming = streaming === 'true';
-
-      // Parse genre array
-      const genresArray = genres ? (genres as string).split(',') : [];
+        radius = 50,
+        genres = [],
+        maxBands = 20,
+        maxDistance = 200,
+        lookAheadDays = 90,
+        streaming = false
+      } = validation.data;
 
       // Set up progress reporting
       let lastReportedProgress = 0;
@@ -100,37 +107,36 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
       };
 
       // Set appropriate headers for streaming if requested
-      if (useStreaming) {
+      if (streaming) {
         res.setHeader('Content-Type', 'text/plain');
         res.setHeader('Transfer-Encoding', 'chunked');
         res.setHeader('Cache-Control', 'no-cache');
         res.setHeader('Connection', 'keep-alive');
       }
-      
+
       // Create a flag to track if any incremental results were sent
       let incrementalResultsSent = false;
-      
+
       try {
         // Find bands near venue with streaming incremental results
         const result = await discoveryService.findBandsNearVenue({
-          venueId: numericVenueId,
-          startDate: startDate as string,
-          endDate: endDate as string,
-          radius: numericRadius,
-          genres: genresArray,
-          maxBands: numericMaxBands,
-          maxDistance: numericMaxDistance,
-          lookAheadDays: numericLookAheadDays,
+          venueId,
+          startDate,
+          endDate,
+          radius,
+          genres,
+          maxBands,
+          maxDistance,
+          lookAheadDays,
           onProgress,
           onIncrementalResults: (newResults) => {
-            if (useStreaming && newResults && newResults.length > 0) {
+            if (streaming && newResults && newResults.length > 0) {
               try {
                 // Send each batch as a newline-delimited JSON
-                const venue = { id: numericVenueId };
                 res.write(JSON.stringify({
-                  results: newResults, 
+                  results: newResults,
                   status: "in-progress",
-                  venue
+                  venue: { id: venueId }
                 }) + '\n');
                 incrementalResultsSent = true;
               } catch (err) {
@@ -140,14 +146,14 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
           }
         });
 
-        console.log(`Discovery complete. Found ${result.data.length} bands near venue ${numericVenueId}`);
+        console.log(`Discovery complete. Found ${result.data.length} bands near venue ${venueId}`);
 
         // If we sent incremental results, end the response
-        if (useStreaming && incrementalResultsSent) {
+        if (streaming && incrementalResultsSent) {
           try {
             // Send the final complete result with stats and venue
             res.write(JSON.stringify({
-              results: result.data, 
+              results: result.data,
               status: "complete",
               stats: result.stats,
               venue: result.venue
@@ -166,12 +172,12 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
         }
       } catch (innerError) {
         console.error('Error during band discovery process:', innerError);
-        
+
         // If we already started streaming, try to end the response with an error
-        if (useStreaming && incrementalResultsSent) {
+        if (streaming && incrementalResultsSent) {
           try {
             res.write(JSON.stringify({
-              status: "error", 
+              status: "error",
               message: "An error occurred during discovery"
             }) + '\n');
             res.end();
@@ -192,12 +198,10 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
       res.status(500).json({
         status: 'error',
         message: 'Failed to find bands near venue',
-        error: error.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
-
-
 
   /**
    * GET /api/bandsintown-discovery-v2/demo-data
