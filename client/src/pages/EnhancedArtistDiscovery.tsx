@@ -50,6 +50,15 @@ export default function EnhancedArtistDiscovery() {
   }, [activeVenue]);
 
   // Handle incremental search results
+  const handleViewArtist = (artist: DiscoveryResult) => {
+    setSelectedArtist(artist);
+    // Switch to details tab
+    const detailsTab = document.querySelector('[data-state="inactive"][value="details"]');
+    if (detailsTab) {
+      (detailsTab as HTMLElement).click();
+    }
+  };
+  
   const handleIncrementalResults = (newResults: DiscoveryResult[]) => {
     console.log("Received incremental results:", newResults.length);
     
@@ -349,10 +358,7 @@ export default function EnhancedArtistDiscovery() {
     }
   };
 
-  // View artist details
-  const handleViewArtist = (artist: DiscoveryResult) => {
-    setSelectedArtist(artist);
-  };
+  // Note: handleViewArtist function is already defined above
 
   return (
     <div className="container py-6">
@@ -629,29 +635,70 @@ export default function EnhancedArtistDiscovery() {
                       {
                         lat: parseFloat(activeVenue.latitude),
                         lng: parseFloat(activeVenue.longitude),
-                        name: activeVenue.name
+                        name: activeVenue.name,
+                        isVenue: true
                       },
-                      // Origin locations
-                      ...searchResults
-                        .filter(artist => artist.route.origin && artist.route.origin.lat && artist.route.origin.lng)
-                        .map(artist => ({
-                          lat: artist.route.origin!.lat,
-                          lng: artist.route.origin!.lng,
-                          name: `${artist.name} @ ${artist.route.origin!.city}, ${artist.route.origin!.state}`
-                        })),
-                      // Destination locations
-                      ...searchResults
-                        .filter(artist => artist.route.destination && artist.route.destination.lat && artist.route.destination.lng)
-                        .map(artist => ({
-                          lat: artist.route.destination!.lat,
-                          lng: artist.route.destination!.lng,
-                          name: `${artist.name} @ ${artist.route.destination!.city}, ${artist.route.destination!.state}`
-                        }))
+                      // Flatten all artist tour locations with proper grouping
+                      ...searchResults.flatMap(artist => {
+                        // Each artist tour is a group
+                        const tourLocations = [];
+                        
+                        // Add origin location if available
+                        if (artist.route.origin && artist.route.origin.lat && artist.route.origin.lng) {
+                          tourLocations.push({
+                            lat: artist.route.origin.lat,
+                            lng: artist.route.origin.lng,
+                            name: `${artist.route.origin.city}, ${artist.route.origin.state}`,
+                            tourId: artist.name, // Use band name as tourId
+                            bandName: artist.name,
+                            imageUrl: artist.image,
+                            date: artist.route.origin.date
+                          });
+                        }
+                        
+                        // Add destination location if available
+                        if (artist.route.destination && artist.route.destination.lat && artist.route.destination.lng) {
+                          tourLocations.push({
+                            lat: artist.route.destination.lat,
+                            lng: artist.route.destination.lng,
+                            name: `${artist.route.destination.city}, ${artist.route.destination.state}`,
+                            tourId: artist.name, // Use band name as tourId
+                            bandName: artist.name,
+                            imageUrl: artist.image,
+                            date: artist.route.destination.date
+                          });
+                        }
+                        
+                        // Add midpoint for potential venue (when selected a specific artist)
+                        if (selectedArtist && selectedArtist.name === artist.name &&
+                            artist.route.origin && artist.route.destination) {
+                          // Calculate midpoint between origin and destination
+                          const midpointLat = (artist.route.origin.lat + artist.route.destination.lat) / 2;
+                          const midpointLng = (artist.route.origin.lng + artist.route.destination.lng) / 2;
+                          
+                          // Add venue's coordinates instead of midpoint if available
+                          tourLocations.push({
+                            lat: parseFloat(activeVenue.latitude),
+                            lng: parseFloat(activeVenue.longitude),
+                            name: `Potential show at ${activeVenue.name}`,
+                            tourId: artist.name,
+                            bandName: artist.name,
+                            imageUrl: artist.image,
+                            date: artist.route.origin ? new Date(new Date(artist.route.origin.date).getTime() + 
+                                  (new Date(artist.route.destination.date).getTime() - 
+                                   new Date(artist.route.origin.date).getTime()) / 2).toISOString().split('T')[0] : undefined
+                          });
+                        }
+                        
+                        return tourLocations;
+                      })
                     ]}
                     center={{
                       lat: parseFloat(activeVenue.latitude),
                       lng: parseFloat(activeVenue.longitude)
                     }}
+                    zoom={selectedArtist ? 5 : 4}
+                    showPaths={true}
                   />
                 )}
               </CardContent>
@@ -747,21 +794,44 @@ export default function EnhancedArtistDiscovery() {
                               {
                                 lat: parseFloat(activeVenue.latitude),
                                 lng: parseFloat(activeVenue.longitude),
-                                name: activeVenue.name
+                                name: activeVenue.name,
+                                isVenue: true
                               },
-                              // Origin and destination
+                              // Build a tour path with origin, venue, and destination
                               ...(selectedArtist.route.origin ? [{
                                 lat: selectedArtist.route.origin.lat,
                                 lng: selectedArtist.route.origin.lng,
-                                name: `${selectedArtist.route.origin.city}, ${selectedArtist.route.origin.state}`
+                                name: `${selectedArtist.route.origin.city}, ${selectedArtist.route.origin.state}`,
+                                tourId: selectedArtist.name,
+                                bandName: selectedArtist.name,
+                                imageUrl: selectedArtist.image,
+                                date: selectedArtist.route.origin.date
                               }] : []),
+                              // Add venue as potential stop on the tour
+                              ...(selectedArtist.route.origin && selectedArtist.route.destination ? [{
+                                lat: parseFloat(activeVenue.latitude),
+                                lng: parseFloat(activeVenue.longitude),
+                                name: `Potential show at ${activeVenue.name}`,
+                                tourId: selectedArtist.name,
+                                bandName: selectedArtist.name,
+                                imageUrl: selectedArtist.image,
+                                date: new Date(new Date(selectedArtist.route.origin.date).getTime() + 
+                                      (new Date(selectedArtist.route.destination.date).getTime() - 
+                                       new Date(selectedArtist.route.origin.date).getTime()) / 2).toISOString().split('T')[0]
+                              }] : []),
+                              // Destination
                               ...(selectedArtist.route.destination ? [{
                                 lat: selectedArtist.route.destination.lat,
                                 lng: selectedArtist.route.destination.lng,
-                                name: `${selectedArtist.route.destination.city}, ${selectedArtist.route.destination.state}`
+                                name: `${selectedArtist.route.destination.city}, ${selectedArtist.route.destination.state}`,
+                                tourId: selectedArtist.name,
+                                bandName: selectedArtist.name,
+                                imageUrl: selectedArtist.image,
+                                date: selectedArtist.route.destination.date
                               }] : [])
                             ]}
                             zoom={5}
+                            showPaths={true}
                           />
                         )}
                       </div>
