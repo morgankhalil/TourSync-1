@@ -1,6 +1,7 @@
 import { Express, Request, Response } from 'express';
 import { z } from 'zod';
 import { BandsintownIntegration, createBandsintownIntegration } from '../integrations/bandsintown';
+import { addDays } from 'date-fns';
 
 // Schema for validating import artist request
 const importArtistSchema = z.object({
@@ -15,6 +16,20 @@ const batchImportSchema = z.object({
 // Schema for extracting venues request
 const extractVenuesSchema = z.object({
   artistNames: z.array(z.string()).min(1, "At least one artist name is required")
+});
+
+// Schema for finding bands near venue
+const findBandsNearVenueSchema = z.object({
+  venueId: z.number().int().positive("Valid venue ID is required"),
+  startDate: z.string().refine(val => !isNaN(Date.parse(val)), "Valid start date is required"),
+  endDate: z.string().refine(val => !isNaN(Date.parse(val)), "Valid end date is required"),
+  radius: z.number().positive("Radius must be a positive number")
+});
+
+// Schema for refreshing tour routes
+const refreshTourRoutesSchema = z.object({
+  daysAhead: z.number().int().positive().optional(),
+  minArtistCount: z.number().int().positive().optional()
 });
 
 let bandsintownIntegration: BandsintownIntegration | null = null;
@@ -65,8 +80,10 @@ export function registerBandsintownRoutes(app: Express): void {
         return res.status(400).json({ error: 'Artist name is required' });
       }
       
+      const forceRefresh = req.query.refresh === 'true';
+      
       const integration = getIntegration();
-      const events = await integration.getArtistEvents(artistName);
+      const events = await integration.getArtistEvents(artistName, forceRefresh);
       
       res.json(events);
     } catch (error) {
@@ -186,6 +203,105 @@ export function registerBandsintownRoutes(app: Express): void {
     } catch (error) {
       console.error('Error importing venues:', error);
       res.status(500).json({ error: 'Failed to import venues' });
+    }
+  });
+  
+  // NEW ENDPOINTS FOR ENHANCED ARTIST DISCOVERY
+  
+  /**
+   * Find bands near a venue within a date range
+   * This endpoint is the heart of the intelligent routing discovery feature
+   */
+  app.post('/api/bandsintown/find-bands-near-venue', async (req: Request, res: Response) => {
+    try {
+      const validationResult = findBandsNearVenueSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: 'Invalid request body',
+          details: validationResult.error.format()
+        });
+      }
+      
+      const { venueId, startDate, endDate, radius } = validationResult.data;
+      const integration = getIntegration();
+      
+      const results = await integration.findBandsNearVenue(
+        venueId,
+        new Date(startDate),
+        new Date(endDate),
+        radius
+      );
+      
+      res.json({
+        message: `Found ${results.length} bands touring near your venue in the specified date range`,
+        data: results
+      });
+    } catch (error) {
+      console.error('Error finding bands near venue:', error);
+      res.status(500).json({ error: 'Failed to find bands near venue' });
+    }
+  });
+  
+  /**
+   * Refresh upcoming tour routes
+   * Refreshes the database with the latest tour information for a specified period
+   */
+  app.post('/api/bandsintown/refresh-tour-routes', async (req: Request, res: Response) => {
+    try {
+      const validationResult = refreshTourRoutesSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: 'Invalid request body',
+          details: validationResult.error.format()
+        });
+      }
+      
+      const { daysAhead = 180, minArtistCount = 50 } = validationResult.data;
+      const integration = getIntegration();
+      
+      const results = await integration.refreshUpcomingTourRoutes(
+        new Date(), // today
+        addDays(new Date(), daysAhead),
+        minArtistCount
+      );
+      
+      res.json({
+        message: `Refreshed tour routes for ${results.processed} artists (${results.updated} updated, ${results.failed} failed)`,
+        data: results
+      });
+    } catch (error) {
+      console.error('Error refreshing tour routes:', error);
+      res.status(500).json({ error: 'Failed to refresh tour routes' });
+    }
+  });
+  
+  /**
+   * Get the health status of the Bandsintown integration
+   * Shows cache statistics and current monitoring status
+   */
+  app.get('/api/bandsintown/status', async (_req: Request, res: Response) => {
+    try {
+      const integration = getIntegration() as any; // Using any to access private properties
+      
+      // Get some stats (implementation depends on your actual class structure)
+      const cacheStats = {
+        cachedArtists: integration.artistCache?.keys().length ?? 0,
+        monitoredArtists: integration.websocketClients?.size ?? 0,
+        priorityArtists: integration.priorityArtists?.size ?? 0,
+        activePolling: integration.pollingIntervals?.size ?? 0
+      };
+      
+      res.json({
+        status: 'healthy',
+        apiKeyConfigured: !!process.env.BANDSINTOWN_API_KEY,
+        stats: cacheStats,
+        lastUpdated: new Date()
+      });
+    } catch (error) {
+      console.error('Error getting Bandsintown status:', error);
+      res.status(500).json({ error: 'Failed to get status' });
     }
   });
 }

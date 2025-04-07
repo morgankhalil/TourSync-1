@@ -1,86 +1,51 @@
-import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "./components/ui/toaster";
-import NotFound from "./pages/not-found";
-import Home from "./pages/Home";
-import CreateTour from "./pages/CreateTour";
-import Profile from "./pages/Profile";
-import VenueView from "./pages/VenueView";
-import VenueList from "./pages/VenueList";
-import VenueDashboard from "./pages/VenueDashboard";
-import TourPlanningWizard from "./pages/TourPlanningWizard";
-import TourDashboard from "./pages/TourDashboard";
-import { ArtistDiscovery } from "./pages/ArtistDiscovery"; // Renamed component
-import { BandsintownImport } from "./pages/BandsintownImport";
-import Header from "./components/layout/Header";
-import MobileNavigation from "./components/layout/MobileNavigation";
-import { useMediaQuery } from "./hooks/use-mobile";
-import { SidebarProvider } from "./context/SidebarContext";
-import EditVenue from './pages/EditVenue';
-import VenueAvailability from './pages/VenueAvailability';
-import { BandsintownPage } from './pages/BandsintownPage';
-import VenueProfile from './pages/VenueProfile';
+import { Route, Switch } from 'wouter';
+import Dashboard from './pages/Dashboard';
+import ArtistDiscovery from './pages/ArtistDiscovery';
+import VenueCalendar from './pages/VenueCalendar';
+import BandDetailPage from './pages/BandDetailPage';
+import { Toaster } from './components/ui/toaster';
+import { ActiveVenueProvider } from './hooks/useActiveVenue';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from './lib/queryClient';
 
 function Router() {
   return (
     <Switch>
-      {/* Venue-focused routes */}
-      <Route path="/" component={VenueDashboard} />
-      <Route path="/dashboard" component={VenueDashboard} />
-      <Route path="/calendar" component={VenueAvailability} />
-      <Route path="/calendar/manage" component={VenueAvailability} />
-      
-      {/* Artist discovery - unified page */}
-      <Route path="/artist-discovery" component={ArtistDiscovery} />
-      
-      {/* Legacy routes - redirected to new unified page */}
-      <Route path="/opportunities" component={ArtistDiscovery} />
-      <Route path="/bands" component={ArtistDiscovery} />
-      
-      {/* Venue management */}
-      <Route path="/venues" component={VenueList} />
-      <Route path="/venues/:id" component={VenueProfile} />
-      <Route path="/edit-venue" component={EditVenue} />
-      
-      {/* User profile */}
-      <Route path="/profile" component={Profile} />
-      
-      {/* Performance management */}
-      <Route path="/performances" component={VenueDashboard} />
-      <Route path="/performances/add" component={VenueDashboard} />
-      
-      {/* Analytics */}
-      <Route path="/analytics" component={VenueDashboard} />
-      
-      {/* Admin tools (import, setup, etc.) */}
-      <Route path="/import" component={BandsintownPage} />
-      <Route path="/import-bandsintown" component={BandsintownImport} />
-      
-      {/* Legacy routes (may not fit venue-centric model but keeping for now) */}
-      <Route path="/tour-planning" component={TourPlanningWizard} />
-      <Route path="/tour-planning/:tourId" component={TourPlanningWizard} />
-      <Route path="/tour-dashboard" component={TourDashboard} />
-      <Route path="/create-tour" component={CreateTour} />
-      <Route path="/map" component={Home} />
-      <Route path="/venue-view/:id" component={VenueView} />
-      
-      {/* 404 for anything else */}
-      <Route component={NotFound} />
+      <Route path="/" component={Dashboard} />
+      <Route path="/discovery" component={ArtistDiscovery} />
+      <Route path="/calendar" component={VenueCalendar} />
+      <Route path="/bands/:id" component={BandDetailPage} />
     </Switch>
   );
 }
 
 function MainContent() {
-  const isMobile = useMediaQuery("(max-width: 768px)");
-
   return (
-    <div className="h-screen flex flex-col">
-      <Header />
-      <div className="flex-1 flex flex-col overflow-auto">
+    <div className="flex flex-col min-h-screen">
+      <header className="sticky top-0 z-40 w-full border-b bg-background">
+        <div className="container flex h-16 items-center px-4">
+          <div className="font-bold text-xl mr-6">VenueBuddy</div>
+          <nav className="flex items-center space-x-4 lg:space-x-6">
+            <a href="/" className="text-sm font-medium transition-colors hover:text-primary">
+              Dashboard
+            </a>
+            <a href="/discovery" className="text-sm font-medium transition-colors hover:text-primary">
+              Artist Discovery
+            </a>
+            <a href="/calendar" className="text-sm font-medium transition-colors hover:text-primary">
+              Calendar
+            </a>
+          </nav>
+        </div>
+      </header>
+      <main className="flex-1 container mx-auto px-4 py-6">
         <Router />
-      </div>
-      {isMobile && <MobileNavigation />}
+      </main>
+      <footer className="bg-secondary py-4 text-center text-sm text-secondary-foreground">
+        <div className="container mx-auto">
+          &copy; {new Date().getFullYear()} Venue Buddy - All rights reserved
+        </div>
+      </footer>
     </div>
   );
 }
@@ -88,10 +53,10 @@ function MainContent() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <SidebarProvider>
+      <ActiveVenueProvider>
         <MainContent />
         <Toaster />
-      </SidebarProvider>
+      </ActiveVenueProvider>
     </QueryClientProvider>
   );
 }
