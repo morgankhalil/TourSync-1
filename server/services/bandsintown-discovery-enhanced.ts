@@ -101,6 +101,10 @@ export class EnhancedBandsintownDiscoveryService {
     console.log('Enhanced Bandsintown Discovery Service initialized');
   }
     this.apiService = new BandsintownApiService(apiKey);
+    this.cache = new NodeCache({ 
+      stdTTL: 3600,
+      checkperiod: 120
+    });
   }
 
   /**
