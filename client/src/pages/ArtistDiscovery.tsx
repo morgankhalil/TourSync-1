@@ -48,23 +48,23 @@ export function ArtistDiscovery() {
   const [googleMapsApiKey, setGoogleMapsApiKey] = useState<string>("");
   const [setMapCenterManually, setSetMapCenterManually] = useState<{lat: number, lng: number} | null>(null);
   const [isBandDetailOpen, setIsBandDetailOpen] = useState(false);
-  
+
   // Get active venue from context
   const { activeVenue, isLoading: isVenueLoading, setActiveVenue } = useActiveVenue();
-  
+
   // Fetch venues for venue selector
   const { data: venues = [], isLoading: isLoadingVenues } = useQuery<Venue[]>({
     queryKey: ['/api/venues'],
     retry: false
   });
-  
+
   // Set map center based on active venue or manual setting
   const mapCenter = React.useMemo(() => {
     // First priority: manually set map center (from venue selector)
     if (setMapCenterManually) {
       return setMapCenterManually;
     }
-    
+
     // Second priority: active venue location
     if (activeVenue && activeVenue.latitude && activeVenue.longitude) {
       return {
@@ -72,11 +72,11 @@ export function ArtistDiscovery() {
         lng: parseFloat(activeVenue.longitude)
       };
     }
-    
+
     // Default to NYC if no venue selected
     return { lat: 40.7128, lng: -74.006 };
   }, [activeVenue, setMapCenterManually]);
-  
+
   // Fetch bands
   const { data: bands = [], isLoading: isLoadingBands } = useQuery<Band[]>({
     queryKey: ['/api/bands'],
@@ -96,11 +96,11 @@ export function ArtistDiscovery() {
   // Process bands with match percentage
   const processedBands: BandWithMatch[] = React.useMemo(() => {
     if (!bands || !activeVenue) return [];
-    
+
     return bands.map((band: Band) => {
       // Calculate real match percentage using our algorithm
       const matchPercent = calculateBandVenueMatch(band, activeVenue);
-      
+
       // Determine draw size category based on actual draw size
       let drawSizeCategory = 'Unknown';
       if (band.drawSize) {
@@ -108,12 +108,12 @@ export function ArtistDiscovery() {
         else if (band.drawSize < 300) drawSizeCategory = 'Medium (100-300)';
         else drawSizeCategory = 'Large (300+)';
       }
-      
+
       // Extract genres from band data
       const genreList = band.genre 
         ? band.genre.split(',').map(g => g.trim()) 
         : [];
-      
+
       // Add match percentage and other attributes we'll use for filtering
       return {
         ...band,
@@ -123,7 +123,7 @@ export function ArtistDiscovery() {
       };
     }).sort((a: BandWithMatch, b: BandWithMatch) => b.matchPercentage - a.matchPercentage);
   }, [bands, activeVenue]);
-  
+
   // Filter bands based on selected filters
   const filteredBands = React.useMemo(() => {
     return processedBands.filter((band) => {
@@ -131,18 +131,18 @@ export function ArtistDiscovery() {
       if (genreFilters.length > 0 && !band.genres.some(genre => genreFilters.includes(genre))) {
         return false;
       }
-      
+
       // Filter by draw size
       if (drawSizeFilter && band.drawSizeCategory !== drawSizeFilter) {
         return false;
       }
-      
+
       // Other filters can be added here
-      
+
       return true;
     });
   }, [processedBands, genreFilters, drawSizeFilter]);
-  
+
   // Fetch Google Maps API key from backend
   useEffect(() => {
     axios.get('/api/config/maps-api-key')
@@ -159,11 +159,11 @@ export function ArtistDiscovery() {
   const handleTabChange = (value: string) => {
     setActiveTab(value);
   };
-  
+
   const handleViewModeChange = (value: string) => {
     setViewMode(value);
   };
-  
+
   const handleGenreFilterChange = (genre: string) => {
     setGenreFilters(prev => 
       prev.includes(genre) 
@@ -171,23 +171,23 @@ export function ArtistDiscovery() {
         : [...prev, genre]
     );
   };
-  
+
   const handleDrawSizeFilterChange = (size: string) => {
     setDrawSizeFilter(prev => prev === size ? '' : size);
   };
-  
+
   const handleBandSelect = (band: BandWithMatch) => {
     setSelectedBand(band);
     setIsBandDetailOpen(true);
   };
-  
+
   const handleMarkerClick = (band: BandWithMatch) => {
     setSelectedMarker(band);
   };
-  
+
   // Genres for filtering
   const genreOptions = ['Rock', 'Pop', 'Hip Hop', 'Electronic', 'Jazz', 'Indie', 'Metal', 'Country', 'Alternative'];
-  
+
   // Draw size options
   const drawSizeOptions = ['Small (0-100)', 'Medium (100-300)', 'Large (300+)'];
 
@@ -205,10 +205,10 @@ export function ArtistDiscovery() {
       }
       tourDatesByTour.get(td.tourId)?.push(td);
     });
-    
+
     // Tour colors for differentiation
     const colors = ['#4A154B', '#2EB67D', '#ECB22E', '#E01E5A', '#36C5F0'];
-    
+
     // Mapping of cities to coordinates for the US (for demo purposes)
     const cityCoordinates: Record<string, {lat: number, lng: number}> = {
       'New York': { lat: 40.7128, lng: -74.0060 },
@@ -266,32 +266,32 @@ export function ArtistDiscovery() {
                 }}
               />
             )}
-            
+
             {/* Tour routes and band markers */}
             {toursList?.map((tour, index) => {
               const tourDates = tourDatesByTour.get(tour.id) || [];
               const validTourDates = tourDates.filter(td => td.city && td.state);
-              
+
               if (validTourDates.length === 0) return null;
-              
+
               const band = bandsMap.get(tour.bandId);
               if (!band) return null;
-              
+
               // Only proceed with rendering if the band passes our filters
               if (genreFilters.length > 0 && !band.genres.some(genre => genreFilters.includes(genre))) {
                 return null;
               }
-              
+
               if (drawSizeFilter && band.drawSizeCategory !== drawSizeFilter) {
                 return null;
               }
-              
+
               // Get tour color
               const tourColor = colors[index % colors.length];
-              
+
               // Create tour path coordinates
               const pathCoordinates: {lat: number, lng: number}[] = [];
-              
+
               // Return the tour route and markers
               return (
                 <React.Fragment key={tour.id}>
@@ -301,9 +301,9 @@ export function ArtistDiscovery() {
                       lat: parseFloat(activeVenue?.latitude || "41.0") + (Math.random() - 0.5) * 10, 
                       lng: parseFloat(activeVenue?.longitude || "-87.0") + (Math.random() - 0.5) * 10 
                     };
-                    
+
                     pathCoordinates.push(coords);
-                    
+
                     // Status-specific border color
                     let borderColor = '#ECB22E'; // Yellow for pending
                     if (td.status === 'confirmed') {
@@ -311,7 +311,7 @@ export function ArtistDiscovery() {
                     } else if (td.status === 'open') {
                       borderColor = '#E01E5A'; // Red for open dates
                     }
-                    
+
                     // Band initials for marker
                     const initials = band.name
                       .split(' ')
@@ -319,7 +319,7 @@ export function ArtistDiscovery() {
                       .join('')
                       .substring(0, 2)
                       .toUpperCase();
-                      
+
                     return (
                       <Marker
                         key={`tour-${tour.id}-date-${td.id}`}
@@ -331,13 +331,13 @@ export function ArtistDiscovery() {
                             <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 42 42">
                               <!-- Main circle with tour color -->
                               <circle cx="21" cy="21" r="17" fill="${tourColor}" />
-                              
+
                               <!-- Text for initials -->
                               <text x="21" y="26" font-family="Arial" font-size="12" font-weight="bold" text-anchor="middle" fill="white">${initials}</text>
-                              
+
                               <!-- Status border -->
                               <circle cx="21" cy="21" r="19" fill="none" stroke="${borderColor}" stroke-width="4" />
-                              
+
                               <!-- Pointer at bottom -->
                               <path d="M21 38 L17 44 L25 44 Z" fill="${borderColor}" />
                             </svg>
@@ -348,7 +348,7 @@ export function ArtistDiscovery() {
                       />
                     );
                   })}
-                  
+
                   {/* Draw the tour path if there are multiple points */}
                   {pathCoordinates.length >= 2 && (
                     <React.Fragment>
@@ -381,7 +381,7 @@ export function ArtistDiscovery() {
           venue={activeVenue}
         />
       </div>
-      
+
       {/* Main Content */}
       <div className="flex-1 p-6 overflow-auto">
         <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between">
@@ -391,7 +391,7 @@ export function ArtistDiscovery() {
               Find the perfect bands for {activeVenue?.name || 'your venue'} based on your calendar and preferences
             </p>
           </div>
-          
+
           <div className="mt-4 md:mt-0">
             <Select value={activeVenue?.id?.toString() || ''} onValueChange={(value) => {
               const venue = venues?.find((v: Venue) => v.id.toString() === value);
@@ -418,7 +418,7 @@ export function ArtistDiscovery() {
             </Select>
           </div>
         </div>
-        
+
         {/* View Mode Tabs */}
         <Tabs value={viewMode} onValueChange={handleViewModeChange} className="mb-6">
           <TabsList className="grid w-full grid-cols-2">
@@ -454,7 +454,7 @@ export function ArtistDiscovery() {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center">
@@ -477,7 +477,7 @@ export function ArtistDiscovery() {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center">
@@ -501,7 +501,7 @@ export function ArtistDiscovery() {
               </CardContent>
             </Card>
           </div>
-          
+
           {/* Availability Switch - Only in opportunities view */}
           <div className="mb-6 flex items-center space-x-2">
             <Switch
@@ -511,7 +511,7 @@ export function ArtistDiscovery() {
             />
             <Label htmlFor="available-only">Show only bands available on selected date</Label>
           </div>
-          
+
           {/* Tabs for Map and List Views */}
           <Tabs defaultValue="map-view" value={activeTab} onValueChange={handleTabChange}>
             <div className="flex justify-between items-center mb-4">
@@ -519,12 +519,12 @@ export function ArtistDiscovery() {
                 <TabsTrigger value="map-view">Map View</TabsTrigger>
                 <TabsTrigger value="list-view">List View</TabsTrigger>
               </TabsList>
-              
+
               <div className="text-sm text-muted-foreground">
                 Showing {filteredBands.length} bands
               </div>
             </div>
-            
+
             {/* Map View Tab */}
             <TabsContent value="map-view" className="space-y-4">
               <div className="rounded-md overflow-hidden border">
@@ -550,7 +550,7 @@ export function ArtistDiscovery() {
                         }}
                       />
                     )}
-                    
+
                     {/* Band markers */}
                     {filteredBands.map(band => (
                       <Marker
@@ -572,7 +572,7 @@ export function ArtistDiscovery() {
                         }}
                       />
                     ))}
-                    
+
                     {/* InfoWindow for selected marker */}
                     {selectedMarker && (
                       <InfoWindow
@@ -609,7 +609,7 @@ export function ArtistDiscovery() {
                 </LoadScript>
               </div>
             </TabsContent>
-            
+
             {/* List View Tab */}
             <TabsContent value="list-view">
               <div className="space-y-4">
@@ -642,7 +642,7 @@ export function ArtistDiscovery() {
                         <p className="text-sm text-muted-foreground line-clamp-2">
                           {band.description || "A talented band with a unique sound and growing audience. Currently on tour across North America."}
                         </p>
-                        
+
                         <div className="mt-2 flex items-center text-sm">
                           <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
                           <span className="text-muted-foreground">
@@ -666,7 +666,7 @@ export function ArtistDiscovery() {
             </TabsContent>
           </Tabs>
         </TabsContent>
-        
+
         {/* Tour Routes View Mode */}
         <TabsContent value="tours" className="mt-0">
           <div className="mb-6">
@@ -674,7 +674,7 @@ export function ArtistDiscovery() {
             <p className="text-muted-foreground">
               View artist tour routes to discover bands coming through your area
             </p>
-            
+
             {/* Filter Cards - Simplified for tour view */}
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card>
@@ -699,7 +699,7 @@ export function ArtistDiscovery() {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg flex items-center">
@@ -724,7 +724,7 @@ export function ArtistDiscovery() {
               </Card>
             </div>
           </div>
-          
+
           {/* Tour map view */}
           <div className="bg-white rounded-lg p-4 border">
             {isLoadingTourDates || isLoadingTours ? (
@@ -738,7 +738,7 @@ export function ArtistDiscovery() {
               renderTourRoutes()
             )}
           </div>
-          
+
           <div className="mt-4 px-4 py-3 bg-muted rounded-md">
             <div className="flex flex-wrap gap-4 items-center">
               <div className="font-medium">Legend:</div>
@@ -746,7 +746,7 @@ export function ArtistDiscovery() {
                 <div className="w-4 h-4 rounded-full bg-green-500"></div>
                 <span className="text-sm">Confirmed Date</span>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex itemscenter space-x-2">
                 <div className="w-4 h-4 rounded-full bg-yellow-500"></div>
                 <span className="text-sm">Pending Date</span>
               </div>
@@ -763,7 +763,7 @@ export function ArtistDiscovery() {
         </TabsContent>
         </Tabs>
       </div>
-      
+
       {/* Band Detail Modal */}
       <BandDetailModal 
         band={selectedBand as any}
