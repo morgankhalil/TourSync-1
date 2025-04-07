@@ -25,6 +25,13 @@ type ApiRequestOptions = {
 
 /**
  * A utility function for making API requests with axios
+ * @param url The API endpoint for GET requests
+ * @returns Promise that resolves to the response data
+ */
+export async function apiRequest<T = any>(url: string): Promise<T>;
+
+/**
+ * A utility function for making API requests with axios
  * @param method HTTP method to use
  * @param url The API endpoint
  * @param data Optional data to send in the request body
@@ -32,11 +39,26 @@ type ApiRequestOptions = {
  * @returns Promise that resolves to the response data
  */
 export async function apiRequest<T = any>(
-  method: 'get' | 'post' | 'put' | 'patch' | 'delete',
-  url: string,
+  methodOrUrl: 'get' | 'post' | 'put' | 'patch' | 'delete' | string,
+  urlOrData?: string | any,
   data?: any,
   options?: ApiRequestOptions
 ): Promise<T> {
+  let method: 'get' | 'post' | 'put' | 'patch' | 'delete';
+  let url: string;
+  let requestData: any;
+  
+  // Handle the case where only a URL is provided (GET request)
+  if (typeof methodOrUrl === 'string' && typeof urlOrData !== 'string' && urlOrData === undefined) {
+    method = 'get';
+    url = methodOrUrl;
+    requestData = undefined;
+  } else {
+    // Normal case with method and URL
+    method = methodOrUrl as 'get' | 'post' | 'put' | 'patch' | 'delete';
+    url = urlOrData as string;
+    requestData = data;
+  }
   try {
     const config: AxiosRequestConfig = {
       method,

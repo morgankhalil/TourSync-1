@@ -1,7 +1,6 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Venue } from '../types';
-import { apiRequest } from '../lib/queryClient';
 
 interface ActiveVenueContextType {
   activeVenue: Venue | null;
@@ -32,17 +31,40 @@ export const ActiveVenueProvider: React.FC<{ children: ReactNode }> = ({ childre
     queryKey: ['/api/venues', venueId],
     queryFn: async () => {
       if (!venueId) return null;
-      return apiRequest<Venue>(`/api/venues/${venueId}`);
+      const response = await fetch(`/api/venues/${venueId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch venue');
+      }
+      return response.json() as Promise<Venue>;
     },
-    enabled: !!venueId
+    enabled: !!venueId,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+  });
+  
+  // Fetch all venues for selection
+  const { data: venues } = useQuery({
+    queryKey: ['/api/venues'],
+    queryFn: async () => {
+      const response = await fetch('/api/venues');
+      if (!response.ok) {
+        throw new Error('Failed to fetch venues');
+      }
+      return response.json() as Promise<Venue[]>;
+    },
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
   
   // Update activeVenue when venue data changes
   useEffect(() => {
     if (venue) {
       setActiveVenue(venue);
+    } else if (venues && venues.length > 0 && !activeVenue) {
+      // If we have venues but no active venue, set the first one
+      const bugJar = venues.find(v => v.name === "Bug Jar") || venues[0];
+      setActiveVenue(bugJar);
+      setVenueId(bugJar.id);
     }
-  }, [venue]);
+  }, [venue, venues, activeVenue]);
 
   const contextValue: ActiveVenueContextType = {
     activeVenue, 
