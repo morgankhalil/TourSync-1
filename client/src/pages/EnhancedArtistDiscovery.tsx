@@ -29,13 +29,13 @@ export default function EnhancedArtistDiscovery() {
   const [selectedArtist, setSelectedArtist] = useState<DiscoveryResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
-  // Search parameters
+  // Search parameters - wider defaults for better results
   const today = new Date();
   const [startDate, setStartDate] = useState<Date>(today);
-  const [endDate, setEndDate] = useState<Date>(addDays(today, 90));
-  const [radius, setRadius] = useState(100);
+  const [endDate, setEndDate] = useState<Date>(addDays(today, 180));  // 6 months instead of 90 days
+  const [radius, setRadius] = useState(200);  // 200 miles instead of 100
   const [maxResults, setMaxResults] = useState(20);
-  const [lookAheadDays, setLookAheadDays] = useState(90);
+  const [lookAheadDays, setLookAheadDays] = useState(180);  // 6 months instead of 90 days
   const [useEnhancedDiscovery, setUseEnhancedDiscovery] = useState(true);
   
   // Reset when venue changes
@@ -83,7 +83,12 @@ export default function EnhancedArtistDiscovery() {
       setSearchStats(response.stats);
       
       if (response.data.length === 0) {
-        setErrorMessage("No results found. Try expanding your search parameters or date range.");
+        setErrorMessage(
+          "No artists found passing near your venue in this date range. This could be due to:\n\n" +
+          "• Limited tour data for future dates (most tours are announced 3-6 months in advance)\n" +
+          "• Few artists with shows booked on both sides of your venue location\n\n" +
+          "Try expanding your search radius, extending your date range, or checking back later as more artists announce tours."
+        );
       }
       
       // Show total results in toast
@@ -270,8 +275,20 @@ export default function EnhancedArtistDiscovery() {
       
       {isLoading && (
         <div className="mb-6">
-          <p className="text-sm text-gray-500 mb-2">Searching for bands passing near {activeVenue?.name}...</p>
-          <Progress value={45} className="h-2" />
+          <p className="text-sm text-gray-500 mb-2">
+            Searching for bands passing near {activeVenue?.name}...
+            <span className="ml-2 text-xs italic">
+              This may take a minute or two as we analyze tour routes for hundreds of artists
+            </span>
+          </p>
+          <Progress value={searchStats?.elapsedTimeMs ? 75 : 45} className="h-2" />
+          {searchStats && (
+            <p className="text-xs text-gray-500 mt-2">
+              Processing {searchStats.artistsQueried} artists
+              {searchStats.artistsWithEvents > 0 && ` • Found ${searchStats.artistsWithEvents} with upcoming events`}
+              {searchStats.artistsPassingNear > 0 && ` • ${searchStats.artistsPassingNear} passing near your venue`}
+            </p>
+          )}
         </div>
       )}
       

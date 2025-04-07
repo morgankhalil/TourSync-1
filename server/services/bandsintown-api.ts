@@ -153,6 +153,23 @@ export class BandsintownApiService {
         
         return response.data;
       } catch (error) {
+        // Check if this is a 404 Not Found error (likely artist not found)
+        if (axios.isAxiosError(error) && error.response?.status === 404) {
+          // For 404 errors, we'll log a gentler message and cache an empty result
+          // to avoid repeatedly hitting the API for nonexistent artists
+          this.statsCollector.apiErrors++;
+          console.log(`Resource not found (404): ${endpoint}`);
+          
+          // For arrays, cache an empty array; otherwise throw
+          if (Array.isArray(cachedData) || endpoint.includes('/events')) {
+            const emptyResult = [] as unknown as T;
+            API_CACHE.set(cacheKey, emptyResult);
+            return emptyResult;
+          }
+          
+          throw error;
+        }
+        
         if (retries >= MAX_RETRIES) {
           this.statsCollector.apiErrors++;
           console.error(`API request failed after ${MAX_RETRIES} retries:`, endpoint);
