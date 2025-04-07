@@ -37,6 +37,7 @@ export default function EnhancedArtistDiscovery() {
   const [maxResults, setMaxResults] = useState(20);
   const [lookAheadDays, setLookAheadDays] = useState(180);  // 6 months instead of 90 days
   const [useEnhancedDiscovery, setUseEnhancedDiscovery] = useState(true);
+  const [useDemoMode, setUseDemoMode] = useState(false);
   
   // Reset when venue changes
   useEffect(() => {
@@ -47,6 +48,8 @@ export default function EnhancedArtistDiscovery() {
 
   // Handle incremental search results
   const handleIncrementalResults = (newResults: DiscoveryResult[]) => {
+    console.log("Received incremental results:", newResults.length);
+    
     // Update the search results with the new ones
     setSearchResults(prevResults => {
       // Create a map of existing results by name to avoid duplicates
@@ -55,6 +58,7 @@ export default function EnhancedArtistDiscovery() {
       // Add new results if they don't already exist
       newResults.forEach(result => {
         if (!existingResultsMap.has(result.name)) {
+          console.log("Adding new result:", result.name);
           existingResultsMap.set(result.name, result);
         }
       });
@@ -90,6 +94,7 @@ export default function EnhancedArtistDiscovery() {
       toast({
         title: "New Match Found!",
         description: `Found ${newResults.length} new band(s) passing near ${activeVenue?.name}`,
+        duration: 3000,
       });
     }
   };
@@ -136,6 +141,7 @@ export default function EnhancedArtistDiscovery() {
         radius,
         maxBands: maxResults,
         lookAheadDays,
+        useDemoMode: useDemoMode,
         onIncrementalResults: handleIncrementalResults,
       });
       
@@ -301,7 +307,7 @@ export default function EnhancedArtistDiscovery() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-2">
               <div>
                 <Label htmlFor="enhanced-mode" className="font-medium">
                   Enhanced Discovery
@@ -314,6 +320,22 @@ export default function EnhancedArtistDiscovery() {
                 id="enhanced-mode"
                 checked={useEnhancedDiscovery}
                 onCheckedChange={setUseEnhancedDiscovery}
+              />
+            </div>
+            
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <Label htmlFor="demo-mode" className="font-medium">
+                  Demo Mode
+                </Label>
+                <p className="text-sm text-gray-500 mt-1">
+                  Show immediate sample results
+                </p>
+              </div>
+              <Switch
+                id="demo-mode"
+                checked={useDemoMode}
+                onCheckedChange={setUseDemoMode}
               />
             </div>
             

@@ -124,6 +124,15 @@ export class EnhancedBandsintownDiscoveryClient {
     onIncrementalResults?: (newResults: DiscoveryResult[]) => void;
   }): Promise<DiscoveryResponse> {
     try {
+      console.log("Starting discovery with options:", {
+        venueId: options.venueId,
+        startDate: options.startDate,
+        endDate: options.endDate,
+        radius: options.radius || 100,
+        maxBands: options.maxBands || 20,
+        streaming: !!options.onIncrementalResults
+      });
+      
       const queryParams = new URLSearchParams({
         venueId: options.venueId.toString(),
         startDate: options.startDate,
@@ -135,14 +144,76 @@ export class EnhancedBandsintownDiscoveryClient {
         streaming: options.onIncrementalResults ? 'true' : 'false'
       });
 
+      console.log("Fetching from:", `/api/bandsintown-discovery-v2/discover?${queryParams}`);
       const response = await fetch(`/api/bandsintown-discovery-v2/discover?${queryParams}`);
 
       if (!response.ok) {
-        throw new Error('Discovery API request failed');
+        throw new Error(`Discovery API request failed with status ${response.status}`);
       }
 
       // If incremental results callback is provided, set up streaming response handling
       if (options.onIncrementalResults) {
+        console.log("Setting up streaming response handling");
+        
+        // This is our simple approach - just create a fake result for testing
+        if (options.useDemoMode) {
+          console.log("Using demo mode, generating fake incremental results");
+          setTimeout(() => {
+            const demoResult: DiscoveryResult = {
+              name: "Demo Band 1",
+              image: "https://picsum.photos/200/300",
+              url: "https://bandsintown.com",
+              upcomingEvents: 5,
+              route: {
+                origin: {
+                  city: "New York",
+                  state: "NY",
+                  date: "2025-05-01",
+                  lat: 40.7128,
+                  lng: -74.0060
+                },
+                destination: {
+                  city: "Los Angeles",
+                  state: "CA",
+                  date: "2025-05-15",
+                  lat: 34.0522,
+                  lng: -118.2437
+                },
+                distanceToVenue: 100,
+                detourDistance: 20,
+                daysAvailable: 3,
+                routingScore: 50
+              },
+              events: [],
+              genre: "Rock"
+            };
+            options.onIncrementalResults!([demoResult]);
+          }, 2000);
+          
+          // Return full response after some time
+          return {
+            data: [],
+            stats: {
+              artistsQueried: 100,
+              artistsWithEvents: 50,
+              artistsPassingNear: 1,
+              totalEventsFound: 150,
+              elapsedTimeMs: 5000,
+              apiCacheStats: { keys: 100, hits: 50, misses: 50 }
+            },
+            venue: { 
+              id: options.venueId, 
+              name: 'Demo Venue', 
+              address: '123 Main St', 
+              city: 'Demoville', 
+              state: 'DM', 
+              zipCode: '12345', 
+              latitude: '40.7128', 
+              longitude: '-74.0060' 
+            }
+          };
+        }
+        
         // Get a reader from the response body
         const reader = response.body!.getReader();
         const decoder = new TextDecoder();
@@ -151,14 +222,20 @@ export class EnhancedBandsintownDiscoveryClient {
         let stats: DiscoveryStats | null = null;
         let venue: any = null;
 
+        console.log("Starting to read stream");
         // Process the stream
         while (true) {
           const { value, done } = await reader.read();
           
-          if (done) break;
+          if (done) {
+            console.log("Stream reading complete");
+            break;
+          }
           
           // Decode the chunk and add it to our buffer
-          buffer += decoder.decode(value, { stream: true });
+          const chunk = decoder.decode(value, { stream: true });
+          buffer += chunk;
+          console.log("Received chunk:", chunk);
           
           // Process complete lines in the buffer
           const lines = buffer.split('\n');
@@ -170,15 +247,19 @@ export class EnhancedBandsintownDiscoveryClient {
             if (!line.trim()) continue; // Skip empty lines
             
             try {
+              console.log("Processing line:", line);
               const data = JSON.parse(line);
+              console.log("Parsed data:", data);
               
               if (data.status === 'in-progress' && data.results) {
+                console.log("Got in-progress results:", data.results.length);
                 // Call the incremental results callback with the new results
                 options.onIncrementalResults(data.results);
                 
                 // Add to our accumulated results
                 allResults = [...allResults, ...data.results];
               } else if (data.status === 'complete') {
+                console.log("Got complete results");
                 // Final complete result set
                 if (data.results) {
                   allResults = data.results;
@@ -197,6 +278,7 @@ export class EnhancedBandsintownDiscoveryClient {
         }
         
         // Return the final accumulated result
+        console.log("Returning final result:", allResults.length, "artists");
         return {
           data: allResults,
           stats: stats || {
@@ -212,6 +294,7 @@ export class EnhancedBandsintownDiscoveryClient {
       }
       
       // For non-streaming requests, just return the JSON response
+      console.log("Non-streaming request, returning JSON response");
       return await response.json();
     } catch (error) {
       console.error('Failed to perform band discovery:', error);
