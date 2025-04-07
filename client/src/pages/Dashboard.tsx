@@ -34,10 +34,12 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import VenueSelector from '@/components/venue/VenueSelector';
+import AddVenueModal from '@/components/venue/AddVenueModal'; // Import the AddVenueModal component
+
 
 const Dashboard: React.FC = () => {
   const { activeVenue } = useActiveVenue();
-  
+
   // Placeholder data - in a real implementation, these would come from API calls
   const upcomingBookings = 5;
   const inquiriesPending = 3;
@@ -46,7 +48,7 @@ const Dashboard: React.FC = () => {
   const currentMonthRevenue = 18750;
   const lastMonthRevenue = 15200;
   const revenueChange = ((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100;
-  
+
   // Monthly booking stats placeholder
   const bookingData = {
     totalCapacity: venueCapacity * 30, // Capacity * days in month
@@ -54,7 +56,7 @@ const Dashboard: React.FC = () => {
     percentBooked: (upcomingBookings / 30) * 100,
     daysAvailable: 30 - upcomingBookings,
   };
-  
+
   // Analytics placeholder data
   const genrePopularity = [
     { name: "Indie Rock", percent: 35 },
@@ -83,7 +85,7 @@ const Dashboard: React.FC = () => {
             </p>
           )}
         </div>
-        
+
         {activeVenue && (
           <div className="flex gap-2">
             <Link href="/performances/add">
@@ -113,8 +115,11 @@ const Dashboard: React.FC = () => {
             <CardDescription className="max-w-[500px]">
               Please select a venue from the dropdown in the top navigation bar to view your venue's dashboard and analytics.
             </CardDescription>
-            <div className="mt-2">
+            <div className="mt-2 space-y-2">
               <VenueSelector />
+              <div className="flex justify-center">
+                <AddVenueModal />
+              </div>
             </div>
           </div>
         </Card>
@@ -233,12 +238,12 @@ const Dashboard: React.FC = () => {
                     <div className="text-xl font-bold">{bookingData.daysAvailable} days</div>
                   </div>
                 </div>
-                
+
                 <Progress 
                   value={bookingData.percentBooked} 
                   className="h-2"
                 />
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
                   <div className="rounded-md bg-muted p-3">
                     <div className="text-xs font-medium text-muted-foreground">Strongest Booking Days</div>
@@ -257,7 +262,7 @@ const Dashboard: React.FC = () => {
                       </li>
                     </ul>
                   </div>
-                  
+
                   <div className="rounded-md bg-muted p-3">
                     <div className="text-xs font-medium text-muted-foreground">Available Blocks</div>
                     <ul className="mt-2 space-y-1">
@@ -279,7 +284,7 @@ const Dashboard: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           {/* Genre Analytics */}
           <Card className="lg:col-span-3">
             <CardHeader>
@@ -299,7 +304,7 @@ const Dashboard: React.FC = () => {
                     <Progress value={genre.percent} className="h-2" />
                   </div>
                 ))}
-                
+
                 <div className="pt-2 flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Based on last 6 months of bookings</span>
                   <Link href="/analytics">
@@ -332,7 +337,7 @@ const Dashboard: React.FC = () => {
                   {[...Array(5)].map((_, index) => {
                     const futureDate = new Date();
                     futureDate.setDate(futureDate.getDate() + (index + 1) * 5);
-                    
+
                     const bandNames = [
                       "The Midnight Echoes", 
                       "Neon Horizon", 
@@ -340,12 +345,12 @@ const Dashboard: React.FC = () => {
                       "Velvet Thunder",
                       "Lunar Tides"
                     ];
-                    
+
                     const expectedAttendance = Math.floor(Math.random() * 60) + 40;
                     const status = index === 0 ? "sold-out" : 
                                 index === 1 ? "on-sale" : 
                                 index === 2 ? "pending" : "confirmed";
-                    
+
                     return (
                       <div key={index} className="py-4">
                         <div className="flex items-start gap-3">
@@ -361,7 +366,7 @@ const Dashboard: React.FC = () => {
                               {formatDate(futureDate, 'EEE')}
                             </div>
                           </div>
-                          
+
                           {/* Show Details */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
@@ -388,7 +393,7 @@ const Dashboard: React.FC = () => {
                               </span>
                             </div>
                           </div>
-                          
+
                           {/* Actions */}
                           <Link href={`/performances/details/${index}`}>
                             <Button variant="ghost" size="icon" className="h-7 w-7">
@@ -413,7 +418,7 @@ const Dashboard: React.FC = () => {
               </div>
             </CardFooter>
           </Card>
-          
+
           {/* Artist Recommendations */}
           <Card className="md:col-span-1 lg:col-span-3">
             <CardHeader>
@@ -449,7 +454,7 @@ const Dashboard: React.FC = () => {
                     const genres = ["Indie Rock", "Alternative", "Post-Punk", "Synth Pop", "Indie Folk", "Electronic"];
                     const fanBase = [2500, 3200, 1800, 4100, 2700, 3500];
                     const match = 95 - (index * 7);
-                    
+
                     return (
                       <div key={index} className="py-3">
                         <div className="flex items-center gap-3">
@@ -458,7 +463,7 @@ const Dashboard: React.FC = () => {
                               {artistNames[index % artistNames.length].split(' ').map(n => n[0]).join('')}
                             </AvatarFallback>
                           </Avatar>
-                          
+
                           <div className="flex-1 min-w-0">
                             <div className="flex justify-between">
                               <h4 className="text-sm font-medium truncate">
