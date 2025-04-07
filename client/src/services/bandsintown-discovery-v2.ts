@@ -121,8 +121,7 @@ export class EnhancedBandsintownDiscoveryClient {
     maxBands?: number;
     lookAheadDays?: number;
     useDemoMode?: boolean;
-    onIncrementalResults?: (newResults: DiscoveryResult[]) => void; // Callback for incremental results
-
+    onIncrementalResults?: (newResults: DiscoveryResult[]) => void;
   }): Promise<DiscoveryResponse> {
     try {
       const queryParams = new URLSearchParams({

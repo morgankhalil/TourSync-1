@@ -75,7 +75,16 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
         }
       };
 
-      // Find bands near venue -  Now sends incremental results.
+      // Set appropriate headers for streaming
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Transfer-Encoding', 'chunked');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+      
+      // Create a flag to track if any incremental results were sent
+      let incrementalResultsSent = false;
+      
+      // Find bands near venue with streaming incremental results
       const result = await discoveryService.findBandsNearVenue({
         venueId: numericVenueId,
         startDate: startDate as string,
@@ -87,14 +96,23 @@ export function registerBandsintownDiscoveryV2Routes(router: Router) {
         lookAheadDays: numericLookAheadDays,
         onProgress,
         onIncrementalResults: (newResults) => {
-          //In a real application, this would likely use a websocket or SSE to stream results to the client.
-          //For this example, we'll just log to the console.
-          console.log("Incremental Results:", newResults);
-          res.send(JSON.stringify({results: newResults, status: "in-progress"})); //Send partial results.
+          if (newResults && newResults.length > 0) {
+            // Send each batch as a newline-delimited JSON
+            res.write(JSON.stringify({results: newResults, status: "in-progress"}) + '\n');
+            incrementalResultsSent = true;
+          }
         }
       });
 
-      res.json(result); //Send final results
+      // If we sent incremental results, end the response
+      if (incrementalResultsSent) {
+        // Send the final complete result
+        res.write(JSON.stringify({results: result.data, status: "complete"}) + '\n');
+        res.end();
+      } else {
+        // If no incremental results were sent, just send the final result as normal JSON
+        res.json(result);
+      }
     } catch (error) {
       console.error('Error finding bands near venue:', error);
       res.status(500).json({

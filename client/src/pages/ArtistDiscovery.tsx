@@ -8,6 +8,7 @@ import { BandDiscoveryResult, BandPassingNearby, DiscoveryResult, Venue } from '
 import { getLocationLabel, formatDate, formatDateMedium, calculateDistance, getFitDescription } from '@/lib/utils';
 import { bandsintownService } from '@/services/bandsintown';
 import { bandsintownDiscoveryService } from '@/services/bandsintown-discovery';
+import { EnhancedBandsintownDiscoveryClient } from '@/services/bandsintown-discovery-v2';
 import BandMapView from '@/components/maps/BandMapView';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -75,29 +76,27 @@ const ArtistDiscovery: React.FC = () => {
       
       // Handler for incremental results
       const handleIncrementalResults = (newResults: BandDiscoveryResult[]) => {
+        console.log(`Received ${newResults.length} new results incrementally`);
         const formattedResults = convertResultToUIFormat(newResults);
         setIncrementalResults(prev => [...prev, ...formattedResults]);
       };
       
-      // Use the direct discovery service that polls Bandsintown API in real-time
-      // If useDemoMode is true, force use of sample data instead of API
-      const results = await bandsintownDiscoveryService.findBandsNearVenue({
+      // Use the enhanced discovery service with v2 API
+      const results = await EnhancedBandsintownDiscoveryClient.findBandsNearVenue({
         venueId: activeVenue.id,
         startDate,
         endDate,
         radius,
-        useDemo: useDemoMode,
+        useDemoMode,
         onIncrementalResults: handleIncrementalResults
       });
       
-      // Make sure results is an array before mapping
-      if (!Array.isArray(results)) {
-        console.error('Expected array of results but got:', results);
-        return [];
+      // Process the final results
+      if (results && results.data) {
+        return convertResultToUIFormat(results.data);
       }
       
-      // Convert to BandPassingNearby format for the UI
-      return convertResultToUIFormat(results);
+      return [];
     },
     enabled: !!activeVenue,
     retry: false, // Don't retry on error since it's likely a data issue
