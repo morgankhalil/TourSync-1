@@ -3,7 +3,9 @@ import {
   venues, type Venue, type InsertVenue,
   tours, type Tour, type InsertTour,
   tourDates, type TourDate, type InsertTourDate,
-  venueAvailability, type VenueAvailability, type InsertVenueAvailability
+  venueAvailability, type VenueAvailability, type InsertVenueAvailability,
+  artists, type Artist, type InsertArtist,
+  artistDiscovery, type ArtistDiscovery, type InsertArtistDiscovery
 } from "@shared/schema";
 
 // Helper to calculate distance between two points using haversine formula
