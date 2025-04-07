@@ -13,7 +13,32 @@ import NodeCache from 'node-cache';
 // Cache configuration
 // stdTTL: Standard Time-To-Live in seconds for every generated cache element
 // 3600 = 1 hour cache duration
-const API_CACHE = new NodeCache({ stdTTL: 3600, checkperiod: 120 });
+const API_CACHE = new NodeCache({ 
+  stdTTL: 3600, // 1 hour standard TTL
+  checkperiod: 120,
+  useClones: false,
+  maxKeys: 1000 // Limit cache size
+});
+
+// Cache segments for different types of data
+const CACHE_SEGMENTS = {
+  ARTIST: 'artist:',
+  EVENTS: 'events:',
+  VENUES: 'venues:',
+  ROUTES: 'routes:'
+};
+
+// Cache helper functions
+const cacheHelpers = {
+  generateKey: (segment: string, identifier: string) => 
+    `${segment}${identifier.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
+  
+  setWithExpiry: (key: string, data: any, ttl?: number) => 
+    API_CACHE.set(key, data, ttl),
+  
+  getFromCache: <T>(key: string): T | undefined => 
+    API_CACHE.get<T>(key)
+};
 
 // Constants
 const API_BASE_URL = 'https://rest.bandsintown.com';
@@ -85,9 +110,30 @@ export class BandsintownApiService {
   };
 
   constructor(apiKey: string) {
-    this.apiKey = apiKey;
-    if (!this.apiKey) {
-      console.warn("BandsintownApiService initialized without API key - API requests will fail");
+    if (!apiKey || apiKey.trim() === '') {
+      throw new Error("BandsintownApiService requires a valid API key");
+    }
+    this.apiKey = apiKey.trim();
+    this.validateApiKey();
+  }
+
+  private async validateApiKey(): Promise<void> {
+    try {
+      const response = await axios.get(`${this.baseUrl}/artists/validate`, {
+        params: { app_id: this.apiKey },
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+      if (response.status !== 200) {
+        throw new Error('API key validation failed');
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 403) {
+        throw new Error('Invalid or unauthorized API key');
+      }
+      throw error;
     }
   }
 

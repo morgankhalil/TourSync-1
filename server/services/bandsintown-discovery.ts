@@ -22,6 +22,7 @@ export interface RouteAnalysis {
   distanceToVenue: number;
   detourDistance: number;
   daysAvailable: number;
+  routingScore: number; // Added routing score
 }
 
 export interface BandDiscoveryResult {
@@ -42,11 +43,11 @@ const artistDiscoveryCache = new NodeCache({ stdTTL: 1800 }); // 30 minutes TTL
 export class BandsintownDiscoveryService {
   private apiKey: string;
   private baseUrl = 'https://rest.bandsintown.com';
-  
+
   constructor(apiKey: string) {
     this.apiKey = apiKey;
   }
-  
+
   /**
    * Calculate distance between two points using the Haversine formula
    */
@@ -54,19 +55,19 @@ export class BandsintownDiscoveryService {
     const R = 6371; // Radius of the earth in km
     const dLat = this.deg2rad(lat2 - lat1);
     const dLng = this.deg2rad(lng2 - lng1);
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(this.deg2rad(lat1)) * Math.cos(this.deg2rad(lat2)) * 
-      Math.sin(dLng/2) * Math.sin(dLng/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.deg2rad(lat1)) * Math.cos(this.deg2rad(lat2)) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const distance = R * c; // Distance in km
     return distance;
   }
-  
+
   private deg2rad(deg: number): number {
-    return deg * (Math.PI/180);
+    return deg * (Math.PI / 180);
   }
-  
+
   /**
    * Search for popular artists in the Bandsintown API
    */
@@ -84,11 +85,11 @@ export class BandsintownDiscoveryService {
       "Tame Impala", "Jack White", "Vampire Weekend", "Modest Mouse",
       "Arcade Fire", "The National", "Spoon", "Fleet Foxes", "Band of Horses"
     ];
-    
+
     // Shuffle and return a subset to simulate search results
     return this.shuffleArray(popularArtists).slice(0, 20);
   }
-  
+
   private shuffleArray<T>(array: T[]): T[] {
     const newArray = [...array];
     for (let i = newArray.length - 1; i > 0; i--) {
@@ -97,7 +98,7 @@ export class BandsintownDiscoveryService {
     }
     return newArray;
   }
-  
+
   /**
    * Find bands passing near a venue within a specific date range
    */
@@ -112,14 +113,14 @@ export class BandsintownDiscoveryService {
     if (!venue || !venue.latitude || !venue.longitude) {
       throw new Error('Venue not found or missing location data');
     }
-    
+
     const venueLat = parseFloat(venue.latitude);
     const venueLng = parseFloat(venue.longitude);
-    
+
     // Get a list of artists to search
     const artistsToSearch = await this.searchPopularArtists();
     const results: BandDiscoveryResult[] = [];
-    
+
     // Process 5 artists at a time to avoid overwhelming the API
     const batchSize = 5;
     for (let i = 0; i < artistsToSearch.length; i += batchSize) {
@@ -127,7 +128,7 @@ export class BandsintownDiscoveryService {
       await Promise.all(batch.map(async (artistName) => {
         try {
           const cacheKey = `discovery:${artistName}:${startDate.toISOString()}:${endDate.toISOString()}`;
-          
+
           // Check cache first
           let result = artistDiscoveryCache.get<BandDiscoveryResult>(cacheKey);
           if (result) {
@@ -135,34 +136,34 @@ export class BandsintownDiscoveryService {
             const routeAnalysis = this.analyzeRouteForVenueFit(
               result.events, venueLat, venueLng, radius
             );
-            
+
             if (routeAnalysis && routeAnalysis.distanceToVenue <= radius) {
               result.route = routeAnalysis;
               results.push(result);
             }
             return;
           }
-          
+
           // Get artist information
           const artistInfo = await this.getArtist(artistName);
           if (!artistInfo) return;
-          
+
           // Get artist events
           const events = await this.getArtistEvents(artistName);
-          
+
           // Filter to events in our date range
           const filteredEvents = events.filter(event => {
             const eventDate = parseISO(event.datetime);
             return isAfter(eventDate, startDate) && isBefore(eventDate, endDate);
           });
-          
+
           if (filteredEvents.length < 2) return; // Need at least 2 events to form a route
-          
+
           // Analyze the route to see if this venue fits
           const routeAnalysis = this.analyzeRouteForVenueFit(
             filteredEvents, venueLat, venueLng, radius
           );
-          
+
           if (routeAnalysis && routeAnalysis.distanceToVenue <= radius) {
             const discoveryResult: BandDiscoveryResult = {
               name: artistInfo.name,
@@ -172,10 +173,10 @@ export class BandsintownDiscoveryService {
               route: routeAnalysis,
               events: filteredEvents
             };
-            
+
             // Cache the result
             artistDiscoveryCache.set(cacheKey, discoveryResult, 1800); // 30 min cache
-            
+
             // Add to results
             results.push(discoveryResult);
           }
@@ -183,29 +184,29 @@ export class BandsintownDiscoveryService {
           console.error(`Error analyzing artist ${artistName}:`, error);
         }
       }));
-      
+
       // Small delay between batches
       if (i + batchSize < artistsToSearch.length) {
         await new Promise(resolve => setTimeout(resolve, 500));
       }
     }
-    
+
     // Sort results by best fit (closest to route with most available days)
     results.sort((a, b) => {
       // Prioritize by detour distance (lower is better)
       const detourDiff = a.route.detourDistance - b.route.detourDistance;
-      
+
       // If detour distances are close, prioritize by days available
       if (Math.abs(detourDiff) < 10) {
         return b.route.daysAvailable - a.route.daysAvailable;
       }
-      
+
       return detourDiff;
     });
-    
+
     return results;
   }
-  
+
   /**
    * Analyze a tour route to see if a venue fits
    */
@@ -213,54 +214,65 @@ export class BandsintownDiscoveryService {
     events: any[],
     venueLat: number,
     venueLng: number,
-    radius: number
+    radius: number,
+    minDaysBetween = 1,
+    maxDetourMultiplier = 2
   ): RouteAnalysis | null {
     if (events.length < 2) return null;
-    
+
     // Sort events by date
     const sortedEvents = [...events].sort(
       (a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime()
     );
-    
+
     // Find potential gaps where venue could fit
     let bestFit: RouteAnalysis | null = null;
-    
+
     for (let i = 0; i < sortedEvents.length - 1; i++) {
       const event1 = sortedEvents[i];
       const event2 = sortedEvents[i + 1];
-      
+
       const date1 = parseISO(event1.datetime);
       const date2 = parseISO(event2.datetime);
-      
+
       // Calculate the days between events
       const daysBetween = differenceInDays(date2, date1);
-      
+
       // Skip if events are too close together (need at least 1 day)
-      if (daysBetween < 1) continue;
-      
+      if (daysBetween < minDaysBetween) continue;
+
       // Get coordinates of events
       const lat1 = parseFloat(event1.venue.latitude || '0');
       const lng1 = parseFloat(event1.venue.longitude || '0');
       const lat2 = parseFloat(event2.venue.latitude || '0');
       const lng2 = parseFloat(event2.venue.longitude || '0');
-      
+
       // Skip if any event is missing coordinates
       if (!lat1 || !lng1 || !lat2 || !lng2) continue;
-      
+
       // Calculate original distance between events
       const originalDistance = this.calculateDistance(lat1, lng1, lat2, lng2);
-      
+
       // Calculate distances to venue
       const distanceToVenue1 = this.calculateDistance(lat1, lng1, venueLat, venueLng);
       const distanceToVenue2 = this.calculateDistance(lat2, lng2, venueLat, venueLng);
-      
-      // Calculate detour distance
+
+      // Calculate detour distance with weighted factors
       const detourDistance = distanceToVenue1 + distanceToVenue2 - originalDistance;
-      
-      // Skip if detour is too far (more than 2x the original route or greater than radius)
-      const maxDetour = Math.max(originalDistance * 2, radius * 3);
-      if (detourDistance > maxDetour) continue;
-      
+      const timeFlexibility = daysBetween / minDaysBetween;
+      const distanceEfficiency = 1 - (detourDistance / originalDistance);
+
+      // Calculate routing score (0-100)
+      const routingScore = Math.min(100, Math.round(
+        (timeFlexibility * 40) +
+        (distanceEfficiency * 40) +
+        (Math.min(1, radius / detourDistance) * 20)
+      ));
+
+      // Skip if detour is too inefficient
+      const maxDetour = Math.max(originalDistance * maxDetourMultiplier, radius * 2);
+      if (detourDistance > maxDetour || routingScore < 40) continue;
+
       // This is a potential fit
       const routeAnalysis: RouteAnalysis = {
         origin: {
@@ -279,18 +291,19 @@ export class BandsintownDiscoveryService {
         },
         distanceToVenue: Math.min(distanceToVenue1, distanceToVenue2),
         detourDistance,
-        daysAvailable: daysBetween
+        daysAvailable: daysBetween,
+        routingScore // Added routing score
       };
-      
+
       // Update best fit if this is the first or better than current
       if (!bestFit || this.compareRouteAnalysis(routeAnalysis, bestFit)) {
         bestFit = routeAnalysis;
       }
     }
-    
+
     return bestFit;
   }
-  
+
   /**
    * Compare two route analyses to determine which is better
    * Return true if route1 is better than route2
@@ -299,16 +312,16 @@ export class BandsintownDiscoveryService {
     // First priority: Minimize detour distance, but normalize by available days
     const normalizedDetour1 = route1.detourDistance / Math.max(1, route1.daysAvailable);
     const normalizedDetour2 = route2.detourDistance / Math.max(1, route2.daysAvailable);
-    
+
     // If there's a significant difference in normalized detour
     if (Math.abs(normalizedDetour1 - normalizedDetour2) > 10) {
       return normalizedDetour1 < normalizedDetour2;
     }
-    
+
     // Second priority: More days available is better
     return route1.daysAvailable > route2.daysAvailable;
   }
-  
+
   /**
    * Fetch artist information from Bandsintown
    */
@@ -324,7 +337,7 @@ export class BandsintownDiscoveryService {
       return null;
     }
   }
-  
+
   /**
    * Fetch artist events from Bandsintown
    */

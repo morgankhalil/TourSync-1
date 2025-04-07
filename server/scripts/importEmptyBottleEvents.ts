@@ -94,13 +94,14 @@ async function importEmptyBottleEvents() {
         await db.insert(tourDates).values({
           tourId: tour.id,
           venueId: venue.id,
-          date: new Date(event.datetime).toISOString(),
+          date: new Date(event.datetime).toISOString().split('T')[0],
           city: "Chicago",
           state: "IL",
           status: "confirmed",
           notes: event.description || `Performing at ${venue.name}`,
           venueName: venue.name,
-          isOpenDate: false
+          isOpenDate: false,
+          validatedAt: new Date().toISOString()
         });
 
         console.log(`Created tour date for ${band.name} on ${new Date(event.datetime).toLocaleDateString()}`);
