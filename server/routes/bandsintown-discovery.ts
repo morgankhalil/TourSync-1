@@ -86,6 +86,11 @@ class RealBandsintownDiscoveryService implements BandsintownDiscoveryService {
       console.log(`Fetching events for ${artists.length} artists`);
       
       // Step 3: For each artist, get their events
+      let artistsWithEventsCount = 0;
+      let artistsWithMatchingEventsCount = 0;
+      let totalEventsCount = 0;
+      let matchingEventsCount = 0;
+
       const artistsWithEventsPromises = artists.map(async (artistName) => {
         try {
           // First get artist info
@@ -100,11 +105,30 @@ class RealBandsintownDiscoveryService implements BandsintownDiscoveryService {
           );
           const events = eventsResponse.data;
           
+          if (events && events.length > 0) {
+            artistsWithEventsCount++;
+            totalEventsCount += events.length;
+            console.log(`Artist ${artistName} has ${events.length} events`);
+          }
+          
           // Filter to only include events in the specified date range
           const filteredEvents = events.filter((event: any) => {
             const eventDate = new Date(event.datetime);
             return eventDate >= new Date(startDate) && eventDate <= new Date(endDate);
           });
+          
+          if (filteredEvents.length > 0) {
+            artistsWithMatchingEventsCount++;
+            matchingEventsCount += filteredEvents.length;
+            console.log(`Artist ${artistName} has ${filteredEvents.length} events in date range ${startDate} to ${endDate}`);
+            
+            // Log coordinates of each event to check distance calculations
+            filteredEvents.forEach((event: any, idx: number) => {
+              const lat = event.venue.latitude;
+              const lng = event.venue.longitude;
+              console.log(`  Event ${idx+1}: ${event.venue.city}, ${event.venue.region} at [${lat}, ${lng}]`);
+            });
+          }
           
           return {
             ...artist,
@@ -118,6 +142,16 @@ class RealBandsintownDiscoveryService implements BandsintownDiscoveryService {
       
       const artistsWithEvents = await Promise.all(artistsWithEventsPromises);
       const validArtists = artistsWithEvents.filter(artist => artist !== null);
+      
+      console.log(`API Stats Summary:
+      - Artists with any events: ${artistsWithEventsCount}/${artists.length}
+      - Artists with events in date range: ${artistsWithMatchingEventsCount}/${artists.length}
+      - Total events: ${totalEventsCount}
+      - Events in date range: ${matchingEventsCount}
+      - Bug Jar coordinates: [${venue.latitude}, ${venue.longitude}]
+      - Date range: ${startDate} to ${endDate}
+      - Search radius: ${radius} miles`);
+      
       
       // Step 4: Calculate which artists are passing "near" the venue
       // Filter for artists with at least 2 events in the date range
