@@ -20,7 +20,7 @@ interface BandsintownDiscoveryService {
 }
 
 /**
- * Actual implementation of the discovery service
+ * Real implementation of the discovery service
  * This service directly polls the Bandsintown API without storing data in the database
  */
 class RealBandsintownDiscoveryService implements BandsintownDiscoveryService {
@@ -42,8 +42,7 @@ class RealBandsintownDiscoveryService implements BandsintownDiscoveryService {
     }
     
     try {
-      // Step 1: Get the venue details to get location using relative path
-      // We don't need axios here since we can import directly from storage
+      // Step 1: Get the venue details to get location
       const { storage } = await import('../storage');
       const venue = await storage.getVenue(venueId);
       
@@ -55,44 +54,65 @@ class RealBandsintownDiscoveryService implements BandsintownDiscoveryService {
         throw new Error(`Venue "${venue.name}" is missing location data`);
       }
       
-      // Step 2: Get top artists in the area using Bandsintown API
-      // Normally this would call the Bandsintown API directly
-      // Here we'll simulate the response for now
+      // Step 2: Get popular artists playing in the area
+      // For now, we'll start with a predefined list of popular artists to check
+      // This approach is more reliable than using the discover endpoint which is limited
+      const popularArtists = [
+        'Taylor Swift', 'Beyoncé', 'Ed Sheeran', 'Drake', 'Coldplay', 
+        'Bruno Mars', 'Adele', 'The Weeknd', 'Billie Eilish', 'Lady Gaga',
+        'Post Malone', 'Twenty One Pilots', 'Imagine Dragons', 'Shawn Mendes',
+        'Dua Lipa', 'Harry Styles', 'BTS', 'Justin Bieber', 'Ariana Grande',
+        'Kendrick Lamar', 'The Killers', 'Foo Fighters', 'Green Day', 'Metallica',
+        'Pearl Jam', 'Red Hot Chili Peppers', 'Rage Against The Machine', 'Tool',
+        'Jack White', 'Tame Impala', 'Arctic Monkeys', 'The Strokes', 'Vampire Weekend',
+        'The Black Keys', 'The National', 'Radiohead', 'Arcade Fire', 'LCD Soundsystem',
+        'The War On Drugs', 'Spoon', 'Fleet Foxes', 'Bon Iver', 'Sufjan Stevens',
+        'St. Vincent', 'Angel Olsen', 'Phoebe Bridgers', 'Mitski', 'Japanese Breakfast'
+      ];
       
-      // Mock implementation - in a real app, this would call the Bandsintown API
-      // const artistsResponse = await axios.get(
-      //   `https://rest.bandsintown.com/artists/discover?location=${venue.latitude},${venue.longitude}&radius=${radius}&app_id=${this.apiKey}`
-      // );
-      
-      // Simulate API response for demo purposes
-      const mockArtists = this.generateMockArtists(10);
+      console.log(`Fetching events for ${popularArtists.length} popular artists`);
       
       // Step 3: For each artist, get their events
-      const artistsWithEvents = await Promise.all(
-        mockArtists.map(async (artist) => {
-          // Mock implementation - in a real app, this would call the Bandsintown API
-          // const eventsResponse = await axios.get(
-          //   `https://rest.bandsintown.com/artists/${encodeURIComponent(artist.name)}/events?app_id=${this.apiKey}`
-          // );
-          // const events = eventsResponse.data;
+      const artistsWithEventsPromises = popularArtists.map(async (artistName) => {
+        try {
+          // First get artist info
+          const artistResponse = await axios.get(
+            `https://rest.bandsintown.com/artists/${encodeURIComponent(artistName)}?app_id=${this.apiKey}`
+          );
+          const artist = artistResponse.data;
           
-          // Simulate events for this artist
-          const events = this.generateMockEvents(artist.name, startDate, endDate, 5);
+          // Then get their events
+          const eventsResponse = await axios.get(
+            `https://rest.bandsintown.com/artists/${encodeURIComponent(artistName)}/events?app_id=${this.apiKey}`
+          );
+          const events = eventsResponse.data;
+          
+          // Filter to only include events in the specified date range
+          const filteredEvents = events.filter((event: any) => {
+            const eventDate = new Date(event.datetime);
+            return eventDate >= new Date(startDate) && eventDate <= new Date(endDate);
+          });
           
           return {
             ...artist,
-            events
+            events: filteredEvents
           };
-        })
-      );
+        } catch (error) {
+          console.error(`Error fetching data for artist ${artistName}:`, error);
+          return null;
+        }
+      });
+      
+      const artistsWithEvents = await Promise.all(artistsWithEventsPromises);
+      const validArtists = artistsWithEvents.filter(artist => artist !== null);
       
       // Step 4: Calculate which artists are passing "near" the venue
       // Filter for artists with at least 2 events in the date range
-      const artistsWithRoutes = artistsWithEvents
-        .filter(artist => artist.events.length >= 2)
+      const artistsWithRoutes = validArtists
+        .filter(artist => artist && artist.events && artist.events.length >= 2)
         .map(artist => {
           // Sort events by date
-          const sortedEvents = [...artist.events].sort((a, b) => 
+          const sortedEvents = [...artist.events].sort((a: any, b: any) => 
             new Date(a.datetime).getTime() - new Date(b.datetime).getTime()
           );
           
@@ -115,8 +135,17 @@ class RealBandsintownDiscoveryService implements BandsintownDiscoveryService {
             if (daysBetween < 2) continue;
             
             // Calculate the midpoint between the two venues
-            const midpointLat = (parseFloat(event1.venue.latitude) + parseFloat(event2.venue.latitude)) / 2;
-            const midpointLng = (parseFloat(event1.venue.longitude) + parseFloat(event2.venue.longitude)) / 2;
+            const event1Lat = parseFloat(event1.venue.latitude || '0');
+            const event1Lng = parseFloat(event1.venue.longitude || '0');
+            const event2Lat = parseFloat(event2.venue.latitude || '0');
+            const event2Lng = parseFloat(event2.venue.longitude || '0');
+            
+            if (!event1Lat || !event1Lng || !event2Lat || !event2Lng) {
+              continue; // Skip if venue coordinates are missing
+            }
+            
+            const midpointLat = (event1Lat + event2Lat) / 2;
+            const midpointLng = (event1Lng + event2Lng) / 2;
             
             // Calculate distance from our venue to the midpoint
             const distanceToVenue = this.calculateDistance(
@@ -128,23 +157,23 @@ class RealBandsintownDiscoveryService implements BandsintownDiscoveryService {
             
             // Calculate direct distance between the two shows
             const directDistance = this.calculateDistance(
-              parseFloat(event1.venue.latitude),
-              parseFloat(event1.venue.longitude),
-              parseFloat(event2.venue.latitude),
-              parseFloat(event2.venue.longitude)
+              event1Lat,
+              event1Lng,
+              event2Lat,
+              event2Lng
             );
             
             // Calculate detour distance (distance to our venue and then to the next show)
             const detourDistance = this.calculateDistance(
-              parseFloat(event1.venue.latitude),
-              parseFloat(event1.venue.longitude),
+              event1Lat,
+              event1Lng,
               parseFloat(venue.latitude),
               parseFloat(venue.longitude)
             ) + this.calculateDistance(
               parseFloat(venue.latitude),
               parseFloat(venue.longitude),
-              parseFloat(event2.venue.latitude),
-              parseFloat(event2.venue.longitude)
+              event2Lat,
+              event2Lng
             );
             
             // Calculate how much extra driving this would add to their tour
@@ -157,15 +186,15 @@ class RealBandsintownDiscoveryService implements BandsintownDiscoveryService {
                   city: event1.venue.city,
                   state: event1.venue.region,
                   date: event1.datetime,
-                  lat: parseFloat(event1.venue.latitude),
-                  lng: parseFloat(event1.venue.longitude)
+                  lat: event1Lat,
+                  lng: event1Lng
                 },
                 destination: {
                   city: event2.venue.city,
                   state: event2.venue.region,
                   date: event2.datetime,
-                  lat: parseFloat(event2.venue.latitude),
-                  lng: parseFloat(event2.venue.longitude)
+                  lat: event2Lat,
+                  lng: event2Lng
                 },
                 distanceToVenue: Math.round(distanceToVenue),
                 detourDistance: Math.round(extraDistance),
@@ -189,7 +218,7 @@ class RealBandsintownDiscoveryService implements BandsintownDiscoveryService {
         })
         .filter(artist => artist !== null)
         // Sort by distance to venue
-        .sort((a, b) => a!.route.distanceToVenue - b!.route.distanceToVenue);
+        .sort((a: any, b: any) => a.route.distanceToVenue - b.route.distanceToVenue);
       
       return {
         data: artistsWithRoutes,
@@ -215,7 +244,7 @@ class RealBandsintownDiscoveryService implements BandsintownDiscoveryService {
   }
   
   /**
-   * Helper method to calculate distance between two points
+   * Helper method to calculate distance between two points using Haversine formula
    */
   private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
     const R = 3958.8; // Earth's radius in miles
@@ -232,94 +261,6 @@ class RealBandsintownDiscoveryService implements BandsintownDiscoveryService {
   
   private deg2rad(deg: number): number {
     return deg * (Math.PI / 180);
-  }
-  
-  /**
-   * Generate mock artists for demonstration
-   */
-  private generateMockArtists(count: number): any[] {
-    const artists = [];
-    
-    for (let i = 0; i < count; i++) {
-      artists.push({
-        name: `Demo Artist ${i + 1}`,
-        url: `https://www.bandsintown.com/a/demo${i + 1}`,
-        image_url: `https://via.placeholder.com/300?text=Artist+${i + 1}`,
-        thumb_url: `https://via.placeholder.com/150?text=Artist+${i + 1}`,
-        facebook_page_url: `https://www.facebook.com/demoartist${i + 1}`,
-        mbid: `mbid${i + 1}`,
-        tracker_count: Math.floor(Math.random() * 10000),
-        upcoming_event_count: Math.floor(Math.random() * 20) + 2
-      });
-    }
-    
-    return artists;
-  }
-  
-  /**
-   * Generate mock events for an artist
-   */
-  private generateMockEvents(artistName: string, startDate: string, endDate: string, count: number): any[] {
-    const events = [];
-    
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    
-    // Create count number of events between start and end dates
-    for (let i = 0; i < count; i++) {
-      const randomDate = new Date(
-        start.getTime() + Math.random() * (end.getTime() - start.getTime())
-      );
-      
-      // Generate a random US city and region
-      const cities = [
-        { city: 'New York', region: 'NY', lat: 40.7128, lng: -74.0060 },
-        { city: 'Los Angeles', region: 'CA', lat: 34.0522, lng: -118.2437 },
-        { city: 'Chicago', region: 'IL', lat: 41.8781, lng: -87.6298 },
-        { city: 'Houston', region: 'TX', lat: 29.7604, lng: -95.3698 },
-        { city: 'Philadelphia', region: 'PA', lat: 39.9526, lng: -75.1652 },
-        { city: 'Phoenix', region: 'AZ', lat: 33.4484, lng: -112.0740 },
-        { city: 'San Antonio', region: 'TX', lat: 29.4241, lng: -98.4936 },
-        { city: 'San Diego', region: 'CA', lat: 32.7157, lng: -117.1611 },
-        { city: 'Dallas', region: 'TX', lat: 32.7767, lng: -96.7970 },
-        { city: 'Pittsburgh', region: 'PA', lat: 40.4406, lng: -79.9959 },
-        { city: 'Rochester', region: 'NY', lat: 43.1566, lng: -77.6088 },
-        { city: 'Buffalo', region: 'NY', lat: 42.8864, lng: -78.8784 },
-        { city: 'Syracuse', region: 'NY', lat: 43.0481, lng: -76.1474 },
-        { city: 'Albany', region: 'NY', lat: 42.6526, lng: -73.7562 },
-        { city: 'Utica', region: 'NY', lat: 43.1010, lng: -75.2327 }
-      ];
-      
-      const randomCity = cities[Math.floor(Math.random() * cities.length)];
-      
-      events.push({
-        id: `event${i}`,
-        url: `https://www.bandsintown.com/e/event${i}`,
-        datetime: randomDate.toISOString(),
-        title: `${artistName} at Venue ${i + 1}`,
-        description: `${artistName} performing at Venue ${i + 1}`,
-        venue: {
-          name: `Venue ${i + 1}`,
-          location: `${randomCity.city}, ${randomCity.region}`,
-          city: randomCity.city,
-          region: randomCity.region,
-          country: 'United States',
-          latitude: String(randomCity.lat + (Math.random() * 0.1 - 0.05)),
-          longitude: String(randomCity.lng + (Math.random() * 0.1 - 0.05))
-        },
-        lineup: [artistName],
-        offers: [{
-          type: 'Tickets',
-          url: `https://www.bandsintown.com/t/event${i}`,
-          status: 'available'
-        }]
-      });
-    }
-    
-    // Sort events by date
-    events.sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime());
-    
-    return events;
   }
 }
 
