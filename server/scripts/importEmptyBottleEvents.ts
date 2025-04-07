@@ -44,7 +44,7 @@ async function importEmptyBottleData() {
     while (currentDate <= endDate) {
       await db.insert(venueAvailability).values({
         venueId: venue.id,
-        date: currentDate,
+        date: currentDate.toISOString(),
         isAvailable: Math.random() > 0.3 // 70% chance of being available
       });
       currentDate = addDays(currentDate, 1);
@@ -54,16 +54,16 @@ async function importEmptyBottleData() {
     const sampleTours = [
       {
         name: "Spring Awakening Tour",
-        startDate: new Date('2025-04-01'),
-        endDate: new Date('2025-05-15'),
+        startDate: new Date('2025-04-01').toISOString(),
+        endDate: new Date('2025-05-15').toISOString(),
         bandId: 1,
         notes: "Midwest leg of national tour",
         isActive: true
       },
       {
         name: "Underground Sound Tour",
-        startDate: new Date('2025-04-15'),
-        endDate: new Date('2025-05-30'),
+        startDate: new Date('2025-04-15').toISOString(),
+        endDate: new Date('2025-05-30').toISOString(),
         bandId: 2,
         notes: "Independent venues showcase",
         isActive: true
@@ -77,7 +77,7 @@ async function importEmptyBottleData() {
       await db.insert(tourDates).values({
         tourId: tour[0].id,
         venueId: venue.id,
-        date: addDays(tour[0].startDate, 7),
+        date: new Date(new Date(tourData.startDate).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(),
         city: "Chicago",
         state: "IL",
         status: "confirmed",
@@ -103,8 +103,8 @@ async function importEmptyBottleData() {
       // Create a tour for each event's headliner
       const tourData = {
         name: `${event.lineup[0]} Spring 2025 Tour`,
-        startDate: new Date(event.datetime),
-        endDate: addDays(new Date(event.datetime), 30),
+        startDate: new Date(event.datetime).toISOString(),
+        endDate: addDays(new Date(event.datetime), 30).toISOString(),
         bandId: 1, // You may want to create/lookup proper band IDs
         notes: `Tour featuring ${event.lineup.join(', ')}`,
         isActive: true
@@ -116,7 +116,7 @@ async function importEmptyBottleData() {
       await db.insert(tourDates).values({
         tourId: tour[0].id,
         venueId: venue.id,
-        date: new Date(event.datetime),
+        date: new Date(event.datetime).toISOString(),
         city: "Chicago",
         state: "IL",
         status: "confirmed",
