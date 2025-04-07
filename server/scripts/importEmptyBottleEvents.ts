@@ -32,14 +32,10 @@ async function importEmptyBottleEvents() {
       }
     }
 
-    // Validate API key
-    const apiKey = process.env.BANDSINTOWN_API_KEY;
-    if (!apiKey) {
-      throw new Error('BANDSINTOWN_API_KEY environment variable is not set');
+    // API service was already initialized above with retry logic
+    if (!bandsintownApi) {
+      throw new Error('Failed to initialize Bandsintown API service');
     }
-
-    // Initialize Bandsintown API service
-    const bandsintownApi = new BandsintownApiService(apiKey);
 
     // 1. Create or get the Empty Bottle venue
     const existingVenue = await db.query.venues.findFirst({
@@ -104,21 +100,10 @@ async function importEmptyBottleEvents() {
         // Create a tour for the band with proper date handling
         const eventDate = new Date(event.datetime);
         
-        // Ensure dates are normalized to midnight UTC
-        const tourStartDate = new Date(Date.UTC(
-          eventDate.getUTCFullYear(),
-          eventDate.getUTCMonth(),
-          eventDate.getUTCDate(),
-          0, 0, 0, 0
-        ));
-        
-        // Calculate tour end date (30 days after start)
-        const tourEndDate = new Date(Date.UTC(
-          tourStartDate.getUTCFullYear(),
-          tourStartDate.getUTCMonth(),
-          tourStartDate.getUTCDate() + 30,
-          0, 0, 0, 0
-        ));
+        // Normalize dates to local midnight
+        const tourStartDate = new Date(eventDate.toISOString().split('T')[0]);
+        const tourEndDate = new Date(tourStartDate);
+        tourEndDate.setDate(tourEndDate.getDate() + 30);
 
         // Validate dates
         if (isNaN(tourStartDate.getTime()) || isNaN(tourEndDate.getTime())) {
