@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -29,7 +28,7 @@ export default function AddVenueModal() {
       // First search for venue
       const searchResponse = await fetch(`/api/bandsintown/venue/search?name=${encodeURIComponent(venueName)}&location=${encodeURIComponent(location)}`);
       const searchResult = await searchResponse.json();
-      
+
       if (!searchResult?.id) {
         throw new Error('Venue not found');
       }
@@ -66,11 +65,11 @@ export default function AddVenueModal() {
 
       // Refresh venues list
       queryClient.invalidateQueries({ queryKey: ['/api/venues'] });
-      
+
       // Reset form
       setVenueName('');
       setLocation('');
-      
+
     } catch (error) {
       toast({
         title: "Error",
