@@ -4,9 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button';
 import { useActiveVenue } from '@/hooks/useActiveVenue';
 import { useToast } from '@/hooks/use-toast';
-import { Band, BandPassingNearby, DiscoveryResult, Venue } from '@/types';
+import { BandDiscoveryResult, BandPassingNearby, DiscoveryResult, Venue } from '@/types';
 import { getLocationLabel, formatDate, formatDateMedium, calculateDistance } from '@/lib/utils';
 import { bandsintownService } from '@/services/bandsintown';
+import { bandsintownDiscoveryService } from '@/services/bandsintown-discovery';
 import BandMapView from '@/components/maps/BandMapView';
 
 const ArtistDiscovery: React.FC = () => {
@@ -22,9 +23,9 @@ const ArtistDiscovery: React.FC = () => {
   const [radius, setRadius] = useState<number>(50);
   const [selectedBand, setSelectedBand] = useState<BandPassingNearby | null>(null);
 
-  // Query to find bands near the active venue
+  // Query to find bands near the active venue using real-time Bandsintown API
   const { data: bandsNearVenue, isLoading, error, refetch } = useQuery({
-    queryKey: activeVenue ? ['find-bands-near-venue', activeVenue.id, startDate, endDate, radius] : ['skip-query'],
+    queryKey: activeVenue ? ['discover-bands-near-venue', activeVenue.id, startDate, endDate, radius] : ['skip-query'],
     queryFn: async () => {
       if (!activeVenue) {
         throw new Error('Please select a venue first');
@@ -32,14 +33,46 @@ const ArtistDiscovery: React.FC = () => {
       if (!activeVenue.latitude || !activeVenue.longitude) {
         throw new Error(`Venue "${activeVenue.name}" is missing location data. Please update the venue coordinates in venue settings.`);
       }
-      return bandsintownService.findBandsNearVenue(activeVenue.id, startDate, endDate, radius);
+      
+      // Use the direct discovery service that polls Bandsintown API in real-time
+      const results = await bandsintownDiscoveryService.findBandsNearVenue({
+        venueId: activeVenue.id,
+        startDate,
+        endDate,
+        radius
+      });
+      
+      // Convert to BandPassingNearby format for the UI
+      return results.map(result => ({
+        band: {
+          id: Math.random(), // Temporary ID for UI purposes
+          name: result.name,
+          contactEmail: '',
+          contactPhone: null,
+          description: null,
+          genre: null,
+          social: {}, // Add missing required property
+          drawSize: null,
+          pastVenues: {},
+          technicalRequirements: {},
+          imageUrl: result.image,
+          videoUrl: null,
+          preferredVenueTypes: {},
+          // Extended properties
+          location: '',
+          website: result.url,
+          bandsintownId: result.url.split('/').pop()
+        },
+        route: result.route
+      }));
     },
     enabled: !!activeVenue,
-    retry: false // Don't retry on error since it's likely a data issue
+    retry: false, // Don't retry on error since it's likely a data issue
+    refetchOnWindowFocus: false
   });
 
-  // Function to refresh tour data from Bandsintown
-  const refreshTourData = async () => {
+  // Function to check Bandsintown API status
+  const checkApiStatus = async () => {
     if (!activeVenue) {
       toast({
         title: 'No venue selected',
@@ -51,26 +84,30 @@ const ArtistDiscovery: React.FC = () => {
 
     try {
       toast({
-        title: 'Refreshing tour data',
-        description: 'This may take a moment...',
+        title: 'Checking Bandsintown API',
+        description: 'Verifying connection...',
       });
 
-      const result = await bandsintownService.refreshTourRoutes(
-        startDate, 
-        endDate
-      );
+      const status = await bandsintownDiscoveryService.checkStatus();
 
-      toast({
-        title: 'Tour data refreshed',
-        description: `Processed ${result.processedArtists} artists. ${result.message}`,
-      });
-
-      // Refetch the bands near venue query
-      refetch();
+      if (status.apiKeyConfigured && status.discoveryEnabled) {
+        toast({
+          title: 'Bandsintown API Ready',
+          description: 'API connection successful. You can now search for artists.',
+        });
+      } else {
+        toast({
+          title: 'Bandsintown API Issue',
+          description: status.apiKeyConfigured 
+            ? 'Discovery feature is disabled.' 
+            : 'API key is not configured. Please contact support.',
+          variant: 'destructive',
+        });
+      }
     } catch (error) {
       toast({
-        title: 'Error refreshing tour data',
-        description: error instanceof Error ? error.message : 'Unknown error',
+        title: 'API Connection Error',
+        description: error instanceof Error ? error.message : 'Could not connect to Bandsintown API.',
         variant: 'destructive',
       });
     }
@@ -82,10 +119,15 @@ const ArtistDiscovery: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Artist Discovery</h1>
           <p className="text-muted-foreground">
-            Find bands that are already on tour and passing near your venue.
+            Find bands that are already on tour and passing near your venue using live Bandsintown data.
           </p>
         </div>
-        <Button onClick={refreshTourData}>Refresh Tour Data</Button>
+        <div className="space-x-2">
+          <Button variant="outline" onClick={checkApiStatus}>
+            Check API Status
+          </Button>
+          <Button onClick={() => refetch()}>Find Bands Nearby</Button>
+        </div>
       </div>
 
       <Card>

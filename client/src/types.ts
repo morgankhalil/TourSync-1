@@ -220,3 +220,12 @@ export interface DiscoveryResult {
   tour: Tour;
   alreadyContacted?: boolean;
 }
+
+export interface BandDiscoveryResult {
+  name: string;
+  image: string;
+  url: string;
+  upcomingEvents: number;
+  route: RouteAnalysis;
+  events: any[];
+}
