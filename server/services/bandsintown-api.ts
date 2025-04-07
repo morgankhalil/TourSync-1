@@ -156,6 +156,68 @@ export class BandsintownApiService {
     return this.makeRequest(endpoint, cacheKey);
   }
 
+  async getArtist(artistName: string): Promise<Artist> {
+    const endpoint = `/artists/${encodeURIComponent(artistName)}`;
+    const cacheKey = CACHE_KEYS.ARTIST(artistName);
+    return this.makeRequest(endpoint, cacheKey);
+  }
+
+  async getMultipleArtistsWithEvents(
+    artistNames: string[],
+    startDate: string,
+    endDate: string,
+    onProgress?: (completed: number, total: number) => void
+  ): Promise<ArtistWithEvents[]> {
+    this.statsCollector.artistsQueried = artistNames.length;
+    const results: ArtistWithEvents[] = [];
+    let completed = 0;
+
+    // Process artists in batches of 3 to avoid rate limiting
+    const batchSize = 3;
+    for (let i = 0; i < artistNames.length; i += batchSize) {
+      const batch = artistNames.slice(i, i + batchSize);
+      const batchPromises = batch.map(async (artistName) => {
+        try {
+          const artist = await this.getArtist(artistName);
+          if (!artist) return null;
+
+          const events = await this.getArtistEvents(artistName);
+          this.statsCollector.eventsFound += events.length;
+
+          completed++;
+          if (onProgress) {
+            onProgress(completed, artistNames.length);
+          }
+
+          return {
+            ...artist,
+            events: events.filter(event => {
+              const eventDate = new Date(event.datetime);
+              return eventDate >= new Date(startDate) && eventDate <= new Date(endDate);
+            })
+          };
+        } catch (error) {
+          console.error(`Error fetching data for artist ${artistName}:`, error);
+          completed++;
+          if (onProgress) {
+            onProgress(completed, artistNames.length);
+          }
+          return null;
+        }
+      });
+
+      const batchResults = await Promise.all(batchPromises);
+      results.push(...batchResults.filter((r): r is ArtistWithEvents => r !== null));
+
+      // Add a small delay between batches to avoid rate limiting
+      if (i + batchSize < artistNames.length) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+
+    return results;
+  }
+
   clearCache(): void {
     API_CACHE.flushAll();
     console.log('API cache cleared');
