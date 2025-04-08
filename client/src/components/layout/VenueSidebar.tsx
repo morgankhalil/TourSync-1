@@ -99,18 +99,22 @@ const VenueSidebar = () => {
                   <Skeleton className="h-4 w-1/2" />
                 </div>
               ) : activeVenue ? (
-                <div>
+                <div className="bg-primary/10 p-4 rounded-lg mb-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-medium">{activeVenue.name}</h3>
+                    <h3 className="font-semibold text-lg text-primary">{activeVenue.name}</h3>
                     <Link href="/edit-venue">
                       <Button variant="ghost" size="icon">
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </Link>
                   </div>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm font-medium mt-1">
                     {activeVenue.city}, {activeVenue.state}
                   </p>
+                  <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                    <Users className="h-4 w-4" />
+                    <span>Capacity: {activeVenue.capacity || 'N/A'}</span>
+                  </div>
                 </div>
               ) : (
                 <p className="text-muted-foreground">No venue selected</p>
