@@ -23,7 +23,7 @@ export function ArtistImporter() {
   useEffect(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.host;
-    const ws = new WebSocket(`${protocol}//${host}/ws`);
+    const ws = new WebSocket(`${protocol}//${host}:5000/ws`);
 
     ws.onopen = () => {
       setSocket(ws);
