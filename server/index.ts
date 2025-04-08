@@ -1,9 +1,18 @@
 import express, { type Request, Response, NextFunction } from "express";
 import cache from "express-cache-controller";
+import dotenv from "dotenv";
 import { registerRoutes } from "./routes";
 import calendarRoutes from "./routes/calendar";
 import venuesApiRoutes from "./routes/venues-api";
 import { setupVite, serveStatic, log } from "./vite";
+
+// Load environment variables
+dotenv.config();
+
+// Make sure SKIP_SAMPLE_DATA is available globally
+// Explicitly set to 'true' for our database import
+process.env.SKIP_SAMPLE_DATA = 'true';
+console.log('Explicitly setting SKIP_SAMPLE_DATA=true for the server');
 
 const app = express();
 app.use(express.json());

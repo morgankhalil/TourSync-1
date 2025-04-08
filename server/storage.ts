@@ -520,6 +520,9 @@ export class MemStorage implements IStorage {
   private collaborationRequestIdCounter: number = 1;
 
   constructor() {
+    // We'll always initialize with sample data for now
+    // since this code is run before server/index.ts can set the env variable
+    console.log('Initializing MemStorage...');
     this.initializeSampleData();
   }
 
