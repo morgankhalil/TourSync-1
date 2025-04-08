@@ -1,45 +1,20 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js';
 
-// This is a dummy implementation for Supabase.
-// For a real implementation, add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env file
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Use console.warn instead of error to avoid crashing the app
-if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
-  console.warn('Supabase credentials missing. Using fallback authentication.');
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.warn('Missing Supabase credentials. Authentication features will be disabled.');
 }
 
-// Create a mock supabase client with no-op methods
-const createMockClient = () => {
-  return {
-    auth: {
-      getUser: async () => ({ data: { user: null }, error: null }),
-      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
-      signInWithPassword: async () => ({ data: null, error: new Error('Supabase not configured') }),
-      signUp: async () => ({ data: null, error: new Error('Supabase not configured') }),
-      signOut: async () => ({ error: null })
-    }
-  };
-};
-
-// Initialize real client if credentials exist, otherwise use mock
-let supabaseClient;
-try {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Missing Supabase environment variables');
-  }
-
-  supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+export const supabase = createClient(
+  SUPABASE_URL || 'https://placeholder.supabase.co',
+  SUPABASE_ANON_KEY || 'placeholder',
+  {
     auth: {
       persistSession: true,
-      autoRefreshToken: true
+      autoRefreshToken: true,
+      detectSessionInUrl: true
     }
-  });
-} catch (error) {
-  console.warn('Error initializing Supabase client:', error);
-  supabaseClient = createMockClient();
-}
-
-export const supabase = supabaseClient;
+  }
+);

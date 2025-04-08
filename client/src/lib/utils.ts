@@ -89,6 +89,34 @@ export const api = axios.create({
   retryDelay: 1000
 });
 
+// Add response interceptor for error handling
+api.interceptors.response.use(
+  response => response,
+  async error => {
+    const { config, response } = error;
+    
+    if (!config || !config.retry) {
+      return Promise.reject(error);
+    }
+
+    if (response?.status === 401) {
+      // Handle authentication errors
+      window.location.href = '/login';
+      return Promise.reject(error);
+    }
+
+    if (config.retry === 0) {
+      // If all retries failed
+      return Promise.reject(error);
+    }
+
+    config.retry -= 1;
+    const delayRetry = new Promise(resolve => setTimeout(resolve, config.retryDelay));
+    await delayRetry;
+    return api(config);
+  }
+);
+
 // Add retry interceptor
 api.interceptors.response.use(undefined, async (err) => {
   const { config } = err;

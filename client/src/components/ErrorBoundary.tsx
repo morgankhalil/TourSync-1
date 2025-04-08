@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Alert, AlertTitle, AlertDescription } from './ui/alert';
+import { Button } from './ui/button';
 
 interface Props {
   children: React.ReactNode;
@@ -21,13 +22,20 @@ export class ErrorBoundary extends React.Component<Props, State> {
     return { hasError: true, error };
   }
 
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Error caught by boundary:', error, errorInfo);
+  }
+
   render() {
     if (this.state.hasError) {
       return (
-        <Alert variant="destructive">
+        <Alert variant="destructive" className="m-4">
           <AlertTitle>Something went wrong</AlertTitle>
-          <AlertDescription>
-            {this.state.error?.message || 'An error occurred'}
+          <AlertDescription className="mt-2">
+            <p className="mb-4">{this.state.error?.message || 'An unexpected error occurred'}</p>
+            <Button onClick={() => window.location.reload()}>
+              Reload Page
+            </Button>
           </AlertDescription>
         </Alert>
       );
