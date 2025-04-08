@@ -49,8 +49,14 @@ export function useVenueOptions() {
     queryKey: ['/api/venues-direct'],
     queryFn: async () => {
       const response = await fetch('/api/venues-direct');
+      if (!response.ok) {
+        throw new Error('Failed to fetch venues');
+      }
       const venues = await response.json();
-      return { success: true, venues };
+      return { 
+        success: true, 
+        venues: Array.isArray(venues) ? venues : [] 
+      };
     },
     retry: 1,
     refetchOnWindowFocus: false,
