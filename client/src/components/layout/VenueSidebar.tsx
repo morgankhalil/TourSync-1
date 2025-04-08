@@ -20,8 +20,7 @@ const VenueSidebar = () => {
   // Fetch venue availability
   const { data: availabilityList, isLoading: isAvailabilityLoading } = useQuery<VenueAvailability[]>({
     queryKey: [`/api/venues/${activeVenue?.id}/availability`],
-  enabled: !!activeVenue?.id,
-    enabled: true,
+    enabled: !!activeVenue?.id,
   });
 
   // Determine the sidebar classes based on mobile and open state
@@ -60,14 +59,14 @@ const VenueSidebar = () => {
               Manage Availability
             </Button>
           </Link>
-          
+
           <Link href="/ai-recommendations">
             <Button variant="outline" className="w-full mt-2 py-2 px-4 rounded-md font-inter font-medium flex items-center justify-center">
               <Zap size={16} className="mr-2" />
               AI Recommendations
             </Button>
           </Link>
-          
+
           {/* Current Venue */}
           {isVenueLoading ? (
             <div className="mt-4">
@@ -105,7 +104,7 @@ const VenueSidebar = () => {
               </button>
             </Link>
           </div>
-          
+
           {isAvailabilityLoading ? (
             <div className="space-y-2">
               {Array.from({ length: 5 }).map((_, i) => (

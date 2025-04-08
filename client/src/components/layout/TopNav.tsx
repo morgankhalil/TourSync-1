@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'wouter';
 import { useActiveVenue } from '@/hooks/useActiveVenue';
@@ -18,7 +17,7 @@ export default function TopNav() {
       <div className="container h-full mx-auto px-4 flex items-center justify-between">
         <div className="flex items-center gap-8">
           <Link href="/">
-            <a className="font-bold text-xl">Venue Connect</a>
+            <a className="font-bold text-xl">TourSync</a>
           </Link>
 
           <nav className="hidden md:flex items-center gap-6">
@@ -44,7 +43,7 @@ export default function TopNav() {
           <button className="p-2 hover:bg-accent rounded-full">
             <Bell className="h-5 w-5" />
           </button>
-          
+
           {activeVenue && (
             <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full">
               <span className="text-sm font-medium">{activeVenue.name}</span>

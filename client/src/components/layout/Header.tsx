@@ -37,14 +37,14 @@ export function Header() {
     { href: '/', label: 'Dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
     { href: '/calendar', label: 'Calendar', icon: <Calendar className="h-4 w-4" /> },
   ];
-  
+
   // Venue-focused navigation
   const venueNavItems = [
     { href: '/venues/search', label: 'Find Venues', icon: <Search className="h-4 w-4" /> },
     { href: '/venues/tour-finder', label: 'Tour Finder', icon: <Route className="h-4 w-4" /> },
     { href: '/venue-network', label: 'Venue Network', icon: <Network className="h-4 w-4" /> },
   ];
-  
+
   // Artist-focused navigation
   const artistNavItems = [
     { href: '/artists/discovery', label: 'Discover Artists', icon: <Music className="h-4 w-4" /> },
@@ -81,18 +81,18 @@ export function Header() {
         >
           <Menu className="h-5 w-5" />
         </Button>
-        
+
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 font-semibold">
           <Music className="h-6 w-6 text-primary" />
-          <span>BandConnect</span>
+          <span>TourSync</span>
         </Link>
-        
+
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-5 mx-6 overflow-x-auto">
           {/* Main Navigation Items */}
           {mainNavItems.map(renderNavLink)}
-          
+
           {/* Venue Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -126,7 +126,7 @@ export function Header() {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          
+
           {/* Artist Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -161,7 +161,7 @@ export function Header() {
             </DropdownMenuContent>
           </DropdownMenu>
         </nav>
-        
+
         {/* Right Side Elements */}
         <div className="ml-auto flex items-center gap-4">
           {/* Active Venue Display */}
@@ -174,7 +174,7 @@ export function Header() {
               <span className="hidden sm:inline">{venueData.name}</span>
             </Link>
           )}
-          
+
           {/* User Profile Area */}
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
