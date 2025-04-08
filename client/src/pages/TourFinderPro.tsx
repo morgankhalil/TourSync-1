@@ -64,7 +64,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-export default function TourFinderPro() {
+export function TourFinderPro() {
   // Use the venue property from context for consistency
   const { venue: activeVenue, venueId, setActiveVenueId } = useActiveVenue();
   const { data: venues } = useVenues();

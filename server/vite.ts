@@ -30,7 +30,8 @@ export async function configureVite(app: any) {
         hmr: {
           port: 5000,
           host: '0.0.0.0',
-          protocol: 'wss'
+          protocol: 'wss',
+          clientPort: 443
         },
       },
       appType: 'custom'

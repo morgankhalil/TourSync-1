@@ -7,7 +7,7 @@ import { RegisterPage } from "./pages/RegisterPage";
 import { Dashboard } from '@/pages/Dashboard';
 import { VenueDashboard } from "./pages/VenueDashboard";
 import { VenueSearch } from "./pages/VenueSearch";
-import { TourFinderPro } from "./pages/TourFinderPro";
+import { TourFinderPro } from "@/pages/TourFinderPro";
 import { EnhancedArtistDiscovery } from "@/pages/EnhancedArtistDiscovery";
 import { BandsintownPage } from "./pages/BandsintownPage";
 import { AuthProvider } from "./contexts/AuthContext";
