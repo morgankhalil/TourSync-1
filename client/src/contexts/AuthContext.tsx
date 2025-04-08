@@ -22,6 +22,7 @@ interface RegisterData {
   email: string;
   password: string;
   userType: UserType;
+  existingVenueId?: number;
 }
 
 interface AuthContextType {

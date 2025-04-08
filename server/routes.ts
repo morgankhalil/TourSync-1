@@ -22,7 +22,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerBandsintownDiscoveryRoutes(app);
   registerVenueRoutes(app);
   registerVenuesDirectRoutes(app);
-  app.use('/api/venues-search', venuesApiRouter);
+  app.use('/api/venues', venuesApiRouter);
   registerVenueNetworkRoutes(app);
 
   // Artist routes

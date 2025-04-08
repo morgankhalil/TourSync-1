@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useLocation, Link } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useVenueOptions } from '@/hooks/useVenues';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -13,10 +14,18 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
 
 // Form validation schema
@@ -33,10 +42,17 @@ const registrationSchema = z.object({
   userType: z.enum(['artist', 'venue', 'fan'], {
     required_error: 'Please select a user type',
   }),
+  existingVenueId: z.string().optional(),
 }).refine(data => data.password === data.confirmPassword, {
   message: 'Passwords do not match',
   path: ['confirmPassword'],
-});
+}).refine(
+  (data) => !(data.userType === 'venue' && !data.existingVenueId),
+  {
+    message: 'Please select your venue',
+    path: ['existingVenueId'],
+  }
+);
 
 // Type for form values
 type RegistrationFormValues = z.infer<typeof registrationSchema>;
@@ -46,6 +62,7 @@ export function RegistrationForm() {
   const { register: registerUser } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { data: venueOptions, isLoading: isLoadingVenues } = useVenueOptions();
 
   // Initialize form with react-hook-form
   const form = useForm<RegistrationFormValues>({
@@ -56,19 +73,38 @@ export function RegistrationForm() {
       password: '',
       confirmPassword: '',
       userType: 'artist',
+      existingVenueId: undefined,
     },
   });
+  
+  // Set up watch for user type changes
+  const userType = form.watch('userType');
+  const showVenueSelector = userType === 'venue';
 
   // Handle form submission
   const onSubmit = async (values: RegistrationFormValues) => {
     setIsSubmitting(true);
     try {
-      const success = await registerUser({
+      // Prepare registration data
+      const registrationData: any = {
         name: values.name,
         email: values.email,
         password: values.password,
         userType: values.userType,
+      };
+
+      // Add venue ID if user type is venue and a venue was selected
+      if (values.userType === 'venue' && values.existingVenueId) {
+        registrationData.existingVenueId = Number(values.existingVenueId);
+      }
+      
+      // Log the registration data for debugging
+      console.log('Submitting registration with data:', {
+        ...registrationData,
+        password: '[REDACTED]'
       });
+      
+      const success = await registerUser(registrationData);
       
       if (success) {
         toast({
@@ -203,6 +239,51 @@ export function RegistrationForm() {
               </FormItem>
             )}
           />
+          
+          {/* Venue selector - only visible when user type is 'venue' */}
+          {showVenueSelector && (
+            <FormField
+              control={form.control}
+              name="existingVenueId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Select your venue</FormLabel>
+                  <FormControl>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select your venue" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {isLoadingVenues ? (
+                          <div className="p-2 text-center">
+                            <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                            <span className="text-sm">Loading venues...</span>
+                          </div>
+                        ) : venueOptions?.venues && venueOptions.venues.length > 0 ? (
+                          venueOptions.venues.map((venue) => (
+                            <SelectItem key={venue.id} value={String(venue.id)}>
+                              {venue.name}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <div className="p-2 text-center text-sm text-muted-foreground">
+                            No venues found
+                          </div>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormDescription>
+                    If your venue is not listed, select a venue name for now. You can update it later.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
           
           <Button type="submit" className="w-full mt-6" disabled={isSubmitting}>
             {isSubmitting ? (

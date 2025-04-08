@@ -42,47 +42,65 @@ export class UserRoleService {
   }
 
   /**
-   * Creates a venue profile for a user
+   * Creates or links a venue profile for a user
    * @param user The newly created user
-   * @returns The created venue ID
+   * @param existingVenueId Optional existing venue ID to link instead of creating a new one
+   * @returns The created or linked venue ID
    */
-  async createVenueProfile(user: User): Promise<number> {
+  async createVenueProfile(user: User, existingVenueId?: number): Promise<number> {
     try {
-      // Create a basic venue profile with minimal required fields
-      // Note: Venues require more fields, we'll use placeholder values initially
-      const venueData = {
-        name: user.name,
-        address: "To be updated",
-        city: "To be updated",
-        state: "To be updated",
-        zipCode: "00000",
-        latitude: "0",
-        longitude: "0"
-      };
+      let venueId: number;
+      
+      if (existingVenueId) {
+        // If an existing venue ID is provided, verify it exists
+        const venueResults = await db.select({ id: venues.id }).from(venues).where(eq(venues.id, existingVenueId)).limit(1);
+        
+        if (venueResults.length === 0) {
+          throw new Error(`Venue with ID ${existingVenueId} not found`);
+        }
+        
+        // Use the existing venue ID
+        venueId = existingVenueId;
+        console.log(`Linking user to existing venue ID: ${venueId}`);
+      } else {
+        // Create a new venue profile with minimal required fields
+        const venueData = {
+          name: user.name,
+          address: "To be updated",
+          city: "To be updated",
+          state: "To be updated",
+          zipCode: "00000",
+          latitude: "0",
+          longitude: "0"
+        };
 
-      // Validate with schema before inserting
-      insertVenueSchema.parse(venueData);
-      
-      // Insert venue and return the ID
-      const [createdVenue] = await db.insert(venues).values(venueData).returning({ id: venues.id });
-      
-      if (!createdVenue || !createdVenue.id) {
-        throw new Error("Failed to create venue profile");
+        // Validate with schema before inserting
+        insertVenueSchema.parse(venueData);
+        
+        // Insert venue and return the ID
+        const [createdVenue] = await db.insert(venues).values(venueData).returning({ id: venues.id });
+        
+        if (!createdVenue || !createdVenue.id) {
+          throw new Error("Failed to create venue profile");
+        }
+        
+        venueId = createdVenue.id;
+        console.log(`Created new venue with ID: ${venueId}`);
       }
 
       // Link venue to user - use venueId instead of venue_id
       await db
         .update(users)
-        .set({ venueId: createdVenue.id })
+        .set({ venueId })
         .where(eq(users.id, user.id));
 
       // Fetch the updated user to confirm changes
       const updatedUserResults = await db.select().from(users).where(eq(users.id, user.id)).limit(1);
       console.log('Updated user with venue ID:', updatedUserResults[0]);
 
-      return createdVenue.id;
+      return venueId;
     } catch (error) {
-      console.error("Error creating venue profile:", error);
+      console.error("Error creating or linking venue profile:", error);
       throw error;
     }
   }
@@ -90,9 +108,10 @@ export class UserRoleService {
   /**
    * Assigns the appropriate role to a user based on their user type
    * @param user The newly registered user
+   * @param existingVenueId Optional ID of an existing venue to link the user to
    * @returns An object containing the user and any created profile IDs
    */
-  async assignUserRole(user: User): Promise<{ 
+  async assignUserRole(user: User, existingVenueId?: number): Promise<{ 
     user: User, 
     artistId?: number,
     venueId?: number
@@ -107,7 +126,7 @@ export class UserRoleService {
           artistId = await this.createArtistProfile(user);
           break;
         case 'venue':
-          venueId = await this.createVenueProfile(user);
+          venueId = await this.createVenueProfile(user, existingVenueId);
           // The user update is done in createVenueProfile
           break;
         // Fans don't get additional profiles currently

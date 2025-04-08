@@ -4,7 +4,7 @@ import { Strategy as LocalStrategy } from 'passport-local';
 import bcrypt from 'bcrypt';
 import { z } from 'zod';
 import { db } from '../db';
-import { users } from '../../shared/schema';
+import { users, venues } from '../../shared/schema';
 import { eq, sql } from 'drizzle-orm';
 
 const router = express.Router();
@@ -21,6 +21,7 @@ const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
   userType: z.enum(['artist', 'venue', 'fan']),
+  existingVenueId: z.number().optional(),
 });
 
 // Setup passport local strategy
@@ -167,8 +168,19 @@ router.post('/register', async (req: Request, res: Response, next: NextFunction)
       throw new Error('Failed to create user');
     }
 
+    // Get existing venue ID if provided for venue staff
+    const existingVenueId = validatedData.existingVenueId;
+    
+    // Log venue assignment info
+    if (validatedData.userType === 'venue' && existingVenueId) {
+      console.log(`Assigning user to existing venue ID: ${existingVenueId}`);
+    }
+
     // Create role-specific profile based on user type
-    const { user, artistId, venueId } = await userRoleService.assignUserRole(createdUser);
+    const { user, artistId, venueId } = await userRoleService.assignUserRole(
+      createdUser, 
+      existingVenueId
+    );
     
     // Remove password hash before sending to client
     const { passwordHash: _, ...userWithoutPassword } = user;
@@ -225,6 +237,28 @@ router.post('/logout', (req: Request, res: Response) => {
       });
     });
   });
+});
+
+// Get venue options for registration
+router.get('/venue-options', async (req: Request, res: Response) => {
+  try {
+    // Fetch venues from the database using db service
+    const result = await db.select({
+      id: venues.id,
+      name: venues.name
+    }).from(venues);
+    
+    return res.status(200).json({
+      success: true,
+      venues: result
+    });
+  } catch (error) {
+    console.error('Error fetching venue options:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch venue options'
+    });
+  }
 });
 
 // Get current user route
