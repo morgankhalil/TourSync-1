@@ -1,6 +1,7 @@
+
 import React from "react";
 import { Link, useLocation } from "wouter";
-import { Plus, Calendar, MoreVertical, Zap, Menu, Users, Network, MapPin, Search } from "lucide-react";
+import { Menu, Calendar, Search, Network } from "lucide-react";
 import { Sidebar, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem } from "@/components/ui/sidebar";
 
 export default function VenueSidebar() {
