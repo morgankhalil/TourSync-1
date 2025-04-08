@@ -12,7 +12,7 @@ import { Link } from "wouter";
 import { useActiveVenue } from "@/hooks/useActiveVenue";
 import { VenueAvailability } from "@/types";
 import { useVenues } from "@/hooks/useVenues"; // Import the useVenues hook
-import Spinner from "@/components/ui/Spinner"; //Import Spinner component
+import { Spinner } from "@/components/ui/spinner"; //Import Spinner component
 
 
 const VenueSidebar = () => {
