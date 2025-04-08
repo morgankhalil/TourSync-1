@@ -1,7 +1,8 @@
 import { Artist, InsertArtist, ArtistDiscovery, InsertArtistDiscovery, 
   Event, InsertEvent, CollaborationRequest, InsertCollaborationRequest,
   ArtistCompatibility, InsertArtistCompatibility,
-  artists, artistDiscovery, events, collaborationRequests, artistCompatibility
+  Venue, InsertVenue,
+  artists, artistDiscovery, events, collaborationRequests, artistCompatibility, venues
 } from '@shared/schema';
 import { db } from './db';
 import { eq, and, inArray, gte, lte } from 'drizzle-orm';
@@ -44,6 +45,14 @@ export interface IStorage {
   getArtistDiscovery(artistId: string): Promise<ArtistDiscovery | undefined>;
   recordArtistDiscovery(discovery: InsertArtistDiscovery): Promise<ArtistDiscovery>;
   updateArtistDiscovery(artistId: string, discovery: Partial<InsertArtistDiscovery>): Promise<ArtistDiscovery | undefined>;
+  
+  // Venue operations
+  getVenue(id: string): Promise<Venue | undefined>;
+  getVenues(options?: { limit?: number; city?: string }): Promise<Venue[]>;
+  getVenuesNear(options: { latitude: string; longitude: string; radiusMiles: number; limit?: number }): Promise<Venue[]>;
+  createVenue(venue: InsertVenue): Promise<Venue>;
+  updateVenue(id: string, venue: Partial<InsertVenue>): Promise<Venue | undefined>;
+  deleteVenue(id: string): Promise<boolean>;
   
   // Event operations
   getEvent(id: string): Promise<Event | undefined>;
@@ -482,7 +491,7 @@ export class DatabaseStorage implements IStorage {
   }> {
     // Get upcoming events count
     const now = new Date();
-    const events = await db.select().from(events)
+    const artistEvents = await db.select().from(events)
       .where(and(
         eq(events.artistId, artistId),
         gte(events.eventDate, now)
@@ -502,11 +511,57 @@ export class DatabaseStorage implements IStorage {
     const compatibleArtists = await this.getCompatibleArtists(artistId, 50); // 50% compatibility threshold
     
     return {
-      upcomingEvents: events.length,
+      upcomingEvents: artistEvents.length,
       collaborationRequests: receivedRequests.length + sentRequests.length,
       pendingRequests: pendingRequests.length,
       totalCompatibleArtists: compatibleArtists.length
     };
+  }
+
+  // Venue operations
+  async getVenue(id: string): Promise<Venue | undefined> {
+    const result = await db.select().from(venues).where(eq(venues.id, id));
+    return result[0];
+  }
+
+  async getVenues(options?: { limit?: number; city?: string }): Promise<Venue[]> {
+    let query = db.select().from(venues);
+    
+    // Filter by city if provided
+    if (options?.city) {
+      query = query.where(eq(venues.city, options.city));
+    }
+    
+    let results = await query;
+    
+    // Apply limit if provided
+    if (options?.limit && options.limit > 0 && results.length > options.limit) {
+      results = results.slice(0, options.limit);
+    }
+    
+    return results;
+  }
+
+  async createVenue(venue: InsertVenue): Promise<Venue> {
+    const id = venue.id || uuidv4();
+    const newVenue = { ...venue, id };
+    
+    const result = await db.insert(venues).values(newVenue).returning();
+    return result[0];
+  }
+
+  async updateVenue(id: string, venue: Partial<InsertVenue>): Promise<Venue | undefined> {
+    const result = await db.update(venues)
+      .set(venue)
+      .where(eq(venues.id, id))
+      .returning();
+    
+    return result[0];
+  }
+
+  async deleteVenue(id: string): Promise<boolean> {
+    const result = await db.delete(venues).where(eq(venues.id, id));
+    return !!result;
   }
 }
 
@@ -517,6 +572,7 @@ export class MemStorage implements IStorage {
   private eventsData: Map<string, Event> = new Map();
   private collaborationRequestsData: Map<number, CollaborationRequest> = new Map();
   private artistCompatibilityData: Map<string, ArtistCompatibility> = new Map();
+  private venuesData: Map<string, Venue> = new Map();
   private collaborationRequestIdCounter: number = 1;
 
   constructor() {
@@ -927,11 +983,58 @@ export class MemStorage implements IStorage {
     };
   }
 
+  // Venue operations
+  async getVenue(id: string): Promise<Venue | undefined> {
+    return this.venuesData.get(id);
+  }
+
+  async getVenues(options?: { limit?: number; city?: string }): Promise<Venue[]> {
+    let venues = Array.from(this.venuesData.values());
+    
+    // Filter by city if provided
+    if (options?.city) {
+      venues = venues.filter(venue => venue.city === options.city);
+    }
+    
+    // Apply limit if provided
+    if (options?.limit && options.limit > 0) {
+      venues = venues.slice(0, options.limit);
+    }
+    
+    return venues;
+  }
+
+  async createVenue(venue: InsertVenue): Promise<Venue> {
+    const id = venue.id || uuidv4();
+    const newVenue: Venue = {
+      ...venue,
+      id,
+      createdAt: new Date()
+    };
+    
+    this.venuesData.set(id, newVenue);
+    return newVenue;
+  }
+
+  async updateVenue(id: string, venue: Partial<InsertVenue>): Promise<Venue | undefined> {
+    const existingVenue = this.venuesData.get(id);
+    if (!existingVenue) return undefined;
+    
+    const updatedVenue = { ...existingVenue, ...venue };
+    this.venuesData.set(id, updatedVenue);
+    
+    return updatedVenue;
+  }
+
+  async deleteVenue(id: string): Promise<boolean> {
+    return this.venuesData.delete(id);
+  }
+
   // Initialize with sample data for testing
   private initializeSampleData() {
     // Check if we already have imported artists
     if (this.artistsData.size > 0) {
-      console.log(`Using existing ${this.artistsData.size} artists and ${this.eventsData.size} events`);
+      console.log(`Using existing ${this.artistsData.size} artists, ${this.eventsData.size} events, and ${this.venuesData.size} venues`);
       return; // Skip initialization if we already have data
     }
     
@@ -1082,8 +1185,62 @@ export class MemStorage implements IStorage {
     this.calculateAndStoreCompatibility("art1", "art2");
     this.calculateAndStoreCompatibility("art1", "art3");
     this.calculateAndStoreCompatibility("art2", "art3");
+    
+    // Sample venues
+    const venues: Venue[] = [
+      {
+        id: "venue1",
+        name: "The Echo Lounge",
+        address: "215 SE Morrison St",
+        city: "Portland",
+        state: "OR",
+        country: "USA",
+        latitude: "45.5152",
+        longitude: "-122.6784",
+        imageUrl: "https://images.unsplash.com/photo-1581043144435-ebcd25885809?q=80&w=200&auto=format&fit=crop",
+        website: "https://example.com/echo-lounge",
+        description: "A cozy music venue known for showcasing indie rock and folk artists, with excellent acoustics and an intimate atmosphere.",
+        capacity: 350,
+        createdAt: new Date()
+      },
+      {
+        id: "venue2",
+        name: "Digital Dreams Club",
+        address: "500 Pine Street",
+        city: "Seattle",
+        state: "WA",
+        country: "USA",
+        latitude: "47.6062",
+        longitude: "-122.3321",
+        imageUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=200&auto=format&fit=crop",
+        website: "https://example.com/digital-dreams",
+        description: "An electronic music venue with state-of-the-art sound system and lighting. Popular with electronic, synth-pop, and ambient artists.",
+        capacity: 500,
+        createdAt: new Date()
+      },
+      {
+        id: "venue3",
+        name: "Jazz & Beats Lounge",
+        address: "125 N Wells St",
+        city: "Chicago",
+        state: "IL",
+        country: "USA",
+        latitude: "41.8781",
+        longitude: "-87.6298",
+        imageUrl: "https://images.unsplash.com/photo-1576060974974-933acee13b58?q=80&w=200&auto=format&fit=crop",
+        website: "https://example.com/jazz-beats",
+        description: "A historic venue featuring jazz, hip-hop, and funk artists. Known for its excellent acoustics and vibrant atmosphere.",
+        capacity: 400,
+        createdAt: new Date()
+      }
+    ];
+    
+    // Add venues to storage
+    for (const venue of venues) {
+      this.venuesData.set(venue.id, venue);
+    }
   }
 }
 
-// Choose which storage implementation to use
-export const storage = new MemStorage();
+// Use DatabaseStorage for persistent data storage
+export const storage = new DatabaseStorage();

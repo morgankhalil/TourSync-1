@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import { registerRoutes } from "./routes";
 import calendarRoutes from "./routes/calendar";
 import venuesApiRoutes from "./routes/venues-api";
+import venueRoutes from "./routes/venue-routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 // Load environment variables

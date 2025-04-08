@@ -34,6 +34,31 @@ export const artistDiscovery = pgTable("artist_discovery", {
 
 export const insertArtistDiscoverySchema = createInsertSchema(artistDiscovery);
 
+// Venues schema
+export const venues = pgTable("venues", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  address: text("address").notNull(),
+  city: text("city").notNull(),
+  state: text("state"),
+  country: text("country").notNull(),
+  capacity: integer("capacity"),
+  imageUrl: text("image_url"),
+  website: text("website"),
+  email: text("email"),
+  phone: text("phone"),
+  description: text("description"),
+  latitude: text("latitude"),
+  longitude: text("longitude"),
+  bandsintown_id: text("bandsintown_id"),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+export const insertVenueSchema = createInsertSchema(venues).omit({
+  id: true,
+  createdAt: true
+});
+
 // Events schema
 export const events = pgTable("events", {
   id: text("id").primaryKey(),
@@ -98,6 +123,9 @@ export type InsertArtist = z.infer<typeof insertArtistSchema>;
 
 export type ArtistDiscovery = typeof artistDiscovery.$inferSelect;
 export type InsertArtistDiscovery = z.infer<typeof insertArtistDiscoverySchema>;
+
+export type Venue = typeof venues.$inferSelect;
+export type InsertVenue = z.infer<typeof insertVenueSchema>;
 
 export type Event = typeof events.$inferSelect;
 export type InsertEvent = z.infer<typeof insertEventSchema>;

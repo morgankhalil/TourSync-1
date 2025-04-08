@@ -1,52 +1,33 @@
-
 import { Router } from 'express';
-import ical from 'ical-generator';
 import { storage } from '../storage';
 
 const router = Router();
 
-// Export tour dates to iCal
-router.get('/tours/:id/calendar', async (req, res) => {
+// Get events for calendar view
+router.get('/', async (req, res) => {
   try {
-    const tourId = parseInt(req.params.id);
-    const tour = await storage.getTour(tourId);
-    const dates = await storage.getTourDates(tourId);
-    
-    const calendar = ical({name: tour?.name});
-    
-    dates.forEach(date => {
-      calendar.createEvent({
-        start: new Date(date.date),
-        summary: `${tour?.name} - ${date.city}, ${date.state}`,
-        description: date.notes,
-        location: date.venueName
-      });
-    });
-    
-    res.set('Content-Type', 'text/calendar');
-    res.send(calendar.toString());
+    const events = await storage.getEvents({});
+    res.json(events);
   } catch (error) {
-    res.status(500).json({ message: "Error exporting calendar" });
+    console.error('Error getting calendar events:', error);
+    res.status(500).json({ error: 'Failed to retrieve calendar events' });
   }
 });
 
-// Handle calendar webhook updates
-router.post('/venues/:id/calendar-sync', async (req, res) => {
+// Get event details for calendar view
+router.get('/:id', async (req, res) => {
   try {
-    const venueId = parseInt(req.params.id);
-    const { events } = req.body;
+    const { id } = req.params;
+    const event = await storage.getEvent(id);
     
-    await Promise.all(events.map(event => 
-      storage.createVenueAvailability({
-        venueId,
-        date: new Date(event.start),
-        isAvailable: !event.busy
-      })
-    ));
+    if (!event) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
     
-    res.status(200).json({ message: "Calendar sync successful" });
+    res.json(event);
   } catch (error) {
-    res.status(500).json({ message: "Error syncing calendar" });
+    console.error('Error getting calendar event:', error);
+    res.status(500).json({ error: 'Failed to retrieve calendar event' });
   }
 });
 
