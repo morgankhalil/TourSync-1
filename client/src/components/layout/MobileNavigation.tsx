@@ -23,6 +23,13 @@ export default function MobileNavigation() {
         </a>
       </Link>
 
+      <Link href="/tour-planning" onClick={() => isSidebarOpen && closeSidebar()}>
+        <a className={`flex flex-col items-center p-2 ${location === '/tour-planning' ? 'text-primary' : 'text-gray-600'}`}>
+          <Map size={24} />
+          <span className="text-xs mt-1 mobile-nav-item">Tours</span>
+        </a>
+      </Link>
+
       <button 
         onClick={toggleSidebar}
         className={`flex flex-col items-center p-2 ${isSidebarOpen ? 'text-primary' : 'text-gray-600'}`}

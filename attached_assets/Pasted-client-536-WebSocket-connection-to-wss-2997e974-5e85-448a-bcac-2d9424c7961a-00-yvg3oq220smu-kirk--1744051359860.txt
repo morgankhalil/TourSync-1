@@ -1,0 +1,77 @@
+client:536 WebSocket connection to 'wss://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/?token=ZXmrCc4DpC-P' failed: Error during WebSocket handshake: Unexpected response code: 400
+setupWebSocket @ client:536
+client:536 Uncaught (in promise) DOMException: Failed to construct 'WebSocket': The URL 'wss://localhost:undefined/?token=ZXmrCc4DpC-P' is invalid.
+    at setupWebSocket (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@vite/client:536:19)
+    at fallback (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@vite/client:509:16)
+    at WebSocket.<anonymous> (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@vite/client:555:7)
+chunk-RPCDYKBN.js?v=2db7d32e:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+VenueSelector.tsx:33 Fetching venues...
+VenueSelector.tsx:46 Current active venue ID: null
+VenueSelector.tsx:47 Current active venue object: null
+useActiveVenue.tsx:159 Current venue ID: null, Venue object: null
+VenueSelector.tsx:46 Current active venue ID: null
+VenueSelector.tsx:47 Current active venue object: null
+useActiveVenue.tsx:159 Current venue ID: null, Venue object: null
+VenueSelector.tsx:39 Fetched venues: Array(1)
+GoogleMapsKey.tsx:27 Google Maps API key added to document head and window object
+useActiveVenue.tsx:145 Setting default venue to: Object
+VenueSelector.tsx:46 Current active venue ID: 45
+VenueSelector.tsx:47 Current active venue object: Object
+useActiveVenue.tsx:76 Fetching specific venue with ID: 45
+useActiveVenue.tsx:159 Current venue ID: 45, Venue object: Object
+useActiveVenue.tsx:82 Loaded venue data: Object
+useActiveVenue.tsx:141 Setting active venue from fetched data: Object
+VenueSelector.tsx:46 Current active venue ID: 45
+VenueSelector.tsx:47 Current active venue object: Object
+useActiveVenue.tsx:141 Setting active venue from fetched data: Object
+useActiveVenue.tsx:159 Current venue ID: 45, Venue object: Object
+6chunk-2ZLTH5VR.js?v=2db7d32e:60 Uncaught Error: `TabsContent` must be used within `Tabs`
+    at useContext2 (chunk-2ZLTH5VR.js?v=2db7d32e:60:13)
+    at @radix-ui_react-tabs.js?v=2db7d32e:447:21
+    at renderWithHooks (chunk-RPCDYKBN.js?v=2db7d32e:11548:26)
+    at updateForwardRef (chunk-RPCDYKBN.js?v=2db7d32e:14325:28)
+    at beginWork (chunk-RPCDYKBN.js?v=2db7d32e:15946:22)
+    at HTMLUnknownElement.callCallback2 (chunk-RPCDYKBN.js?v=2db7d32e:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-RPCDYKBN.js?v=2db7d32e:3699:24)
+    at invokeGuardedCallback (chunk-RPCDYKBN.js?v=2db7d32e:3733:39)
+    at beginWork$1 (chunk-RPCDYKBN.js?v=2db7d32e:19765:15)
+    at performUnitOfWork (chunk-RPCDYKBN.js?v=2db7d32e:19198:20)
+3chunk-RPCDYKBN.js?v=2db7d32e:14032 The above error occurred in the <TabsContent> component:
+
+    at https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=2db7d32e:446:13
+    at _c5 (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/ui/tabs.tsx:72:12)
+    at div
+    at _c9 (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/ui/card.tsx:114:12)
+    at div
+    at _c (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/ui/card.tsx:20:11)
+    at div
+    at div
+    at VenueCalendar (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/pages/VenueCalendar.tsx:31:21)
+    at Route (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=2db7d32e:191:16)
+    at Switch (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=2db7d32e:247:17)
+    at Router
+    at main
+    at div
+    at div
+    at MainContent
+    at ActiveVenueProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/hooks/useActiveVenue.tsx:37:39)
+    at App
+    at QueryClientProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=2db7d32e:2805:3)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+logCapturedError @ chunk-RPCDYKBN.js?v=2db7d32e:14032
+Show 1 more frame
+Show less
+chunk-RPCDYKBN.js?v=2db7d32e:9129 Uncaught Error: `TabsContent` must be used within `Tabs`
+    at useContext2 (chunk-2ZLTH5VR.js?v=2db7d32e:60:13)
+    at @radix-ui_react-tabs.js?v=2db7d32e:447:21
+    at renderWithHooks (chunk-RPCDYKBN.js?v=2db7d32e:11548:26)
+    at updateForwardRef (chunk-RPCDYKBN.js?v=2db7d32e:14325:28)
+    at beginWork (chunk-RPCDYKBN.js?v=2db7d32e:15946:22)
+    at beginWork$1 (chunk-RPCDYKBN.js?v=2db7d32e:19753:22)
+    at performUnitOfWork (chunk-RPCDYKBN.js?v=2db7d32e:19198:20)
+    at workLoopSync (chunk-RPCDYKBN.js?v=2db7d32e:19137:13)
+    at renderRootSync (chunk-RPCDYKBN.js?v=2db7d32e:19116:15)
+    at recoverFromConcurrentError (chunk-RPCDYKBN.js?v=2db7d32e:18736:28)
+calendar:1 A soft navigation has been detected: https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/calendar

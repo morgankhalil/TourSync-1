@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Building
 } from 'lucide-react';
+import {BarChart2} from 'lucide-react'; // Added import for BarChart2
 import VenueSelector from './venue/VenueSelector';
 
 const Sidebar: React.FC = () => {
@@ -23,6 +24,8 @@ const Sidebar: React.FC = () => {
     { name: 'Artist Discovery', path: '/discovery', icon: <Compass className="w-5 h-5 mr-3" /> },
     { name: 'Enhanced Discovery', path: '/discovery-v2', icon: <Compass className="w-5 h-5 mr-3 text-purple-600" /> },
     { name: 'Calendar', path: '/calendar', icon: <CalendarDays className="w-5 h-5 mr-3" /> },
+    { name: 'Tour Planning', path: '/tour-planning', icon: <Building className="w-5 h-5 mr-3" /> }, //Replaced Map with Building as Map is not defined.
+    { name: 'Tour Dashboard', path: '/tour-dashboard', icon: <BarChart2 className="w-5 h-5 mr-3" /> }, // Changed BarChart3 to BarChart2
     { name: 'Bands', path: '/bands', icon: <Users className="w-5 h-5 mr-3" /> },
     { name: 'Settings', path: '/settings', icon: <Settings className="w-5 h-5 mr-3" /> },
   ];

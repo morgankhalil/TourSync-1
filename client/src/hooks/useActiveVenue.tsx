@@ -32,7 +32,7 @@ const ActiveVenueContext = createContext<ActiveVenueContextType>(defaultActiveVe
 export const ActiveVenueProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [venueId, setVenueId] = useState<number | null>(38); // Default to Bug Jar venue (ID 38)
+  const [venueId, setVenueId] = useState<number | null>(null);
   const [activeVenue, setActiveVenue] = useState<Venue | null>(null);
   
   // Function to refresh venue data
@@ -141,15 +141,14 @@ export const ActiveVenueProvider: React.FC<{ children: React.ReactNode }> = ({ c
       console.log(`Setting active venue from fetched data:`, venue);
       setActiveVenue(venue);
     } else if (venues && venues.length > 0 && !activeVenue) {
-      // If we have venues but no active venue, set the first one or Bug Jar
-      const bugJar = venues.find(v => v.name === "Bug Jar") || venues[0];
-      console.log(`Setting default venue to:`, bugJar);
-      setActiveVenue(bugJar);
-      setVenueId(bugJar.id);
+      const firstVenue = venues[0];
+      console.log(`Setting default venue to:`, firstVenue);
+      setActiveVenue(firstVenue);
+      setVenueId(firstVenue.id);
       
       toast({
         title: "Default venue selected",
-        description: `Selected venue: ${bugJar.name}`,
+        description: `Selected venue: ${firstVenue.name}`,
         duration: 3000
       });
     }

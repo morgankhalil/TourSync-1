@@ -10,6 +10,7 @@ import { useTours } from "../../hooks/useTours";
 import { useVenues } from "../../hooks/useVenues";
 import { apiRequest } from "../../lib/queryClient";
 import { Calendar } from "@/components/ui/calendar";
+import { InteractiveMapView } from "../maps/InteractiveMapView";
 import { CalendarIcon, Map, Calendar as CalendarIcon2, Clock } from "lucide-react";
 import { useToast } from "../../hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -170,6 +171,20 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
         <CardDescription>Find venues to optimize your tour routing and fill open dates</CardDescription>
       </CardHeader>
       <CardContent>
+        <div className="mb-6 h-[300px] rounded-lg overflow-hidden border">
+          <InteractiveMapView
+            locations={tourDates.map(date => ({
+              lat: Number(date.latitude) || 0,
+              lng: Number(date.longitude) || 0,
+              name: date.venueName || 'Open Date',
+              tourId: tour?.id,
+              date: date.date,
+              isVenue: !!date.venueId,
+            }))}
+            showPaths={true}
+          />
+        </div>
+        
         <Tabs defaultValue="gaps" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="gaps">Fill Tour Gaps</TabsTrigger>
@@ -342,6 +357,41 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
             </div>
           </TabsContent>
         </Tabs>
+      </CardContent>
+    </Card>
+  );
+};
+
+import React from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Tour, TourDate, Venue } from '@/types';
+
+interface TourOptimizationPanelProps {
+  tour: Tour | null;
+  tourDates: TourDate[];
+  onSelectVenue: (venue: Venue) => void;
+}
+
+const TourOptimizationPanel: React.FC<TourOptimizationPanelProps> = ({
+  tour,
+  tourDates,
+  onSelectVenue
+}) => {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Tour Optimization</CardTitle>
+        <CardDescription>Find and fill open dates with recommended venues</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {tourDates.filter(date => date.isOpenDate || !date.venueId).map(date => (
+            <div key={date.id} className="p-4 border rounded-lg">
+              <div className="font-medium">{new Date(date.date).toLocaleDateString()}</div>
+              <div className="text-sm text-muted-foreground">Looking for venues...</div>
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );

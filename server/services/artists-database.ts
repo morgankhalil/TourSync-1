@@ -20,14 +20,28 @@ export async function getArtistsToQuery(options: ArtistQueryOptions = {}): Promi
   const { limit = 100, genres = [] } = options;
 
   try {
-    // Get artists from storage
+    // Get artists from storage with enhanced filtering
     const artists = await storage.getArtists({
       limit,
-      genres: genres.length > 0 ? genres : undefined
+      genres: genres.length > 0 ? genres : undefined,
+      orderBy: 'discoverScore',
+      includeStats: true
     });
 
-    // Filter out artists without proper names
-    const validArtists = artists.filter(artist => artist.name && artist.name.trim().length > 0);
+    // Advanced filtering
+    const validArtists = artists
+      .filter(artist => (
+        artist.name && 
+        artist.name.trim().length > 0 &&
+        (!artist.lastChecked || 
+         new Date(artist.lastChecked).getTime() < Date.now() - 24 * 60 * 60 * 1000)
+      ))
+      .sort((a, b) => {
+        // Prioritize artists that haven't been checked recently
+        const aLastChecked = a.lastChecked ? new Date(a.lastChecked).getTime() : 0;
+        const bLastChecked = b.lastChecked ? new Date(b.lastChecked).getTime() : 0;
+        return aLastChecked - bLastChecked;
+      });
 
     return validArtists;
   } catch (error) {
@@ -199,4 +213,45 @@ export function getArtistsToQueryOld(options: {
 
   // Return the limited list
   return filteredList.slice(0, limit);
+}
+
+export async function insertArtist(artist: InsertArtist) {
+  // Validate required fields
+  if (!artist.name || !artist.id) {
+    throw new Error('Artist name and ID are required');
+  }
+
+  // Normalize genres array
+  if (artist.genres) {
+    artist.genres = artist.genres.map(g => g.toLowerCase().trim());
+  }
+
+  // Validate URLs
+  const urlFields = ['imageUrl', 'url', 'website'];
+  urlFields.forEach(field => {
+    if (artist[field] && !isValidUrl(artist[field])) {
+      throw new Error(`Invalid URL for ${field}`);
+    }
+  });
+
+  // Validate draw size
+  if (artist.drawSize && (artist.drawSize < 0 || !Number.isInteger(artist.drawSize))) {
+    throw new Error('Draw size must be a positive integer');
+  }
+
+  try {
+    return await db.insert(artists).values(artist).returning();
+  } catch (error) {
+    console.error('Error inserting artist:', error);
+    throw new Error('Failed to insert artist into database');
+  }
+}
+
+function isValidUrl(string: string): boolean {
+  try {
+    new URL(string);
+    return true;
+  } catch (_) {
+    return false;
+  }
 }

@@ -113,3 +113,58 @@ The platform currently has several key components spread across multiple files:
 5. Monitor and optimize
 
 This plan addresses the core issues while providing a clear path forward for implementation.
+# Frontend Restructure Plan
+
+## Core Layout Changes
+
+1. **New Navigation Structure**
+   - Primary navigation bar at top
+   - Context-aware secondary navigation 
+   - Collapsible sidebar for venue/tour context
+
+2. **Dashboard Organization**
+   - Quick stats cards at top
+   - Activity feed
+   - Calendar preview
+   - Upcoming shows/tours
+   - Recent discoveries
+
+3. **Main Feature Areas**
+
+### Venue Management
+- Venue Dashboard
+- Calendar & Booking Management  
+- Past Performances Analytics
+- Discovery Panel
+- Venue Profile & Settings
+
+### Tour Planning
+- Tour Dashboard
+- Route Optimization
+- Date Management  
+- Venue Discovery
+- Tour Analytics
+
+### Artist Discovery
+- Enhanced Discovery View
+- Map Integration
+- Detailed Artist Profiles
+- Matching Algorithm Results
+- Import Tools
+
+## Implementation Plan
+
+1. Create new layout components
+2. Implement new navigation structure
+3. Build enhanced dashboards
+4. Update individual feature pages
+5. Add new component library elements
+6. Implement responsive design patterns
+
+## UI/UX Improvements
+
+- Consistent card-based layouts
+- Enhanced data visualization
+- Improved navigation flows
+- Better mobile responsiveness
+- Clearer action hierarchies
