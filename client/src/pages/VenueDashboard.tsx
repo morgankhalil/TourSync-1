@@ -173,7 +173,7 @@ const NetworkActivityCard = ({ type, title, subtitle, date }: ActivityCardProps)
 export default function VenueDashboard() {
   const { toast } = useToast();
   const { activeVenueId, activeVenue, isLoadingVenue, venueData } = useActiveVenue();
-  
+
   // Mock data for demonstration - would be replaced with actual API calls
   const { isLoading: isLoadingEvents } = useQuery({ 
     queryKey: ['/api/venues/events', activeVenueId],
