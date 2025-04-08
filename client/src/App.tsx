@@ -11,10 +11,7 @@ import { TourFinderPro } from "@/pages/TourFinderPro";
 import { EnhancedArtistDiscovery } from "@/pages/EnhancedArtistDiscovery";
 import { BandsintownPage } from "./pages/BandsintownPage";
 import TestPage from './pages/TestPage';
-import { SupabaseExample } from './pages/SupabaseExample';
-import { SupabaseLogin } from './pages/SupabaseLogin';
-import { SupabaseRealtime } from './pages/SupabaseRealtime';
-import { AuthProvider } from "./contexts/SupabaseAuthContext";
+import { AuthProvider } from "./contexts/AuthContext";
 import { ActiveVenueProvider } from "./hooks/useActiveVenue";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { MainLayout } from "./components/layout/MainLayout";
@@ -77,9 +74,6 @@ export default function App() {
                       <Route path="/artist-discovery" component={EnhancedArtistDiscovery} />
                       <Route path="/bandsintown" component={BandsintownPage} />
                       <Route path="/test" component={TestPage} />
-                      <Route path="/supabase" component={SupabaseExample} />
-                      <Route path="/supabase-login" component={SupabaseLogin} />
-                      <Route path="/supabase-realtime" component={SupabaseRealtime} />
                       <Route path="/profile" component={ProfilePage} />
                       <Route path="/settings" component={SettingsPage} />
                       <Route path="/venue/:id" component={VenueView} />
