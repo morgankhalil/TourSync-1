@@ -54,6 +54,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
+        // Configure axios to use the correct server URL
+        axios.defaults.baseURL = 'http://localhost:3000';
+        axios.defaults.withCredentials = true;
+
         const response = await axios.get('/api/auth/me');
         if (response.data.user) {
           const userData = response.data.user;
@@ -87,6 +91,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Login function
   const login = async (credentials: LoginCredentials): Promise<boolean> => {
     try {
+      // Configure axios to use the correct server URL
+      axios.defaults.baseURL = 'http://localhost:3000';
+      axios.defaults.withCredentials = true;
+
       const response = await axios.post('/api/auth/login', credentials);
       if (response.status === 200 && response.data.user) {
         const userData = response.data.user;
@@ -108,6 +116,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Register function
   const register = async (data: RegisterData): Promise<boolean> => {
     try {
+      // Configure axios to use the correct server URL
+      axios.defaults.baseURL = 'http://localhost:3000';
+      axios.defaults.withCredentials = true;
+
       const response = await axios.post('/api/auth/register', data);
       if (response.status === 201 && response.data.user) {
         setUser(response.data.user);
@@ -123,6 +135,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Logout function
   const logout = async (): Promise<void> => {
     try {
+      // Configure axios to use the correct server URL
+      axios.defaults.baseURL = 'http://localhost:3000';
+      axios.defaults.withCredentials = true;
+
       await axios.post('/api/auth/logout');
       setUser(null);
     } catch (error) {
