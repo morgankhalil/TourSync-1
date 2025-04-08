@@ -3,17 +3,17 @@ import React from 'react';
 import { Header } from './Header';
 import { SidebarLayout } from './SidebarLayout';
 
-type MainLayoutProps = {
+interface MainLayoutProps {
   children: React.ReactNode;
-};
+}
 
-export function MainLayout({ children }: MainLayoutProps) {
+export default function MainLayout({ children }: MainLayoutProps) {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen flex flex-col">
       <Header />
-      <div className="flex">
+      <div className="flex-1 flex">
         <SidebarLayout>
-          <main className="flex-1 p-6">
+          <main className="flex-1 overflow-y-auto">
             {children}
           </main>
         </SidebarLayout>
