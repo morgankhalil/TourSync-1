@@ -81,6 +81,14 @@ const VenueSearch = () => {
             description: "Could not get your current location. Please try searching for a city instead.",
             variant: "destructive",
           });
+          
+          // Default to Chicago if we can't get the user's location
+          setSearchLocation({ latitude: 41.8781, longitude: -87.6298 });
+        },
+        { 
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0
         }
       );
     } else {
@@ -89,6 +97,9 @@ const VenueSearch = () => {
         description: "Geolocation is not supported by your browser. Please try searching for a city instead.",
         variant: "destructive",
       });
+      
+      // Default to Chicago if geolocation is not supported
+      setSearchLocation({ latitude: 41.8781, longitude: -87.6298 });
     }
   };
 
@@ -122,9 +133,11 @@ const VenueSearch = () => {
     }
   };
 
-  // Get user location on component mount
+  // Don't automatically try to get location on component mount
+  // This prevents location errors from showing on page load
   useEffect(() => {
-    getUserLocation();
+    // Instead of automatically getting location, default to Chicago
+    setSearchLocation({ latitude: 41.8781, longitude: -87.6298 });
   }, []);
 
   // Search for venues whenever the search location or radius changes
