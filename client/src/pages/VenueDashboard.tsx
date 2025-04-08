@@ -12,11 +12,11 @@ import { ChevronRight, Calendar as CalendarIcon, MapPin, Users, Music, PieChart,
 import { Link } from "wouter";
 import { format, addDays, isToday, parseISO, isSameDay } from "date-fns";
 import { PastPerformance, PastPerformancesByYear } from "@/types/pastPerformance";
-import SimpleVenueMap from "@/components/maps/SimpleVenueMap";
+import { InteractiveMapView } from "@/components/maps/InteractiveMapView";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import BandMapView from "@/components/maps/BandMapView";
+
 
 const VenueDashboard = () => {
   const { openSidebar } = useSidebar();
@@ -305,7 +305,16 @@ const VenueDashboard = () => {
                           </div>
 
                           <div className="h-32">
-                            <SimpleVenueMap venue={activeVenue} />
+                            <InteractiveMapView 
+                              locations={[{
+                                lat: parseFloat(activeVenue.latitude),
+                                lng: parseFloat(activeVenue.longitude),
+                                name: activeVenue.name,
+                                isVenue: true
+                              }]}
+                              zoom={13}
+                              showPaths={false}
+                            />
                           </div>
 
                           <div>
