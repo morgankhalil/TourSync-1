@@ -1,215 +1,84 @@
-
-import { 
-  Calendar, 
-  Clock, 
-  Music, 
-  MapPin, 
-  LineChart, 
-  Route, 
-  Users, 
-  LogIn, 
-  Search,
-  MessageSquareText,
-  BarChart3,
-  Home,
-  Building2,
-  Settings,
-  Compass,
-  Star,
-  UserCircle
-} from "lucide-react";
 import { Link, useLocation } from "wouter";
+import { 
+  Calendar, Clock, Music, MapPin, LineChart, 
+  Route, Users, Search, MessageSquareText, 
+  BarChart3, Home, Building2, Settings, 
+  Compass, Star, UserCircle
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Sidebar as UISidebar, SidebarContent, SidebarHeader, SidebarFooter } from "@/components/ui/sidebar";
-import { useActiveVenue } from "@/hooks/useActiveVenue";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useActiveVenue } from "@/hooks/useActiveVenue";
 
-interface SidebarProps {
-  onNavClick?: () => void;
-}
-
-const navItems = [
-  {
-    title: "Main",
-    items: [
-      {
-        title: "Home",
-        href: "/",
-        icon: Home,
-      },
-      {
-        title: "Dashboard",
-        href: "/dashboard",
-        icon: BarChart3,
-      }
-    ]
-  },
-  {
-    title: "Venue Management",
-    items: [
-      {
-        title: "Venues",
-        href: "/venues",
-        icon: Building2,
-      },
-      {
-        title: "Calendar",
-        href: "/venue-calendar",
-        icon: Calendar,
-      },
-      {
-        title: "Availability",
-        href: "/venue-availability",
-        icon: Clock,
-      }
-    ]
-  },
-  {
-    title: "Artist Discovery",
-    items: [
-      {
-        title: "Discover Artists",
-        href: "/artist-discovery",
-        icon: Search,
-      },
-      {
-        title: "Enhanced Discovery",
-        href: "/enhanced-artist-discovery",
-        icon: Star,
-      },
-      {
-        title: "Bandsintown Import",
-        href: "/bandsintown-import",
-        icon: Music,
-      },
-      {
-        title: "Opportunities",
-        href: "/opportunity-discovery",
-        icon: Compass,
-      }
-    ]
-  },
-  {
-    title: "Tour Planning",
-    items: [
-      {
-        title: "Tour Dashboard",
-        href: "/tour-dashboard",
-        icon: Route,
-      },
-      {
-        title: "Create Tour",
-        href: "/create-tour",
-        icon: MapPin,
-      },
-      {
-        title: "Tour Wizard",
-        href: "/tour-planning-wizard",
-        icon: LineChart,
-      }
-    ]
-  },
-  {
-    title: "Account",
-    items: [
-      {
-        title: "Profile",
-        href: "/profile",
-        icon: UserCircle,
-      },
-      {
-        title: "Settings",
-        href: "/settings",
-        icon: Settings,
-      }
-    ]
-  }
-];
-
-const Sidebar = ({ onNavClick }: SidebarProps) => {
+export default function Sidebar({ onNavClick }: { onNavClick?: () => void }) {
   const [location] = useLocation();
   const { activeVenue } = useActiveVenue();
 
-  // Helper to check if a navigation item is active
-  const isActive = (path: string) => {
-    if (path === "/" && location === "/") return true;
-    if (path !== "/" && location.startsWith(path)) return true;
-    return false;
-  };
+  const NavItem = ({ href, icon: Icon, children }: any) => (
+    <Link href={href}>
+      <Button
+        variant="ghost"
+        className={cn(
+          "w-full justify-start gap-2",
+          location === href && "bg-accent"
+        )}
+        onClick={onNavClick}
+      >
+        <Icon className="h-4 w-4" />
+        <span>{children}</span>
+      </Button>
+    </Link>
+  );
 
   return (
-    <ScrollArea className="h-full py-3">
-      <div className="px-3 py-2 flex-1">
-        {/* App Logo & Title */}
-        <Link href="/">
-          <div className="flex items-center px-2 mb-6 h-12">
-            <div className="flex items-center gap-2 font-semibold">
-              <div className="bg-primary rounded w-8 h-8 flex items-center justify-center text-primary-foreground">
-                <Music className="h-4 w-4" />
-              </div>
-              <span className="font-semibold">Venue Connect</span>
-            </div>
-          </div>
-        </Link>
+    <div className="h-full flex flex-col gap-2 p-2">
+      <ScrollArea className="flex-1">
+        <div className="space-y-1">
+          <NavItem href="/" icon={Home}>Home</NavItem>
+          <NavItem href="/dashboard" icon={BarChart3}>Dashboard</NavItem>
 
-        {/* Active Venue */}
-        {activeVenue && (
-          <div className="mb-4 bg-muted/40 rounded-lg p-4">
-            <div className="flex flex-col items-center mb-2">
-              <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center">
-                <MapPin className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="mt-2 font-medium truncate text-center">{activeVenue.name}</h3>
-              <p className="text-xs text-muted-foreground">
-                {activeVenue.city}, {activeVenue.state}
-              </p>
-              <Link href={`/venue/${activeVenue.id}`}>
-                <Button variant="ghost" size="sm" className="mt-2 w-full text-xs">
-                  Manage Venue
-                </Button>
-              </Link>
-            </div>
-          </div>
-        )}
+          <Separator className="my-2" />
 
-        {/* Navigation Groups */}
-        {navItems.map((group, index) => (
-          <div key={group.title} className="space-y-1">
-            <div className="text-xs font-medium text-muted-foreground px-2 mb-2">
-              {group.title}
-            </div>
-            <TooltipProvider delayDuration={0}>
-              {group.items.map((item) => (
-                <Tooltip key={item.href}>
-                  <TooltipTrigger asChild>
-                    <Link href={item.href}>
-                      <Button
-                        variant={isActive(item.href) ? "secondary" : "ghost"}
-                        className={cn(
-                          "w-full justify-start gap-3",
-                          isActive(item.href) && "bg-secondary font-medium"
-                        )}
-                        onClick={onNavClick}
-                      >
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </Button>
-                    </Link>
-                  </TooltipTrigger>
-                  <TooltipContent side="right">{item.title}</TooltipContent>
-                </Tooltip>
-              ))}
-            </TooltipProvider>
-            {index < navItems.length - 1 && <Separator className="my-4" />}
-          </div>
-        ))}
+          <div className="px-2 py-1.5 text-sm font-semibold">Venues</div>
+          <NavItem href="/venues" icon={Building2}>All Venues</NavItem>
+          {activeVenue && (
+            <>
+              <NavItem href={`/venue/${activeVenue.id}/dashboard`} icon={LineChart}>
+                Venue Dashboard
+              </NavItem>
+              <NavItem href={`/venue/${activeVenue.id}/calendar`} icon={Calendar}>
+                Calendar
+              </NavItem>
+              <NavItem href={`/venue/${activeVenue.id}/availability`} icon={Clock}>
+                Availability
+              </NavItem>
+            </>
+          )}
+
+          <Separator className="my-2" />
+
+          <div className="px-2 py-1.5 text-sm font-semibold">Artists</div>
+          <NavItem href="/bands" icon={Music}>Bands</NavItem>
+          <NavItem href="/discovery" icon={Search}>Artist Discovery</NavItem>
+          <NavItem href="/discovery/enhanced" icon={Star}>Enhanced Discovery</NavItem>
+          <NavItem href="/bandsintown" icon={Users}>Bandsintown</NavItem>
+
+          <Separator className="my-2" />
+
+          <div className="px-2 py-1.5 text-sm font-semibold">Touring</div>
+          <NavItem href="/tours" icon={Route}>Tours</NavItem>
+          <NavItem href="/tour/create" icon={MapPin}>Create Tour</NavItem>
+          <NavItem href="/opportunities" icon={Compass}>Opportunities</NavItem>
+        </div>
+      </ScrollArea>
+
+      <Separator />
+
+      <div className="space-y-1">
+        <NavItem href="/profile" icon={UserCircle}>Profile</NavItem>
+        <NavItem href="/settings" icon={Settings}>Settings</NavItem>
       </div>
-    </ScrollArea>
+    </div>
   );
-};
-
-export default Sidebar;
+}
