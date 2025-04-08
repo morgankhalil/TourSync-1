@@ -1,0 +1,73 @@
+client:536 WebSocket connection to 'wss://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/?token=sDMlLlx8Td_B' failed: Error during WebSocket handshake: Unexpected response code: 400
+setupWebSocket @ client:536
+client:536 Uncaught (in promise) DOMException: Failed to construct 'WebSocket': The URL 'wss://localhost:undefined/?token=sDMlLlx8Td_B' is invalid.
+    at setupWebSocket (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@vite/client:536:19)
+    at fallback (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@vite/client:509:16)
+    at WebSocket.<anonymous> (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@vite/client:555:7)
+chunk-RPCDYKBN.js?v=4645aeef:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+chunk-RPCDYKBN.js?v=4645aeef:521 Warning: React has detected a change in the order of Hooks called by VenueSidebar. This will lead to bugs and errors if not fixed. For more information, read the Rules of Hooks: https://reactjs.org/link/rules-of-hooks
+
+   Previous render            Next render
+   ------------------------------------------------------
+1. useContext                 useContext
+2. useContext                 useContext
+3. useContext                 useContext
+4. useContext                 useContext
+5. useContext                 useContext
+6. useEffect                  useEffect
+7. useState                   useState
+8. useCallback                useCallback
+9. useSyncExternalStore       useSyncExternalStore
+10. useEffect                 useEffect
+11. undefined                 useState
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    at VenueSidebar (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/layout/VenueSidebar.tsx:34:47)
+    at div
+    at SidebarProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/context/SidebarContext.tsx:21:35)
+    at MainLayout (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/layout/MainLayout.tsx:19:30)
+    at ActiveVenueProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/hooks/useActiveVenue.tsx:21:39)
+    at QueryClientProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=4645aeef:2805:3)
+    at App
+    at QueryClientProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=4645aeef:2805:3)
+printWarning @ chunk-RPCDYKBN.js?v=4645aeef:521
+Show 1 more frame
+Show less
+2chunk-RPCDYKBN.js?v=4645aeef:11678 Uncaught Error: Rendered more hooks than during the previous render.
+    at updateWorkInProgressHook (chunk-RPCDYKBN.js?v=4645aeef:11678:21)
+    at updateReducer (chunk-RPCDYKBN.js?v=4645aeef:11727:22)
+    at updateState (chunk-RPCDYKBN.js?v=4645aeef:12021:18)
+    at Object.useState (chunk-RPCDYKBN.js?v=4645aeef:12753:24)
+    at useState (chunk-QCHXOAYK.js?v=4645aeef:1066:29)
+    at VenueSidebar (VenueSidebar.tsx:27:43)
+    at renderWithHooks (chunk-RPCDYKBN.js?v=4645aeef:11548:26)
+    at updateFunctionComponent (chunk-RPCDYKBN.js?v=4645aeef:14582:28)
+    at beginWork (chunk-RPCDYKBN.js?v=4645aeef:15924:22)
+    at HTMLUnknownElement.callCallback2 (chunk-RPCDYKBN.js?v=4645aeef:3674:22)
+chunk-RPCDYKBN.js?v=4645aeef:14032 The above error occurred in the <VenueSidebar> component:
+
+    at VenueSidebar (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/layout/VenueSidebar.tsx:34:47)
+    at div
+    at SidebarProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/context/SidebarContext.tsx:21:35)
+    at MainLayout (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/layout/MainLayout.tsx:19:30)
+    at ActiveVenueProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/hooks/useActiveVenue.tsx:21:39)
+    at QueryClientProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=4645aeef:2805:3)
+    at App
+    at QueryClientProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=4645aeef:2805:3)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+logCapturedError @ chunk-RPCDYKBN.js?v=4645aeef:14032
+Show 1 more frame
+Show less
+chunk-RPCDYKBN.js?v=4645aeef:9129 Uncaught Error: Rendered more hooks than during the previous render.
+    at updateWorkInProgressHook (chunk-RPCDYKBN.js?v=4645aeef:11678:21)
+    at updateReducer (chunk-RPCDYKBN.js?v=4645aeef:11727:22)
+    at updateState (chunk-RPCDYKBN.js?v=4645aeef:12021:18)
+    at Object.useState (chunk-RPCDYKBN.js?v=4645aeef:12753:24)
+    at useState (chunk-QCHXOAYK.js?v=4645aeef:1066:29)
+    at VenueSidebar (VenueSidebar.tsx:27:43)
+    at renderWithHooks (chunk-RPCDYKBN.js?v=4645aeef:11548:26)
+    at updateFunctionComponent (chunk-RPCDYKBN.js?v=4645aeef:14582:28)
+    at beginWork (chunk-RPCDYKBN.js?v=4645aeef:15924:22)
+    at beginWork$1 (chunk-RPCDYKBN.js?v=4645aeef:19753:22)
