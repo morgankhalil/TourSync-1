@@ -107,6 +107,7 @@ const VenueDashboard = () => {
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="calendar">Calendar</TabsTrigger>
               <TabsTrigger value="performances">Performances</TabsTrigger>
+              <TabsTrigger value="management">Management</TabsTrigger>
               <TabsTrigger value="opportunities">Opportunities</TabsTrigger>
             </TabsList>
 
@@ -672,6 +673,156 @@ const VenueDashboard = () => {
                       Manage Past Performances
                     </Button>
                   </Link>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="management">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="md:col-span-2">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Venue Management</CardTitle>
+                      <CardDescription>
+                        Manage your venue settings and operations
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-4">
+                          <h3 className="font-semibold">Quick Actions</h3>
+                          <div className="grid grid-cols-1 gap-2">
+                            <Link href={`/venues/${activeVenue?.id}/edit`}>
+                              <Button variant="outline" className="w-full justify-start">
+                                <Settings className="mr-2 h-4 w-4" />
+                                Edit Venue Details
+                              </Button>
+                            </Link>
+                            <Link href="/venue-availability">
+                              <Button variant="outline" className="w-full justify-start">
+                                <Calendar className="mr-2 h-4 w-4" />
+                                Manage Availability
+                              </Button>
+                            </Link>
+                            <Link href="/artist-discovery">
+                              <Button variant="outline" className="w-full justify-start">
+                                <Music className="mr-2 h-4 w-4" />
+                                Find Artists
+                              </Button>
+                            </Link>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-4">
+                          <h3 className="font-semibold">Venue Health</h3>
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span>Profile Completion</span>
+                              <Badge variant="outline">80%</Badge>
+                            </div>
+                            <Progress value={80} className="h-2" />
+                            
+                            <div className="flex justify-between items-center mt-4">
+                              <span>Booking Rate</span>
+                              <Badge variant="outline">65%</Badge>
+                            </div>
+                            <Progress value={65} className="h-2" />
+                          </div>
+                        </div>
+                      </div>
+
+                      <Separator className="my-6" />
+
+                      <div>
+                        <h3 className="font-semibold mb-4">Recent Activity</h3>
+                        <div className="space-y-4">
+                          {recentPerformances.slice(0, 3).map((performance) => (
+                            <div 
+                              key={performance.id}
+                              className="flex items-center justify-between p-3 rounded-md border"
+                            >
+                              <div>
+                                <p className="font-medium">{performance.artistName}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {format(new Date(performance.date), "MMM d, yyyy")}
+                                </p>
+                              </div>
+                              <Badge>{performance.status || "Completed"}</Badge>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Venue Settings</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div>
+                          <Label>Booking Preferences</Label>
+                          <Select>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select booking type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="direct">Direct Booking</SelectItem>
+                              <SelectItem value="request">Booking Requests</SelectItem>
+                              <SelectItem value="manual">Manual Review</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <Label>Notification Settings</Label>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm">Email Notifications</span>
+                              <Switch />
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm">Booking Alerts</span>
+                              <Switch />
+                            </div>
+                          </div>
+                        </div>
+
+                        <Separator />
+
+                        <div>
+                          <Button variant="outline" className="w-full">
+                            View All Settings
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Quick Stats</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <span>Monthly Revenue</span>
+                          <span className="font-bold">${Math.floor(Math.random() * 10000)}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span>Avg Attendance</span>
+                          <span className="font-bold">{Math.floor(Math.random() * 100)}%</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span>Booking Rate</span>
+                          <span className="font-bold">{Math.floor(Math.random() * 100)}%</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
             </TabsContent>
