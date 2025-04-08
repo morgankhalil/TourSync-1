@@ -48,8 +48,11 @@ export const VenueSelector: React.FC = () => {
           aria-expanded={open}
           className="w-full justify-between"
         >
-          {venueData?.name || "Select venue..."}
-          {!venueData && activeVenueId && "Loading..."}
+          {isLoading ? (
+            <span className="flex items-center">
+              Loading venues...
+            </span>
+          ) : venueData?.name || "Select venue..."}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-0" role="dialog">
@@ -58,9 +61,19 @@ export const VenueSelector: React.FC = () => {
             Select Venue
           </div>
           <CommandInput placeholder="Search venues..." />
-          <CommandEmpty>No venues found.</CommandEmpty>
-          <CommandGroup>
-            {Array.isArray(venues) && venues.map((venue) => (
+          {isLoading ? (
+            <div className="p-4 text-sm text-center text-muted-foreground">
+              Loading venues...
+            </div>
+          ) : !venues || venues.length === 0 ? (
+            <div className="p-4 text-sm text-center text-muted-foreground">
+              No venues available. Please contact support.
+            </div>
+          ) : (
+            <>
+              <CommandEmpty>No venues match your search.</CommandEmpty>
+              <CommandGroup>
+                {venues.map((venue) => (
               <CommandItem
                 key={venue.id}
                 value={venue.name}
@@ -79,7 +92,10 @@ export const VenueSelector: React.FC = () => {
                   </span>
                 )}
               </CommandItem>
-            ))}
+                ))}
+              </CommandGroup>
+            </>
+          )}
           </CommandGroup>
         </Command>
       </PopoverContent>
