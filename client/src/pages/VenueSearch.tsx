@@ -27,11 +27,13 @@ import {
   Search, 
   Grid, 
   Tag, 
-  List 
+  List,
+  Building
 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { useToast } from "@/hooks/use-toast";
 import { Venue, useVenues, useVenuesNearLocation } from "@/hooks/useVenues";
+import { useActiveVenue } from "@/hooks/useActiveVenue";
 
 const VenueSearch = () => {
   const [location, setLocation] = useLocation();
@@ -41,6 +43,7 @@ const VenueSearch = () => {
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [searchLocation, setSearchLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const { toast } = useToast();
+  const { venueData: activeVenue } = useActiveVenue();
   
   // All venues query
   const { 
@@ -133,12 +136,32 @@ const VenueSearch = () => {
     }
   };
 
+  // Set active venue location if available
+  const useActiveVenueLocation = () => {
+    if (activeVenue && activeVenue.latitude && activeVenue.longitude) {
+      const latitude = parseFloat(activeVenue.latitude);
+      const longitude = parseFloat(activeVenue.longitude);
+      
+      if (!isNaN(latitude) && !isNaN(longitude)) {
+        setSearchLocation({ latitude, longitude });
+        toast({
+          title: "Using venue location",
+          description: `Searching around ${activeVenue.name} in ${activeVenue.city}, ${activeVenue.state}`,
+        });
+        return true;
+      }
+    }
+    return false;
+  };
+  
   // Don't automatically try to get location on component mount
   // This prevents location errors from showing on page load
   useEffect(() => {
-    // Instead of automatically getting location, default to Chicago
-    setSearchLocation({ latitude: 41.8781, longitude: -87.6298 });
-  }, []);
+    // Try to use active venue location first, or default to Chicago
+    if (!useActiveVenueLocation()) {
+      setSearchLocation({ latitude: 41.8781, longitude: -87.6298 });
+    }
+  }, [activeVenue]);
 
   // Search for venues whenever the search location or radius changes
   useEffect(() => {
@@ -296,24 +319,37 @@ const VenueSearch = () => {
                         Search
                       </Button>
                     </div>
-                    <Button 
-                      variant="outline" 
-                      onClick={getUserLocation}
-                      disabled={isGettingLocation}
-                      className="w-full"
-                    >
-                      {isGettingLocation ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Getting your location...
-                        </>
-                      ) : (
-                        <>
-                          <MapPin className="h-4 w-4 mr-2" />
-                          Use my current location
-                        </>
+                    <div className="flex flex-col space-y-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={getUserLocation}
+                        disabled={isGettingLocation}
+                        className="w-full"
+                      >
+                        {isGettingLocation ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Getting your location...
+                          </>
+                        ) : (
+                          <>
+                            <MapPin className="h-4 w-4 mr-2" />
+                            Use my current location
+                          </>
+                        )}
+                      </Button>
+                      
+                      {activeVenue && (
+                        <Button 
+                          variant="secondary" 
+                          onClick={useActiveVenueLocation}
+                          className="w-full"
+                        >
+                          <Building className="h-4 w-4 mr-2" />
+                          Use {activeVenue.name} location
+                        </Button>
                       )}
-                    </Button>
+                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -335,6 +371,10 @@ const VenueSearch = () => {
                   <div className="text-sm text-muted-foreground">
                     Searching around: {searchLocation.latitude.toFixed(4)}, {searchLocation.longitude.toFixed(4)}
                     {userLocation === searchLocation && " (Your location)"}
+                    {activeVenue && 
+                     parseFloat(activeVenue.latitude) === searchLocation.latitude && 
+                     parseFloat(activeVenue.longitude) === searchLocation.longitude && 
+                     ` (${activeVenue.name} location)`}
                   </div>
                 )}
               </CardContent>
