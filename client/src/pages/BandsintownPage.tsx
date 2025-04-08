@@ -3,7 +3,7 @@ import { ArtistImporter } from '@/components/bandsintown/ArtistImporter';
 // Using direct import instead of alias
 import { SidebarLayout } from '../components/layout/SidebarLayout';
 
-export function BandsintownPage() {
+export default function BandsintownPage() {
   return (
     <SidebarLayout>
       <div className="container py-6">

@@ -38,7 +38,7 @@ const mapContainerStyle = {
   borderRadius: '0.5rem'
 };
 
-export function OpportunityDiscovery() {
+export default function OpportunityDiscovery() {
   const [activeTab, setActiveTab] = useState('map-view');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [distanceFilter, setDistanceFilter] = useState([50]); // Miles
