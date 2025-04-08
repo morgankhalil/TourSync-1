@@ -33,12 +33,21 @@ const TourRouteVisualization = () => {
   // Fetch tours data
   const { data: toursData, isLoading: isLoadingTours } = useQuery({
     queryKey: ['/api/tours'],
-    enabled: !!mapsApiData?.apiKey
+    enabled: !!mapsApiData // Make sure we only fetch tours after the maps API key is loaded
   });
+
+  // Define the API key type
+  type MapsApiData = {
+    apiKey: string;
+  };
 
   // Function to initialize Google Maps
   const initializeMap = () => {
-    if (!mapRef.current || !mapsApiData?.apiKey) return;
+    if (!mapRef.current) return;
+    
+    // Type guard to check if mapsApiData has the apiKey property
+    const hasApiKey = mapsApiData && typeof mapsApiData === 'object' && 'apiKey' in mapsApiData && typeof (mapsApiData as MapsApiData).apiKey === 'string';
+    if (!hasApiKey) return;
 
     const newMap = new google.maps.Map(mapRef.current, {
       center: { lat: 40.7128, lng: -74.0060 }, // Default to NYC
@@ -51,12 +60,15 @@ const TourRouteVisualization = () => {
 
     setMap(newMap);
   };
-
+  
   // Load Google Maps script
   useEffect(() => {
-    if (!window.google && mapsApiData?.apiKey) {
+    // Type guard to check if mapsApiData has the apiKey property
+    const hasApiKey = mapsApiData && typeof mapsApiData === 'object' && 'apiKey' in mapsApiData && typeof (mapsApiData as MapsApiData).apiKey === 'string';
+    
+    if (!window.google && hasApiKey) {
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${mapsApiData.apiKey}&libraries=geometry,places&callback=initMap`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${(mapsApiData as MapsApiData).apiKey}&libraries=geometry,places&callback=initMap`;
       script.async = true;
       script.defer = true;
       

@@ -584,9 +584,20 @@ export class EnhancedBandsintownDiscoveryClient {
         throw new Error('Failed to clear API cache');
       }
 
-      const result = await response.json();
-      console.log('Cache cleared successfully', result);
-      return result;
+      // Check the content type to avoid JSON parsing errors
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const result = await response.json();
+        console.log('Cache cleared successfully', result);
+        return result;
+      } else {
+        // If not JSON, just return a success message
+        console.log('Cache cleared successfully (non-JSON response)');
+        return {
+          status: 'success',
+          message: 'Cache cleared successfully'
+        };
+      }
     } catch (error) {
       console.error('Failed to clear Bandsintown API cache:', error);
       return {
