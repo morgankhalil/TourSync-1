@@ -9,6 +9,7 @@ interface User {
   email: string;
   name: string;
   userType: UserType;
+  venueId?: number;
 }
 
 interface LoginCredentials {
