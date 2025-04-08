@@ -1,5 +1,6 @@
 import { Plus, Calendar, MoreVertical, Zap } from "lucide-react";
 import { useSidebar } from "@/context/SidebarContext";
+import { Badge } from "@/components/ui/badge";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import { X } from "lucide-react";
 import { Link } from "wouter";
@@ -140,12 +141,50 @@ const VenueSidebar = () => {
           )}
         </div>
 
-        {/* Upcoming Bookings */}
+        {/* Upcoming Events */}
         <div>
-          <h3 className="font-inter font-medium mb-4">Upcoming Bookings</h3>
-          <div className="text-sm text-gray-500 italic">
-            No confirmed bookings yet
-          </div>
+          <h3 className="font-inter font-medium mb-4">Upcoming Events</h3>
+          {isAvailabilityLoading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-16 w-full" />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {activeVenue?.events?.length ? (
+                activeVenue.events
+                  .filter(event => new Date(event.date) >= new Date())
+                  .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                  .slice(0, 5)
+                  .map((event, index) => (
+                    <div 
+                      key={index}
+                      className="p-3 bg-white rounded-md border border-gray-200"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-medium text-sm">{event.artistName}</p>
+                          <p className="text-xs text-gray-500">
+                            {format(new Date(event.date), "EEE, MMM d")}
+                          </p>
+                        </div>
+                        <Badge 
+                          variant={event.status === 'confirmed' ? 'success' : 'secondary'}
+                          className="text-xs"
+                        >
+                          {event.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))
+              ) : (
+                <div className="text-sm text-gray-500 italic">
+                  No upcoming events
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </aside>

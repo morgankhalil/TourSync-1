@@ -306,10 +306,7 @@ const Dashboard: React.FC = () => {
             <Users size={16} />
             Compatible Artists
           </TabsTrigger>
-          <TabsTrigger value="events" className="flex items-center gap-2">
-            <Calendar size={16} />
-            Upcoming Events
-          </TabsTrigger>
+          
           <TabsTrigger value="opportunities" className="flex items-center gap-2">
             <Zap size={16} />
             Opportunities
@@ -364,53 +361,7 @@ const Dashboard: React.FC = () => {
           </div>
         </TabsContent>
         
-        <TabsContent value="events" className="space-y-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Upcoming Events</h2>
-            <Button asChild variant="outline" size="sm">
-              <Link href="/events">View Calendar</Link>
-            </Button>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {isLoadingEvents ? (
-              Array(3).fill(0).map((_, index) => (
-                <Card key={index} className="overflow-hidden">
-                  <CardHeader className="p-4 pb-2">
-                    <Skeleton className="h-6 w-3/4 mb-2" />
-                    <Skeleton className="h-4 w-1/2" />
-                  </CardHeader>
-                  <CardContent className="p-4 pt-0 space-y-2">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-3/4" />
-                  </CardContent>
-                  <CardFooter className="p-4 pt-0">
-                    <Skeleton className="h-9 w-full" />
-                  </CardFooter>
-                </Card>
-              ))
-            ) : eventData?.length > 0 ? (
-              eventData.slice(0, 3).map((event: any) => (
-                <EventCard 
-                  key={event.id}
-                  id={event.id}
-                  artistName={artists?.find((a: any) => a.id === event.artistId)?.name || "Unknown Artist"}
-                  venueName={event.venueName}
-                  location={`${event.venueCity}, ${event.venueState || ''}`}
-                  date={event.eventDate}
-                  collaborationOpen={event.collaborationOpen}
-                />
-              ))
-            ) : (
-              <div className="col-span-full p-8 text-center">
-                <p className="text-muted-foreground">No upcoming events found</p>
-                <Button asChild variant="link" className="mt-2">
-                  <Link href="/events">Browse Events</Link>
-                </Button>
-              </div>
-            )}
-          </div>
-        </TabsContent>
+        
         
         <TabsContent value="opportunities" className="space-y-6">
           <div className="flex justify-between items-center mb-4">
