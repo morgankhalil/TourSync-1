@@ -5,7 +5,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from './contexts/AuthContext';
 import { ActiveVenueProvider } from './hooks/useActiveVenue';
 import { SidebarProvider } from '@/components/ui/sidebar';
-import MainLayout from '@/components/layout/MainLayout';
+import MainLayout from './components/layout/MainLayout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 import LoginPage from './pages/LoginPage';
@@ -24,7 +24,7 @@ const queryClient = new QueryClient();
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
+      <ThemeProvider defaultTheme="system" enableSystem>
         <AuthProvider>
           <ActiveVenueProvider>
             <SidebarProvider>
