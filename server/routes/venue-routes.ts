@@ -1,7 +1,9 @@
 import { Router, Express } from 'express';
 import { z } from 'zod';
 import { storage } from '../storage';
-import { insertVenueSchema } from '../../shared/schema';
+import { db } from '../db';
+import { sql } from 'drizzle-orm';
+import { insertVenueSchema, venues, venueClusters, venueClusterMembers } from '../../shared/schema';
 import { zodValidationMiddleware } from '../middleware/zod-validation';
 
 const router = Router();
@@ -57,6 +59,48 @@ router.post('/', zodValidationMiddleware(insertVenueSchema), async (req, res) =>
   try {
     const venueData = req.body;
     const venue = await storage.createVenue(venueData);
+
+    // Regenerate capacity clusters after adding new venue
+    try {
+      await db
+        .delete(venueClusters)
+        .where(sql`${venueClusters.name} LIKE '%Venues' AND ${venueClusters.description} LIKE '%capacity%'`);
+
+      const venues = await db.select().from(venues).where(sql`${venues.capacity} IS NOT NULL`);
+      
+      const capacityCategories = [
+        { name: "Small Venues", min: 0, max: 300, description: "Intimate venues with capacity up to 300" },
+        { name: "Medium Venues", min: 301, max: 800, description: "Mid-sized venues with capacity from 301 to 800" },
+        { name: "Large Venues", min: 801, max: Number.MAX_SAFE_INTEGER, description: "Large venues with capacity over 800" }
+      ];
+
+      for (const category of capacityCategories) {
+        const clusterResult = await db.insert(venueClusters).values({
+          name: category.name,
+          description: category.description,
+          regionCode: "CAPACITY",
+          isStatic: true
+        }).returning();
+
+        const clusterId = clusterResult[0].id;
+        const capacityVenues = venues.filter(v => 
+          v.capacity !== null && 
+          v.capacity >= category.min && 
+          v.capacity <= category.max
+        );
+
+        for (const venue of capacityVenues) {
+          await db.insert(venueClusterMembers).values({
+            clusterId,
+            venueId: venue.id
+          });
+        }
+      }
+    } catch (clusterError) {
+      console.error('Error regenerating capacity clusters:', clusterError);
+      // Don't fail venue creation if cluster generation fails
+    }
+
     res.status(201).json(venue);
   } catch (error) {
     console.error('Error creating venue:', error);
