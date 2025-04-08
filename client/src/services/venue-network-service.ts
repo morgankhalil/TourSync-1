@@ -218,11 +218,13 @@ export const createAutomaticClusters = async (params: {
   totalClusters: number;
   totalVenuesAssigned: number;
 }> => {
-  return apiRequest({
-    url: "/api/venue-network/auto-cluster",
-    method: "POST",
-    data: params,
-  });
+  return apiRequest(
+    "/api/venue-network/auto-cluster",
+    {
+      method: "POST",
+      body: params,
+    }
+  );
 };
 
 /**
