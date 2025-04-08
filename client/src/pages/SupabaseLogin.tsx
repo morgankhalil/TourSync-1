@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'wouter'
+import { useLocation } from 'wouter'
 import { useAuth } from '@/contexts/SupabaseAuthContext'
 
 export function SupabaseLogin() {
@@ -8,7 +8,7 @@ export function SupabaseLogin() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const { signIn, signUp } = useAuth()
-  const [navigate] = useNavigate()
+  const [_, navigate] = useLocation()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()

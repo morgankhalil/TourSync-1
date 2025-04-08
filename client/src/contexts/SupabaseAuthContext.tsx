@@ -21,26 +21,49 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false) // Start with loading false when no Supabase
 
   useEffect(() => {
-    // Check user on mount
-    checkUser()
+    // Only attempt to check authentication if Supabase client exists
+    if (supabase) {
+      setLoading(true)
+      // Check user on mount
+      checkUser()
 
-    // Listen for auth changes
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
+      // Listen for auth changes
+      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+        setUser(session?.user ?? null)
+        setLoading(false)
+      })
+
+      // Clean up subscription
+      return () => {
+        data.subscription.unsubscribe()
+      }
+    }
   }, [])
 
   const checkUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    setUser(user)
-    setLoading(false)
+    if (!supabase) {
+      setLoading(false)
+      return
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
+    } catch (error) {
+      console.error('Error checking user:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const signIn = async (email: string, password: string) => {
+    if (!supabase) {
+      throw new Error('Supabase client not initialized. Missing environment variables.')
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password
@@ -49,6 +72,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signUp = async (email: string, password: string, name: string) => {
+    if (!supabase) {
+      throw new Error('Supabase client not initialized. Missing environment variables.')
+    }
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -62,6 +89,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
+    if (!supabase) {
+      throw new Error('Supabase client not initialized. Missing environment variables.')
+    }
+
     const { error } = await supabase.auth.signOut()
     if (error) throw error
   }
