@@ -579,8 +579,9 @@ export async function registerVenueNetworkRoutes(app: any) {
       console.error("Error generating automatic clusters:", error);
       res.status(500).json({ error: "Failed to generate automatic clusters" });
     }
+  });
 
-        const getVenueRegion = (venue: any) => {
+  const getVenueRegion = (venue: any) => {
         const venueLat = parseFloat(venue.latitude);
         const venueLng = parseFloat(venue.longitude);
         
