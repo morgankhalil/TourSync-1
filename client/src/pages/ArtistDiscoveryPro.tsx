@@ -28,7 +28,9 @@ import {
   Search, 
   Mail, 
   ExternalLink,
-  ArrowRightLeft
+  ArrowRightLeft,
+  Building,
+  Route
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -497,12 +499,12 @@ export default function ArtistDiscoveryPro() {
       <Tabs defaultValue="search" value={currentTab} onValueChange={setCurrentTab}>
         <TabsList className="mb-6">
           <TabsTrigger value="search" className="flex items-center gap-2">
-            <Search className="h-4 w-4" />
-            Search & Configure
+            <Building className="h-4 w-4" />
+            Venue Setup
           </TabsTrigger>
           <TabsTrigger value="results" className="flex items-center gap-2" disabled={searchResults.length === 0}>
             <Music className="h-4 w-4" />
-            Results 
+            Artists 
             {searchResults.length > 0 && (
               <Badge variant="secondary" className="ml-1">{searchResults.length}</Badge>
             )}
@@ -512,19 +514,19 @@ export default function ArtistDiscoveryPro() {
             Artist Details
           </TabsTrigger>
           <TabsTrigger value="map" className="flex items-center gap-2" disabled={searchResults.length === 0}>
-            <MapPin className="h-4 w-4" />
-            Map View
+            <Route className="h-4 w-4" />
+            Tour Routes
           </TabsTrigger>
         </TabsList>
         
-        {/* Search & Configuration Tab */}
+        {/* Venue Setup & Discovery Configuration Tab */}
         <TabsContent value="search">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="md:col-span-2">
               <CardHeader>
-                <CardTitle>Discovery Settings</CardTitle>
+                <CardTitle>Find Artists On Tour Near Your Venue</CardTitle>
                 <CardDescription>
-                  Configure your artist discovery parameters to find bands that match your needs
+                  Discover artists with upcoming tours passing near your location
                 </CardDescription>
               </CardHeader>
               
@@ -684,8 +686,8 @@ export default function ArtistDiscoveryPro() {
                     </>
                   ) : (
                     <>
-                      <Search className="mr-2 h-4 w-4" />
-                      Discover Artists
+                      <Route className="mr-2 h-4 w-4" />
+                      Find Artists On Tour
                     </>
                   )}
                 </Button>
@@ -754,7 +756,7 @@ export default function ArtistDiscoveryPro() {
                   <div className="text-center p-4 space-y-2">
                     <Zap className="h-8 w-8 mx-auto text-muted-foreground" />
                     <p className="text-sm text-muted-foreground">
-                      Configure your search parameters and click "Discover Artists" to find bands
+                      Configure your search parameters and click "Find Artists On Tour" to discover bands passing near your venue
                     </p>
                   </div>
                 )}
