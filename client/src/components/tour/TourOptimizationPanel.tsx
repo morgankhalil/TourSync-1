@@ -42,16 +42,15 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
   const [tourGaps, setTourGaps] = useState<TourGap[]>([]);
   const [selectedGap, setSelectedGap] = useState<TourGap | null>(null);
   const [gapVenues, setGapVenues] = useState<Venue[]>([]);
-  
+
   const { toast } = useToast();
-  
-  // Finding tour gaps
+
   useEffect(() => {
     if (tour?.id) {
       fetchTourGaps();
     }
   }, [tour]);
-  
+
   const fetchTourGaps = async () => {
     if (!tour) return;
     
@@ -77,7 +76,7 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
       setIsLoading(false);
     }
   };
-  
+
   const handleSelectGap = async (gap: TourGap) => {
     if (!tour) return;
     
@@ -112,8 +111,7 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
       setIsLoading(false);
     }
   };
-  
-  // Finding nearby venues
+
   const handleSelectTourDate = async (date: TourDate) => {
     if (!date.venueId) {
       toast({
@@ -129,7 +127,6 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
     try {
       setIsLoading(true);
       
-      // Get venues already in the tour to exclude them
       const excludeIds = tourDates
         .filter(td => td.venueId)
         .map(td => td.venueId as number)
@@ -156,14 +153,14 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
       setIsLoading(false);
     }
   };
-  
+
   const handleSelectVenue = (venue: Venue) => {
     setSelectedVenue(venue);
     if (onSelectVenue) {
       onSelectVenue(venue);
     }
   };
-  
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -357,41 +354,6 @@ const TourOptimizationPanel = ({ tour, tourDates, onSelectVenue }: TourOptimizat
             </div>
           </TabsContent>
         </Tabs>
-      </CardContent>
-    </Card>
-  );
-};
-
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Tour, TourDate, Venue } from '@/types';
-
-interface TourOptimizationPanelProps {
-  tour: Tour | null;
-  tourDates: TourDate[];
-  onSelectVenue: (venue: Venue) => void;
-}
-
-const TourOptimizationPanel: React.FC<TourOptimizationPanelProps> = ({
-  tour,
-  tourDates,
-  onSelectVenue
-}) => {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Tour Optimization</CardTitle>
-        <CardDescription>Find and fill open dates with recommended venues</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {tourDates.filter(date => date.isOpenDate || !date.venueId).map(date => (
-            <div key={date.id} className="p-4 border rounded-lg">
-              <div className="font-medium">{new Date(date.date).toLocaleDateString()}</div>
-              <div className="text-sm text-muted-foreground">Looking for venues...</div>
-            </div>
-          ))}
-        </div>
       </CardContent>
     </Card>
   );

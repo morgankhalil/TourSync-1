@@ -21,15 +21,15 @@ import SettingsPage from './pages/SettingsPage';
 
 const queryClient = new QueryClient();
 
-import MainLayout from './components/layout/MainLayout';
+import MainLayout from '@/components/layout/MainLayout';
 
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="system" enableSystem>
         <AuthProvider>
-          <SidebarProvider>
-            <ActiveVenueProvider>
+          <ActiveVenueProvider>
+            <SidebarProvider>
               <Switch>
                 {/* Public Routes */}
                 <Route path="/login" component={LoginPage} />
