@@ -1,40 +1,37 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Route, Switch } from 'wouter';
-import { Toaster } from '@/components/ui/toaster';
-import { ThemeProvider } from '@/components/theme-provider';
-import { AuthProvider } from './contexts/AuthContext';
-import { ActiveVenueProvider } from './hooks/useActiveVenue';
-import { SidebarProvider } from '@/components/ui/sidebar';
-import MainLayout from '@/components/layout/MainLayout';
-import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { QueryClientProvider } from "@tanstack/react-query";
+import { Route, Switch } from "wouter";
+import { queryClient } from "./lib/queryClient";
+import { ThemeProvider } from "./components/theme-provider";
+import { LoginPage } from "./pages/LoginPage";
+import { RegisterPage } from "./pages/RegisterPage";
+import { Dashboard } from "./pages/Dashboard";
+import { VenueDashboard } from "./pages/VenueDashboard";
+import { VenueSearch } from "./pages/VenueSearch";
+import { TourFinderPro } from "./pages/TourFinderPro";
+import { EnhancedArtistDiscovery } from "./pages/EnhancedArtistDiscovery";
+import { BandsintownPage } from "./pages/BandsintownPage";
+import { AuthProvider } from "./contexts/AuthContext";
+import { ActiveVenueProvider } from "./hooks/useActiveVenue";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import { MainLayout } from "./components/layout/MainLayout";
+import { Toaster } from "./components/ui/toaster";
+import { SidebarProvider } from '@/components/ui/sidebar'; //Added from original code
+import ProfilePage from './pages/ProfilePage'; //Added from original code
+import SettingsPage from './pages/SettingsPage'; //Added from original code
+import VenueView from './pages/VenueView'; //Added from original code
 
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import Dashboard from './pages/Dashboard';
-import VenueDashboard from './pages/VenueDashboard';
-import VenueSearch from './pages/VenueSearch';
-import VenueView from './pages/VenueView';
-import EnhancedArtistDiscovery from './pages/EnhancedArtistDiscovery';
-import TourFinderPro from './pages/TourFinderPro';
-import ProfilePage from './pages/ProfilePage';
-import SettingsPage from './pages/SettingsPage';
-
-const queryClient = new QueryClient();
 
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ActiveVenueProvider>
       <ThemeProvider defaultTheme="system" enableSystem>
         <AuthProvider>
           <ActiveVenueProvider>
-            <SidebarProvider>
+            <div className="min-h-screen">
+              <Toaster />
               <Switch>
-                {/* Public Routes */}
                 <Route path="/login" component={LoginPage} />
                 <Route path="/register" component={RegisterPage} />
-
-                {/* Protected Routes */}
                 <Route path="/">
                   <ProtectedRoute>
                     <MainLayout>
@@ -42,22 +39,21 @@ export default function App() {
                         <Route path="/" component={Dashboard} />
                         <Route path="/venues" component={VenueDashboard} />
                         <Route path="/venues/search" component={VenueSearch} />
-                        <Route path="/venues/:id" component={VenueView} />
-                        <Route path="/artist-discovery" component={EnhancedArtistDiscovery} />
-                        <Route path="/tour-finder" component={TourFinderPro} />
-                        <Route path="/profile" component={ProfilePage} />
-                        <Route path="/settings" component={SettingsPage} />
+                        <Route path="/venues/:id" component={VenueView} /> {/* Restored from original */}
+                        <Route path="/tours/finder" component={TourFinderPro} />
+                        <Route path="/artists/discovery" component={EnhancedArtistDiscovery} />
+                        <Route path="/bandsintown" component={BandsintownPage} />
+                        <Route path="/profile" component={ProfilePage} /> {/* Restored from original */}
+                        <Route path="/settings" component={SettingsPage} /> {/* Restored from original */}
                       </Switch>
-                      <Toaster /> {/*Moved Toaster here*/}
                     </MainLayout>
                   </ProtectedRoute>
                 </Route>
               </Switch>
-            </SidebarProvider>
+            </div>
           </ActiveVenueProvider>
         </AuthProvider>
       </ThemeProvider>
-    </ActiveVenueProvider>
     </QueryClientProvider>
   );
 }
