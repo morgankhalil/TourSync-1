@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
 import { Building2, BarChart3, Network, Calendar, ExternalLink, Mail, Phone, Menu, MapPin } from "lucide-react";
-import { VenueSelector } from "@/components/venue/VenueSelector";
+import { VenueSelector } from "../venue/VenueSelector";
 import { 
   Sidebar,
   SidebarHeader,

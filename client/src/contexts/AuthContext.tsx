@@ -63,9 +63,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           localStorage.removeItem('user');
         }
       } catch (error: any) {
+        // Don't log 401s as they're expected when not logged in
         if (error?.response?.status !== 401) {
           console.error('Failed to check authentication status:', error);
         }
+        setUser(null);
+        localStorage.removeItem('user');
         setUser(null);
         localStorage.removeItem('user');
       } finally {
