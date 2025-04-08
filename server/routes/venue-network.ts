@@ -575,28 +575,6 @@ export async function registerVenueNetworkRoutes(app: any) {
         totalClusters: createdClusters.length,
         totalVenuesAssigned: allVenues.length
       });
-
-      // Fetch all venues with coordinates
-      const allVenues = await db
-        .select()
-        .from(venues)
-        .where(
-          and(
-            sql`${venues.latitude} IS NOT NULL`,
-            sql`${venues.longitude} IS NOT NULL`
-          )
-        );
-
-      if (allVenues.length === 0) {
-        return res.status(404).json({ error: "No venues with valid coordinates found" });
-      }
-
-      // Group venues by proximity
-      const clusters: { center: typeof allVenues[0]; members: typeof allVenues }[] = [];
-      const assignedVenues = new Set<number>();
-
-      // For each venue not yet assigned to a cluster
-      for (const venue of allVenues) {
         if (assignedVenues.has(venue.id)) continue;
 
         // Start a new potential cluster with this venue as the center
