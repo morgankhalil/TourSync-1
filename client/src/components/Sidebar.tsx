@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { useActiveVenue } from '@/hooks/useActiveVenue';
+import { useVenues } from '@/hooks/useVenues';
 import { useSidebar } from '@/context/SidebarContext';
 import { cn } from '@/lib/utils';
 import { useMobile } from '@/hooks/use-mobile';
@@ -17,8 +18,18 @@ import {
   Search,
   MessageSquare,
   Building,
-  Route
+  Route,
+  CheckCircle2
 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 
 interface SidebarProps {
   className?: string;
@@ -26,12 +37,30 @@ interface SidebarProps {
 
 export function Sidebar({ className }: SidebarProps) {
   const [location] = useLocation();
-  const { activeVenueId, venueData } = useActiveVenue();
+  const { activeVenueId, venueData, setActiveVenueId } = useActiveVenue();
+  const { data: venues } = useVenues();
   const { isOpen, toggle } = useSidebar();
   const isMobile = useMobile();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const isActive = (path: string) => {
     return location === path;
+  };
+  
+  // Handle venue selection change
+  const handleVenueChange = (venueId: string) => {
+    // Set the active venue using the context
+    setActiveVenueId(venueId);
+    
+    // Invalidate queries to refresh venue data
+    queryClient.invalidateQueries({ queryKey: ['/api/venues-direct', venueId] });
+    
+    toast({
+      title: "Venue Changed",
+      description: `Active venue is now ${venues?.find(v => v.id === venueId)?.name}`,
+      duration: 3000,
+    });
   };
 
   const navItems = [
@@ -108,22 +137,45 @@ export function Sidebar({ className }: SidebarProps) {
         </button>
       </div>
 
-      {activeVenueId && venueData && (
-        <div className={cn(
-          "flex items-center p-4 border-b",
-          !isOpen && "justify-center"
-        )}>
-          <div className="w-8 h-8 bg-primary/20 rounded-md flex items-center justify-center text-primary font-semibold">
-            {venueData.name.charAt(0)}
-          </div>
-          {isOpen && (
-            <div className="ml-3 overflow-hidden">
-              <p className="font-medium truncate">{venueData.name}</p>
-              <p className="text-xs text-muted-foreground truncate">{venueData.city}, {venueData.state}</p>
+      <div className="p-4 border-b">
+        {isOpen ? (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-muted-foreground">ACTIVE VENUE</span>
+              {activeVenueId && <CheckCircle2 size={14} className="text-green-500" />}
             </div>
-          )}
-        </div>
-      )}
+            
+            <Select 
+              value={activeVenueId || ''} 
+              onValueChange={handleVenueChange}
+            >
+              <SelectTrigger id="venue-select" className="w-full h-8 text-sm">
+                <SelectValue placeholder="Select a venue" />
+              </SelectTrigger>
+              <SelectContent>
+                {venues?.map(venue => (
+                  <SelectItem key={venue.id} value={venue.id}>
+                    {venue.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            {activeVenueId && venueData && (
+              <div className="text-xs text-muted-foreground truncate pt-1">
+                {venueData.city}, {venueData.state}
+              </div>
+            )}
+          </div>
+        ) : (
+          // When sidebar is collapsed, just show the venue icon
+          <div className="flex justify-center">
+            <div className="w-8 h-8 bg-primary/20 rounded-md flex items-center justify-center text-primary font-semibold">
+              {venueData ? venueData.name.charAt(0) : 'V'}
+            </div>
+          </div>
+        )}
+      </div>
       
       <nav className="flex-1 py-4 overflow-y-auto">
         <ul className="space-y-1 px-2">

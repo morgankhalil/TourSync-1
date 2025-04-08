@@ -301,7 +301,7 @@ export default function TourFinderPro() {
     if (!activeVenue) {
       toast({
         title: "No venue selected",
-        description: "Please select a venue first to search for bands passing nearby.",
+        description: "Please select a venue from the sidebar first to search for bands passing nearby.",
         variant: "destructive",
       });
       return;
@@ -446,39 +446,16 @@ export default function TourFinderPro() {
 
   return (
     <div className="container mx-auto py-6 max-w-7xl">
-      <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-6">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center">
-            Tour Finder
-            <Badge variant="outline" className="ml-3 bg-purple-100">
-              PRO
-            </Badge>
-          </h1>
-          <p className="text-muted-foreground mt-1 max-w-xl">
-            Find artists who will be touring near your venue and have gaps in their schedule. Connect with them for potential bookings.
-          </p>
-        </div>
-        
-        {venues && venues.length > 0 && (
-          <div className="min-w-[250px]">
-            <Label htmlFor="venue-select">Active Venue</Label>
-            <Select 
-              value={activeVenue?.id || ''} 
-              onValueChange={handleVenueChange}
-            >
-              <SelectTrigger id="venue-select" className="w-full">
-                <SelectValue placeholder="Select a venue" />
-              </SelectTrigger>
-              <SelectContent>
-                {venues.map(venue => (
-                  <SelectItem key={venue.id} value={venue.id}>
-                    {venue.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold flex items-center">
+          Tour Finder
+          <Badge variant="outline" className="ml-3 bg-purple-100">
+            PRO
+          </Badge>
+        </h1>
+        <p className="text-muted-foreground mt-1 max-w-xl">
+          Find artists who will be touring near your venue and have gaps in their schedule. Connect with them for potential bookings.
+        </p>
       </div>
 
       <Alert className="mb-6 bg-blue-50 border-blue-200">
@@ -496,7 +473,7 @@ export default function TourFinderPro() {
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>No Venue Selected</AlertTitle>
           <AlertDescription>
-            Please select a venue from the dropdown menu above to start discovering artists.
+            Please select a venue from the dropdown menu in the sidebar to start discovering artists.
           </AlertDescription>
         </Alert>
       )}
