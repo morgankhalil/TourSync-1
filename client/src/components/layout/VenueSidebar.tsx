@@ -1,4 +1,3 @@
-
 import { Plus, Calendar, MoreVertical, Zap, X, Menu } from "lucide-react";
 import { useSidebar } from "@/context/SidebarContext";
 import VenueBookingsList from "@/components/venue/VenueBookingsList";
@@ -12,10 +11,19 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { useActiveVenue } from "@/hooks/useActiveVenue";
 import { VenueAvailability } from "@/types";
+import { useVenues } from "@/hooks/useVenues"; // Import the useVenues hook
+import Spinner from "@/components/ui/Spinner"; //Import Spinner component
+
 
 const VenueSidebar = () => {
   const { isOpen, toggle, close, isMobile } = useSidebar();
   const { activeVenue, isLoading: isVenueLoading } = useActiveVenue();
+  const { data: venues, isLoading: isVenuesLoading } = useVenues();
+
+  if (isVenuesLoading) {
+    return <div className="p-4"><Spinner /></div>;
+  }
+
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   // Fetch venue availability
