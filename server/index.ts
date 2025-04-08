@@ -6,10 +6,11 @@ import passport from "passport";
 import { registerRoutes } from "./routes";
 import calendarRoutes from "./routes/calendar";
 import venuesApiRoutes from "./routes/venues-api";
+import venuesReplitRoutes from "./routes/venues-replit";
 import venueRoutes from "./routes/venue-routes";
 import { registerTourRoutes } from "./routes/tours";
 import { registerConfigRoutes } from "./routes/config";
-import authRouter from "./routes/auth";
+import authRouter from "./routes/auth-replit";
 import { setupVite, serveStatic, log } from "./vite";
 
 // Load environment variables
@@ -56,6 +57,7 @@ app.use(passport.session());
 app.use('/api/auth', authRouter);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/venues-direct', venuesApiRoutes);
+app.use('/api/venues-replit', venuesReplitRoutes);
 app.use(express.urlencoded({ extended: false }));
 
 // Disable caching

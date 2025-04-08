@@ -16,6 +16,17 @@ import { registerVenuesDirectRoutes } from "./routes/venues-direct";
 import venuesApiRouter from "./routes/venues-api";
 import { registerVenueNetworkRoutes } from "./routes/venue-network";
 import envVarsRouter from "./routes/env-vars";
+import authRouter from "./routes/auth-replit"; // Use the Replit DB version
+
+// Initialize the Replit DB storage
+console.log('Initializing Replit DB storage...');
+if (typeof storage.initialize === 'function') {
+  storage.initialize().catch((error: Error) => {
+    console.error('Failed to initialize Replit DB storage:', error);
+  });
+} else {
+  console.log('No initialize method found on storage, continuing without initialization');
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register API-specific routes
