@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from 'wouter';
@@ -6,18 +7,16 @@ import {
   Card, 
   CardContent, 
   CardDescription, 
-  CardFooter, 
   CardHeader, 
   CardTitle 
 } from '@/components/ui/card';
 import { Music, CheckCircle } from 'lucide-react';
 import { Link } from 'wouter';
 
-export function LoginPage() {
+const LoginPage = () => {
   const { isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
 
-  // Redirect to home if already authenticated
   React.useEffect(() => {
     if (isAuthenticated) {
       setLocation('/');
@@ -26,7 +25,6 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen grid md:grid-cols-2 bg-background">
-      {/* Form Section */}
       <div className="flex flex-col justify-center items-center p-4 sm:p-8 lg:p-12">
         <div className="w-full max-w-md space-y-6">
           <div className="flex flex-col items-center space-y-2 text-center">
@@ -54,7 +52,6 @@ export function LoginPage() {
         </div>
       </div>
       
-      {/* Branding Section */}
       <div className="hidden md:flex relative overflow-hidden bg-gradient-to-br from-primary to-primary/80">
         <div className="flex flex-col justify-center h-full px-8 lg:px-12 text-white relative z-10">
           <div className="max-w-md mx-auto">
@@ -79,7 +76,6 @@ export function LoginPage() {
           </div>
         </div>
         
-        {/* Decorative Pattern */}
         <div className="absolute inset-0 opacity-10">
           <svg className="h-full w-full" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
             <defs>
@@ -93,4 +89,6 @@ export function LoginPage() {
       </div>
     </div>
   );
-}
+};
+
+export default LoginPage;

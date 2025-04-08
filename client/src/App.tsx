@@ -21,8 +21,6 @@ import SettingsPage from './pages/SettingsPage';
 
 const queryClient = new QueryClient();
 
-import MainLayout from '@/components/layout/MainLayout';
-
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
