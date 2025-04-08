@@ -68,7 +68,7 @@ const VenueSearch = () => {
   // Google Maps API loading
   const { isLoaded: isMapLoaded } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: 'AIzaSyD0-KVQsJUMXK-hL4aPcQt7_YBuX7FJVUs' // Public key from Google tutorial examples
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
   });
   
   // All venues query

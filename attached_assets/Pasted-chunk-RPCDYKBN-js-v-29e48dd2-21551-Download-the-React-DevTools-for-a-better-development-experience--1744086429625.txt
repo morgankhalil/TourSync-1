@@ -1,0 +1,34 @@
+chunk-RPCDYKBN.js?v=29e48dd2:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+chunk-RPCDYKBN.js?v=29e48dd2:521 Warning: validateDOMNesting(...): <a> cannot appear as a descendant of <a>.
+    at a
+    at a
+    at https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=29e48dd2:337:18
+    at nav
+    at div
+    at header
+    at Header (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/layout/Header.tsx:33:22)
+    at div
+    at div
+    at SidebarProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/context/SidebarContext.tsx:21:35)
+    at MainLayout (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/layout/MainLayout.tsx:20:30)
+    at ActiveVenueProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/hooks/useActiveVenue.tsx:21:39)
+    at QueryClientProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=29e48dd2:2805:3)
+    at App
+    at QueryClientProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=29e48dd2:2805:3)
+printWarning @ chunk-RPCDYKBN.js?v=29e48dd2:521
+Show 1 more frame
+Show less
+api/artists?limit=3:1 
+        
+        
+       Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+api/artists?limit=3:1 
+        
+        
+       Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+venues:1 A soft navigation has been detected: https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/venues
+main.js:171 As of February 21st, 2024, google.maps.Marker is deprecated. Please use google.maps.marker.AdvancedMarkerElement instead. At this time, google.maps.Marker is not scheduled to be discontinued, but google.maps.marker.AdvancedMarkerElement is recommended over google.maps.Marker. While google.maps.Marker will continue to receive bug fixes for any major regressions, existing bugs in google.maps.Marker will not be addressed. At least 12 months notice will be given before support is discontinued. Please see https://developers.google.com/maps/deprecations for additional details and https://developers.google.com/maps/documentation/javascript/advanced-markers/migration for the migration guide.
+_.pm @ main.js:171
+main.js:143 Google Maps JavaScript API error: InvalidKeyMapError
+https://developers.google.com/maps/documentation/javascript/error-messages#invalid-key-map-error
+_.lk @ main.js:143

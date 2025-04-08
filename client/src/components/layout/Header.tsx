@@ -26,8 +26,7 @@ export function Header() {
         </div>
         
         <nav className="hidden md:flex items-center gap-5 mx-6">
-          <Link href="/">
-            <a className={cn(
+          <Link href="/" className={cn(
               "text-sm font-medium transition-colors flex items-center gap-1",
               location === "/" 
                 ? "text-primary" 
@@ -35,11 +34,9 @@ export function Header() {
             )}>
               <LayoutDashboard className="h-4 w-4" />
               Dashboard
-            </a>
           </Link>
           
-          <Link href="/artists/discovery">
-            <a className={cn(
+          <Link href="/artists/discovery" className={cn(
               "text-sm font-medium transition-colors flex items-center gap-1",
               location === "/artists/discovery" 
                 ? "text-primary" 
@@ -47,11 +44,9 @@ export function Header() {
             )}>
               <Search className="h-4 w-4" />
               Artist Discovery
-            </a>
           </Link>
           
-          <Link href="/artists/discovery/pro">
-            <a className={cn(
+          <Link href="/artists/discovery/pro" className={cn(
               "text-sm font-medium transition-colors flex items-center gap-1",
               location === "/artists/discovery/pro" 
                 ? "text-primary" 
@@ -59,11 +54,9 @@ export function Header() {
             )}>
               <Route className="h-4 w-4" />
               Tour Finder Pro
-            </a>
           </Link>
           
-          <Link href="/calendar">
-            <a className={cn(
+          <Link href="/calendar" className={cn(
               "text-sm font-medium transition-colors flex items-center gap-1",
               location === "/calendar" 
                 ? "text-primary" 
@@ -71,11 +64,9 @@ export function Header() {
             )}>
               <Calendar className="h-4 w-4" />
               Calendar
-            </a>
           </Link>
           
-          <Link href="/venues">
-            <a className={cn(
+          <Link href="/venues" className={cn(
               "text-sm font-medium transition-colors flex items-center gap-1",
               location === "/venues" 
                 ? "text-primary" 
@@ -83,11 +74,9 @@ export function Header() {
             )}>
               <Building className="h-4 w-4" />
               Venues
-            </a>
           </Link>
           
-          <Link href="/collaboration-requests">
-            <a className={cn(
+          <Link href="/collaboration-requests" className={cn(
               "text-sm font-medium transition-colors flex items-center gap-1",
               location === "/collaboration-requests" 
                 ? "text-primary" 
@@ -95,7 +84,6 @@ export function Header() {
             )}>
               <Handshake className="h-4 w-4" />
               Collaboration
-            </a>
           </Link>
         </nav>
         
