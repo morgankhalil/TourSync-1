@@ -131,6 +131,9 @@ router.post('/login', (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
+// Import the user role service
+import { userRoleService } from '../services/userRoleService';
+
 // Register route
 router.post('/register', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -160,24 +163,30 @@ router.post('/register', async (req: Request, res: Response, next: NextFunction)
     
     const [createdUser] = await db.insert(users).values(newUser).returning();
     
-    // Log in the new user
-    if (createdUser) {
-      const { passwordHash, ...userWithoutPassword } = createdUser;
-      
-      req.login(userWithoutPassword, (err) => {
-        if (err) {
-          return next(err);
-        }
-        
-        return res.status(201).json({
-          success: true,
-          message: 'Registration successful',
-          user: userWithoutPassword,
-        });
-      });
-    } else {
+    if (!createdUser) {
       throw new Error('Failed to create user');
     }
+
+    // Create role-specific profile based on user type
+    const { user, artistId, venueId } = await userRoleService.assignUserRole(createdUser);
+    
+    // Remove password hash before sending to client
+    const { passwordHash: _, ...userWithoutPassword } = user;
+    
+    // Log in the new user
+    req.login(userWithoutPassword, (err) => {
+      if (err) {
+        return next(err);
+      }
+      
+      return res.status(201).json({
+        success: true,
+        message: 'Registration successful',
+        user: userWithoutPassword,
+        artistId,
+        venueId
+      });
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
@@ -186,6 +195,7 @@ router.post('/register', async (req: Request, res: Response, next: NextFunction)
         errors: error.errors,
       });
     }
+    console.error('Registration error:', error);
     next(error);
   }
 });

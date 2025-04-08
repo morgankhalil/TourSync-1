@@ -33,7 +33,8 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 
 // Artist profile schema
 export const artists = pgTable("artists", {
-  id: text("id").primaryKey(),
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().unique(), // Reference to user who owns this artist profile
   name: text("name").notNull(),
   genres: jsonb("genres").$type<string[]>().default([]),
   imageUrl: text("image_url"),
