@@ -4,9 +4,7 @@ import {
   getVenueClusters, 
   getRoutingGaps, 
   getSharedBookings, 
-  getCollaborativeOffers,
-  createAutomaticClusters,
-  createRegionalClusters
+  getCollaborativeOffers
 } from "../services/venue-network-service";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,24 +22,7 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@/components/ui/alert";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { format } from "date-fns";
 import { MapPin, Calendar, Users, TrendingUp, Music, ArrowRight, Clock, AlertTriangle, Share2, Handshake } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -49,20 +30,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 export default function VenueNetworkHub() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
-  const [isClusteringDialogOpen, setIsClusteringDialogOpen] = useState(false);
-  const [clusteringParams, setClusteringParams] = useState({
-    distanceThresholdKm: 150,
-    minVenuesPerCluster: 2,
-    maxVenuesPerCluster: 10,
-    namePrefix: "Venue Cluster"
-  });
-  const [isGeneratingClusters, setIsGeneratingClusters] = useState(false);
 
   // Fetch clusters
   const { 
     data: clusters = [], 
     isLoading: clustersLoading,
-    refetch: refetchClusters,
     error: clustersError
   } = useQuery({
     queryKey: ['venue-network-clusters'],
@@ -96,58 +68,6 @@ export default function VenueNetworkHub() {
     queryKey: ['/api/venue-network/collaborative-offers'],
     queryFn: () => getCollaborativeOffers()
   });
-
-  // Handle automatic cluster generation
-  const handleGenerateClusters = async () => {
-    setIsGeneratingClusters(true);
-    try {
-      const result = await createAutomaticClusters(clusteringParams);
-      toast({
-        title: "Clusters Created Successfully",
-        description: `Created ${result.totalClusters} clusters with ${result.totalVenuesAssigned} venues.`,
-      });
-      
-      // Refetch clusters and wait for completion
-      await refetchClusters();
-      
-      setIsClusteringDialogOpen(false);
-    } catch (error) {
-      console.error("Error generating clusters:", error);
-      toast({
-        title: "Cluster Generation Failed",
-        description: "There was an error creating venue clusters.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingClusters(false);
-    }
-  };
-  
-  // Handle regional cluster generation
-  const [isGeneratingRegionalClusters, setIsGeneratingRegionalClusters] = useState(false);
-  
-  const handleCreateRegionalClusters = async () => {
-    setIsGeneratingRegionalClusters(true);
-    try {
-      const result = await createRegionalClusters();
-      toast({
-        title: "Regional Clusters Created",
-        description: `Created ${result.totalClusters} regional clusters with ${result.totalVenuesAssigned} venues.`,
-      });
-      
-      // Refetch clusters and wait for completion
-      await refetchClusters();
-    } catch (error) {
-      console.error("Error generating regional clusters:", error);
-      toast({
-        title: "Regional Cluster Creation Failed",
-        description: "There was an error creating regional venue clusters.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingRegionalClusters(false);
-    }
-  };
 
   return (
     <div className="container mx-auto py-6">
@@ -278,11 +198,11 @@ export default function VenueNetworkHub() {
             />
             
             <QuickActionCard 
-              title="Create Venue Clusters" 
-              description="Group venues by geographic proximity for better routing"
+              title="View Venue Clusters" 
+              description="Explore regional venue groups for better tour routing"
               icon={<MapPin className="h-5 w-5" />}
-              buttonText="Generate Clusters"
-              onClick={() => setIsClusteringDialogOpen(true)}
+              buttonText="View Clusters"
+              onClick={() => setActiveTab("clusters")}
             />
           </div>
         </TabsContent>
@@ -290,29 +210,22 @@ export default function VenueNetworkHub() {
         {/* Venue Clusters Tab */}
         <TabsContent value="clusters" className="space-y-4">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold">Venue Clusters</h2>
+            <h2 className="text-2xl font-bold">Regional Venue Clusters</h2>
             <div className="flex space-x-2">
-              <Button 
-                variant="outline" 
-                onClick={handleCreateRegionalClusters}
-                disabled={isGeneratingRegionalClusters}
-              >
-                {isGeneratingRegionalClusters ? "Creating..." : "Create Regional Clusters"}
-              </Button>
-              <Button onClick={() => setIsClusteringDialogOpen(true)}>
-                Generate Geographic Clusters
-              </Button>
+              <Badge className="bg-blue-100 text-blue-800">
+                Pre-defined Regions
+              </Badge>
             </div>
           </div>
           
           {clustersLoading ? (
-            <div className="text-center py-8">Loading venue clusters...</div>
+            <div className="text-center py-8">Loading regional venue clusters...</div>
           ) : clusters.length === 0 ? (
             <Alert className="bg-muted">
               <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>No venue clusters found</AlertTitle>
+              <AlertTitle>No regional venue clusters found</AlertTitle>
               <AlertDescription>
-                Create geographic clusters to group venues by proximity and improve routing efficiency.
+                Regional clusters are pre-defined geographic groupings that organize venues into standard US regions for improved tour routing.
               </AlertDescription>
             </Alert>
           ) : (
@@ -601,93 +514,7 @@ export default function VenueNetworkHub() {
         </TabsContent>
       </Tabs>
 
-      {/* Dialog for creating automatic clusters */}
-      <Dialog open={isClusteringDialogOpen} onOpenChange={setIsClusteringDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Generate Geographic Venue Clusters</DialogTitle>
-            <DialogDescription>
-              Automatically group venues by geographic proximity to improve tour routing efficiency.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="distanceThreshold" className="col-span-2">
-                Max Distance (km)
-              </Label>
-              <Input
-                id="distanceThreshold"
-                type="number"
-                min="10"
-                max="500"
-                className="col-span-2"
-                value={clusteringParams.distanceThresholdKm}
-                onChange={(e) => setClusteringParams({
-                  ...clusteringParams,
-                  distanceThresholdKm: parseInt(e.target.value)
-                })}
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="minVenues" className="col-span-2">
-                Min Venues per Cluster
-              </Label>
-              <Input
-                id="minVenues"
-                type="number"
-                min="2"
-                max="20"
-                className="col-span-2"
-                value={clusteringParams.minVenuesPerCluster}
-                onChange={(e) => setClusteringParams({
-                  ...clusteringParams,
-                  minVenuesPerCluster: parseInt(e.target.value)
-                })}
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="maxVenues" className="col-span-2">
-                Max Venues per Cluster
-              </Label>
-              <Input
-                id="maxVenues"
-                type="number"
-                min="5"
-                max="50"
-                className="col-span-2"
-                value={clusteringParams.maxVenuesPerCluster}
-                onChange={(e) => setClusteringParams({
-                  ...clusteringParams,
-                  maxVenuesPerCluster: parseInt(e.target.value)
-                })}
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="namePrefix" className="col-span-2">
-                Cluster Name Prefix
-              </Label>
-              <Input
-                id="namePrefix"
-                className="col-span-2"
-                value={clusteringParams.namePrefix}
-                onChange={(e) => setClusteringParams({
-                  ...clusteringParams,
-                  namePrefix: e.target.value
-                })}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button 
-              type="submit" 
-              onClick={handleGenerateClusters}
-              disabled={isGeneratingClusters}
-            >
-              {isGeneratingClusters ? "Generating..." : "Generate Clusters"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Dialogs removed - now using static regional clusters */}
     </div>
   );
 }
