@@ -1,22 +1,18 @@
 import React from 'react';
 import { useLocation } from 'wouter';
-import { Venue } from '../types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
-import { MapPin, Calendar, Users, Music, Tag } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { MapPin, Calendar, Users, Music, Tag, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useVenues, Venue } from '@/hooks/useVenues';
 
 const VenueList = () => {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   
-  // Use react-query to fetch venues
-  const { data: venues = [], isLoading, error } = useQuery<Venue[]>({
-    queryKey: ['/api/venues'],
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  // Use our custom hook to fetch venues
+  const { data: venues = [], isLoading, error } = useVenues();
   
   // Handle error with toast notification
   React.useEffect(() => {

@@ -1,49 +1,41 @@
 import { Request, Response, NextFunction } from 'express';
-import { z } from 'zod';
+import { ZodSchema } from 'zod';
 import { fromZodError } from 'zod-validation-error';
 
 /**
- * Middleware to validate request body against a Zod schema
- * @param schema Zod schema to validate against
+ * Middleware for validating request body with zod schemas
  */
-export const zodValidationMiddleware = (schema: z.ZodType<any, any>) => {
+export function zodValidationMiddleware<T>(schema: ZodSchema<T>) {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
-      const result = schema.safeParse(req.body);
-      if (!result.success) {
-        const validationError = fromZodError(result.error);
-        return res.status(400).json({ 
-          error: validationError.message,
-          details: result.error.errors
-        });
-      }
-      req.body = result.data;
+      const validatedData = schema.parse(req.body);
+      req.body = validatedData;
       next();
-    } catch (error) {
-      return res.status(500).json({ error: 'Validation error occurred' });
+    } catch (error: any) {
+      const validationError = fromZodError(error);
+      return res.status(400).json({ 
+        error: 'Validation error', 
+        details: validationError.message 
+      });
     }
   };
-};
+}
 
 /**
- * Middleware to validate query parameters against a Zod schema
- * @param schema Zod schema to validate against
+ * Middleware for validating query parameters with zod schemas
  */
-export const zodQueryValidationMiddleware = (schema: z.ZodType<any, any>) => {
+export function zodQueryValidationMiddleware<T>(schema: ZodSchema<T>) {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
-      const result = schema.safeParse(req.query);
-      if (!result.success) {
-        const validationError = fromZodError(result.error);
-        return res.status(400).json({ 
-          error: validationError.message,
-          details: result.error.errors
-        });
-      }
-      req.query = result.data;
+      const validatedData = schema.parse(req.query);
+      req.query = validatedData as any;
       next();
-    } catch (error) {
-      return res.status(500).json({ error: 'Query validation error occurred' });
+    } catch (error: any) {
+      const validationError = fromZodError(error);
+      return res.status(400).json({ 
+        error: 'Invalid query parameters', 
+        details: validationError.message 
+      });
     }
   };
-};
+}

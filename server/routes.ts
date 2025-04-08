@@ -12,6 +12,7 @@ import { fromZodError } from "zod-validation-error";
 import { registerBandsintownRoutes } from "./routes/bandsintown";
 import { registerBandsintownDiscoveryRoutes } from "./routes/bandsintown-discovery";
 import { registerVenueRoutes } from "./routes/venue-routes";
+import { registerVenuesDirectRoutes } from "./routes/venues-direct";
 import venuesApiRouter from "./routes/venues-api";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -19,6 +20,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerBandsintownRoutes(app);
   registerBandsintownDiscoveryRoutes(app);
   registerVenueRoutes(app);
+  registerVenuesDirectRoutes(app);
   app.use('/api/venues-search', venuesApiRouter);
 
   // Artist routes
