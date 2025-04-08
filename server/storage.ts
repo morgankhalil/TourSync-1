@@ -47,12 +47,12 @@ export interface IStorage {
   updateArtistDiscovery(artistId: string, discovery: Partial<InsertArtistDiscovery>): Promise<ArtistDiscovery | undefined>;
   
   // Venue operations
-  getVenue(id: string): Promise<Venue | undefined>;
+  getVenue(id: number): Promise<Venue | undefined>;
   getVenues(options?: { limit?: number; city?: string }): Promise<Venue[]>;
   getVenuesNear(options: { latitude: string; longitude: string; radiusMiles: number; limit?: number }): Promise<Venue[]>;
   createVenue(venue: InsertVenue): Promise<Venue>;
-  updateVenue(id: string, venue: Partial<InsertVenue>): Promise<Venue | undefined>;
-  deleteVenue(id: string): Promise<boolean>;
+  updateVenue(id: number, venue: Partial<InsertVenue>): Promise<Venue | undefined>;
+  deleteVenue(id: number): Promise<boolean>;
   
   // Event operations
   getEvent(id: string): Promise<Event | undefined>;
@@ -519,49 +519,107 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Venue operations
-  async getVenue(id: string): Promise<Venue | undefined> {
-    const result = await db.select().from(venues).where(eq(venues.id, id));
-    return result[0];
+  async getVenue(id: number): Promise<Venue | undefined> {
+    try {
+      const result = await db.select().from(venues).where(eq(venues.id, id));
+      return result[0];
+    } catch (error) {
+      console.error('Error in getVenue:', error);
+      return undefined;
+    }
   }
 
   async getVenues(options?: { limit?: number; city?: string }): Promise<Venue[]> {
-    let query = db.select().from(venues);
+    try {
+      let query = db.select().from(venues);
     
-    // Filter by city if provided
-    if (options?.city) {
-      query = query.where(eq(venues.city, options.city));
+      // Filter by city if provided
+      if (options?.city) {
+        query = query.where(eq(venues.city, options.city));
+      }
+    
+      let results = await query;
+    
+      // Apply limit if provided
+      if (options?.limit && options.limit > 0 && results.length > options.limit) {
+        results = results.slice(0, options.limit);
+      }
+    
+      return results;
+    } catch (error) {
+      console.error('Error in getVenues:', error);
+      return [];
     }
-    
-    let results = await query;
-    
-    // Apply limit if provided
-    if (options?.limit && options.limit > 0 && results.length > options.limit) {
-      results = results.slice(0, options.limit);
-    }
-    
-    return results;
   }
 
   async createVenue(venue: InsertVenue): Promise<Venue> {
-    const id = venue.id || uuidv4();
-    const newVenue = { ...venue, id };
-    
-    const result = await db.insert(venues).values(newVenue).returning();
-    return result[0];
+    try {
+      const result = await db.insert(venues).values(venue).returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error in createVenue:', error);
+      throw error;
+    }
   }
 
-  async updateVenue(id: string, venue: Partial<InsertVenue>): Promise<Venue | undefined> {
-    const result = await db.update(venues)
-      .set(venue)
-      .where(eq(venues.id, id))
-      .returning();
-    
-    return result[0];
+  async updateVenue(id: number, venue: Partial<InsertVenue>): Promise<Venue | undefined> {
+    try {
+      const result = await db.update(venues)
+        .set(venue)
+        .where(eq(venues.id, id))
+        .returning();
+      
+      return result[0];
+    } catch (error) {
+      console.error('Error in updateVenue:', error);
+      return undefined;
+    }
   }
 
-  async deleteVenue(id: string): Promise<boolean> {
-    const result = await db.delete(venues).where(eq(venues.id, id));
-    return !!result;
+  async deleteVenue(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(venues).where(eq(venues.id, id));
+      return !!result;
+    } catch (error) {
+      console.error('Error in deleteVenue:', error);
+      return false;
+    }
+  }
+  
+  async getVenuesNear(options: { latitude: string; longitude: string; radiusMiles: number; limit?: number }): Promise<Venue[]> {
+    // Get all venues from database
+    const allVenues = await db.select().from(venues);
+    
+    // Convert coordinates to numbers
+    const lat = parseFloat(options.latitude);
+    const lng = parseFloat(options.longitude);
+    
+    if (isNaN(lat) || isNaN(lng)) {
+      throw new Error("Invalid coordinates");
+    }
+    
+    // Calculate distance for each venue and filter
+    const venuesWithDistance = allVenues
+      .map(venue => {
+        // Skip venues without coordinates
+        if (!venue.latitude || !venue.longitude) return { venue, distance: Infinity };
+        
+        const venueLat = parseFloat(venue.latitude);
+        const venueLng = parseFloat(venue.longitude);
+        
+        if (isNaN(venueLat) || isNaN(venueLng)) return { venue, distance: Infinity };
+        
+        const distance = calculateDistance(lat, lng, venueLat, venueLng);
+        return { venue, distance };
+      })
+      .filter(item => item.distance <= options.radiusMiles)
+      .sort((a, b) => a.distance - b.distance); // Sort by closest first
+    
+    // Apply limit if provided
+    const limitedResults = options.limit ? venuesWithDistance.slice(0, options.limit) : venuesWithDistance;
+    
+    // Return just the venues without the distance
+    return limitedResults.map(item => item.venue);
   }
 }
 
@@ -572,7 +630,7 @@ export class MemStorage implements IStorage {
   private eventsData: Map<string, Event> = new Map();
   private collaborationRequestsData: Map<number, CollaborationRequest> = new Map();
   private artistCompatibilityData: Map<string, ArtistCompatibility> = new Map();
-  private venuesData: Map<string, Venue> = new Map();
+  private venuesData: Map<number, Venue> = new Map();
   private collaborationRequestIdCounter: number = 1;
 
   constructor() {
@@ -984,7 +1042,7 @@ export class MemStorage implements IStorage {
   }
 
   // Venue operations
-  async getVenue(id: string): Promise<Venue | undefined> {
+  async getVenue(id: number): Promise<Venue | undefined> {
     return this.venuesData.get(id);
   }
 
@@ -1005,18 +1063,34 @@ export class MemStorage implements IStorage {
   }
 
   async createVenue(venue: InsertVenue): Promise<Venue> {
-    const id = venue.id || uuidv4();
+    // Generate a numeric ID
+    const id = venue.id || Math.floor(Math.random() * 10000) + 1;
     const newVenue: Venue = {
       ...venue,
       id,
-      createdAt: new Date()
+      website: venue.website || null,
+      description: venue.description || null,
+      capacity: venue.capacity || null,
+      contactName: venue.contactName || null,
+      contactEmail: venue.contactEmail || null,
+      contactPhone: venue.contactPhone || null,
+      bookingEmail: venue.bookingEmail || null,
+      amenities: venue.amenities || null,
+      genre: venue.genre || null,
+      socialMedia: venue.socialMedia || null,
+      stageSize: venue.stageSize || null,
+      soundSystem: venue.soundSystem || null,
+      backline: venue.backline || null,
+      greenRoom: venue.greenRoom || null,
+      loadIn: venue.loadIn || null,
+      bandsintown_id: venue.bandsintown_id || null
     };
     
     this.venuesData.set(id, newVenue);
     return newVenue;
   }
 
-  async updateVenue(id: string, venue: Partial<InsertVenue>): Promise<Venue | undefined> {
+  async updateVenue(id: number, venue: Partial<InsertVenue>): Promise<Venue | undefined> {
     const existingVenue = this.venuesData.get(id);
     if (!existingVenue) return undefined;
     
@@ -1026,8 +1100,43 @@ export class MemStorage implements IStorage {
     return updatedVenue;
   }
 
-  async deleteVenue(id: string): Promise<boolean> {
+  async deleteVenue(id: number): Promise<boolean> {
     return this.venuesData.delete(id);
+  }
+  
+  async getVenuesNear(options: { latitude: string; longitude: string; radiusMiles: number; limit?: number }): Promise<Venue[]> {
+    const venues = Array.from(this.venuesData.values());
+    
+    // Convert coordinates to numbers
+    const lat = parseFloat(options.latitude);
+    const lng = parseFloat(options.longitude);
+    
+    if (isNaN(lat) || isNaN(lng)) {
+      throw new Error("Invalid coordinates");
+    }
+    
+    // Calculate distance for each venue and filter
+    const venuesWithDistance = venues
+      .map(venue => {
+        // Skip venues without coordinates
+        if (!venue.latitude || !venue.longitude) return { venue, distance: Infinity };
+        
+        const venueLat = parseFloat(venue.latitude);
+        const venueLng = parseFloat(venue.longitude);
+        
+        if (isNaN(venueLat) || isNaN(venueLng)) return { venue, distance: Infinity };
+        
+        const distance = calculateDistance(lat, lng, venueLat, venueLng);
+        return { venue, distance };
+      })
+      .filter(item => item.distance <= options.radiusMiles)
+      .sort((a, b) => a.distance - b.distance); // Sort by closest first
+    
+    // Apply limit if provided
+    const limitedResults = options.limit ? venuesWithDistance.slice(0, options.limit) : venuesWithDistance;
+    
+    // Return just the venues without the distance
+    return limitedResults.map(item => item.venue);
   }
 
   // Initialize with sample data for testing
@@ -1189,49 +1298,82 @@ export class MemStorage implements IStorage {
     // Sample venues
     const venues: Venue[] = [
       {
-        id: "venue1",
+        id: 1,
         name: "The Echo Lounge",
         address: "215 SE Morrison St",
         city: "Portland",
         state: "OR",
-        country: "USA",
         latitude: "45.5152",
         longitude: "-122.6784",
-        imageUrl: "https://images.unsplash.com/photo-1581043144435-ebcd25885809?q=80&w=200&auto=format&fit=crop",
         website: "https://example.com/echo-lounge",
         description: "A cozy music venue known for showcasing indie rock and folk artists, with excellent acoustics and an intimate atmosphere.",
         capacity: 350,
-        createdAt: new Date()
+        bandsintown_id: null,
+        zipCode: "97214",
+        contactName: null,
+        contactEmail: null,
+        contactPhone: null,
+        bookingEmail: null,
+        amenities: null,
+        genre: null,
+        socialMedia: null,
+        stageSize: null,
+        soundSystem: null,
+        backline: null,
+        greenRoom: null,
+        loadIn: null
       },
       {
-        id: "venue2",
+        id: 2,
         name: "Digital Dreams Club",
         address: "500 Pine Street",
         city: "Seattle",
         state: "WA",
-        country: "USA",
         latitude: "47.6062",
         longitude: "-122.3321",
-        imageUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=200&auto=format&fit=crop",
         website: "https://example.com/digital-dreams",
         description: "An electronic music venue with state-of-the-art sound system and lighting. Popular with electronic, synth-pop, and ambient artists.",
         capacity: 500,
-        createdAt: new Date()
+        bandsintown_id: null,
+        zipCode: "98101",
+        contactName: null,
+        contactEmail: null,
+        contactPhone: null,
+        bookingEmail: null,
+        amenities: null,
+        genre: null,
+        socialMedia: null,
+        stageSize: null,
+        soundSystem: null,
+        backline: null,
+        greenRoom: null,
+        loadIn: null
       },
       {
-        id: "venue3",
+        id: 3,
         name: "Jazz & Beats Lounge",
         address: "125 N Wells St",
         city: "Chicago",
         state: "IL",
-        country: "USA",
         latitude: "41.8781",
         longitude: "-87.6298",
-        imageUrl: "https://images.unsplash.com/photo-1576060974974-933acee13b58?q=80&w=200&auto=format&fit=crop",
         website: "https://example.com/jazz-beats",
         description: "A historic venue featuring jazz, hip-hop, and funk artists. Known for its excellent acoustics and vibrant atmosphere.",
         capacity: 400,
-        createdAt: new Date()
+        bandsintown_id: null,
+        zipCode: "60606",
+        contactName: null,
+        contactEmail: null,
+        contactPhone: null,
+        bookingEmail: null,
+        amenities: null,
+        genre: null,
+        socialMedia: null,
+        stageSize: null,
+        soundSystem: null,
+        backline: null,
+        greenRoom: null,
+        loadIn: null
       }
     ];
     

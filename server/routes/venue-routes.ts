@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Express } from 'express';
 import { z } from 'zod';
 import { storage } from '../storage';
 import { insertVenueSchema } from '../../shared/schema';
@@ -35,7 +35,10 @@ router.get('/', async (req, res) => {
 // Get venue by ID
 router.get('/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid venue ID format' });
+    }
     const venue = await storage.getVenue(id);
     
     if (!venue) {
@@ -64,7 +67,10 @@ router.post('/', zodValidationMiddleware(insertVenueSchema), async (req, res) =>
 // Update venue
 router.patch('/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid venue ID format' });
+    }
     const venueData = req.body;
     
     // Validate update data
@@ -94,7 +100,10 @@ router.patch('/:id', async (req, res) => {
 // Delete venue
 router.delete('/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid venue ID format' });
+    }
     const success = await storage.deleteVenue(id);
     
     if (!success) {
@@ -107,5 +116,9 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to delete venue' });
   }
 });
+
+export function registerVenueRoutes(app: Express): void {
+  app.use('/api/venues', router);
+}
 
 export default router;

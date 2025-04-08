@@ -36,27 +36,36 @@ export const insertArtistDiscoverySchema = createInsertSchema(artistDiscovery);
 
 // Venues schema
 export const venues = pgTable("venues", {
-  id: text("id").primaryKey(),
+  id: serial("id").primaryKey(),
   name: text("name").notNull(),
   address: text("address").notNull(),
   city: text("city").notNull(),
-  state: text("state"),
-  country: text("country").notNull(),
+  state: text("state").notNull(),
+  zipCode: text("zip_code").notNull(),
   capacity: integer("capacity"),
-  imageUrl: text("image_url"),
-  website: text("website"),
-  email: text("email"),
-  phone: text("phone"),
+  contactName: text("contact_name"),
+  contactEmail: text("contact_email"),
+  contactPhone: text("contact_phone"),
   description: text("description"),
-  latitude: text("latitude"),
-  longitude: text("longitude"),
-  bandsintown_id: text("bandsintown_id"),
-  createdAt: timestamp("created_at").defaultNow()
+  genre: text("genre"),
+  dealType: text("deal_type"),
+  latitude: text("latitude").notNull(),
+  longitude: text("longitude").notNull(),
+  technicalSpecs: jsonb("technical_specs").$type<Record<string, any>>(),
+  venueType: text("venue_type"),
+  amenities: jsonb("amenities").$type<string[]>(),
+  pastPerformers: jsonb("past_performers").$type<string[]>(),
+  photoGallery: jsonb("photo_gallery").$type<string[]>(),
+  loadingInfo: text("loading_info"),
+  accommodations: text("accommodations"),
+  preferredGenres: jsonb("preferred_genres").$type<string[]>(),
+  priceRange: jsonb("price_range").$type<Record<string, any>>(),
+  website: text("website"),
+  bandsintown_id: text("bandsintown_id")
 });
 
 export const insertVenueSchema = createInsertSchema(venues).omit({
-  id: true,
-  createdAt: true
+  id: true
 });
 
 // Events schema

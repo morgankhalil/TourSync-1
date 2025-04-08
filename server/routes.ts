@@ -12,12 +12,14 @@ import { fromZodError } from "zod-validation-error";
 import { registerBandsintownRoutes } from "./routes/bandsintown";
 import { registerBandsintownDiscoveryRoutes } from "./routes/bandsintown-discovery";
 import { registerVenueRoutes } from "./routes/venue-routes";
+import venuesApiRouter from "./routes/venues-api";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register API-specific routes
   registerBandsintownRoutes(app);
   registerBandsintownDiscoveryRoutes(app);
   registerVenueRoutes(app);
+  app.use('/api/venues-search', venuesApiRouter);
 
   // Artist routes
   app.get("/api/artists", async (req: Request, res: Response) => {
