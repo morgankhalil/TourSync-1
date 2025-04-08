@@ -47,19 +47,21 @@ export default function App() {
                 
                 <Route path="/">
                   <ProtectedRoute>
-                    <MainLayout>
-                      <Switch>
-                        <Route path="/" component={Dashboard} />
-                        <Route path="/venues" component={VenueDashboard} />
-                        <Route path="/venues/search" component={VenueSearch} />
-                        <Route path="/venues/:id" component={VenueView} />
-                        <Route path="/tours/finder" component={TourFinderPro} />
-                        <Route path="/artists/discovery" component={EnhancedArtistDiscovery} />
-                        <Route path="/bandsintown" component={BandsintownPage} />
-                        <Route path="/profile" component={ProfilePage} />
-                        <Route path="/settings" component={SettingsPage} />
-                      </Switch>
-                    </MainLayout>
+                    <SidebarProvider>
+                      <MainLayout>
+                        <Switch>
+                          <Route path="/" component={Dashboard} />
+                          <Route path="/venues" component={VenueDashboard} />
+                          <Route path="/venues/search" component={VenueSearch} />
+                          <Route path="/venues/:id" component={VenueView} />
+                          <Route path="/tours/finder" component={TourFinderPro} />
+                          <Route path="/artists/discovery" component={EnhancedArtistDiscovery} />
+                          <Route path="/bandsintown" component={BandsintownPage} />
+                          <Route path="/profile" component={ProfilePage} />
+                          <Route path="/settings" component={SettingsPage} />
+                        </Switch>
+                      </MainLayout>
+                    </SidebarProvider>
                   </ProtectedRoute>
                 </Route>
               </Switch>

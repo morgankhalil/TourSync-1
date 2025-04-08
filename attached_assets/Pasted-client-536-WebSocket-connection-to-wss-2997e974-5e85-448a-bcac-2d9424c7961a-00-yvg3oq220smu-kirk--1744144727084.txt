@@ -1,0 +1,112 @@
+client:536 WebSocket connection to 'wss://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/?token=OZpyvlhzhubJ' failed: Error during WebSocket handshake: Unexpected response code: 400
+setupWebSocket @ client:536
+client:536 Uncaught (in promise) DOMException: Failed to construct 'WebSocket': The URL 'wss://localhost:undefined/?token=OZpyvlhzhubJ' is invalid.
+    at setupWebSocket (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@vite/client:536:19)
+    at fallback (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@vite/client:509:16)
+    at WebSocket.<anonymous> (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@vite/client:555:7)
+chunk-RPCDYKBN.js?v=7ee60eb6:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+sidebar.tsx:42 Uncaught Error: useSidebar must be used within a SidebarProvider.
+    at useSidebar (sidebar.tsx:42:11)
+    at Header (Header.tsx:46:29)
+    at renderWithHooks (chunk-RPCDYKBN.js?v=7ee60eb6:11548:26)
+    at mountIndeterminateComponent (chunk-RPCDYKBN.js?v=7ee60eb6:14926:21)
+    at beginWork (chunk-RPCDYKBN.js?v=7ee60eb6:15914:22)
+    at HTMLUnknownElement.callCallback2 (chunk-RPCDYKBN.js?v=7ee60eb6:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-RPCDYKBN.js?v=7ee60eb6:3699:24)
+    at invokeGuardedCallback (chunk-RPCDYKBN.js?v=7ee60eb6:3733:39)
+    at beginWork$1 (chunk-RPCDYKBN.js?v=7ee60eb6:19765:15)
+    at performUnitOfWork (chunk-RPCDYKBN.js?v=7ee60eb6:19198:20)
+sidebar.tsx:42 Uncaught Error: useSidebar must be used within a SidebarProvider.
+    at useSidebar (sidebar.tsx:42:11)
+    at sidebar.tsx:177:60
+    at renderWithHooks (chunk-RPCDYKBN.js?v=7ee60eb6:11548:26)
+    at updateForwardRef (chunk-RPCDYKBN.js?v=7ee60eb6:14325:28)
+    at beginWork (chunk-RPCDYKBN.js?v=7ee60eb6:15946:22)
+    at HTMLUnknownElement.callCallback2 (chunk-RPCDYKBN.js?v=7ee60eb6:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-RPCDYKBN.js?v=7ee60eb6:3699:24)
+    at invokeGuardedCallback (chunk-RPCDYKBN.js?v=7ee60eb6:3733:39)
+    at beginWork$1 (chunk-RPCDYKBN.js?v=7ee60eb6:19765:15)
+    at performUnitOfWork (chunk-RPCDYKBN.js?v=7ee60eb6:19198:20)
+sidebar.tsx:42 Uncaught Error: useSidebar must be used within a SidebarProvider.
+    at useSidebar (sidebar.tsx:42:11)
+    at Header (Header.tsx:46:29)
+    at renderWithHooks (chunk-RPCDYKBN.js?v=7ee60eb6:11548:26)
+    at mountIndeterminateComponent (chunk-RPCDYKBN.js?v=7ee60eb6:14926:21)
+    at beginWork (chunk-RPCDYKBN.js?v=7ee60eb6:15914:22)
+    at HTMLUnknownElement.callCallback2 (chunk-RPCDYKBN.js?v=7ee60eb6:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-RPCDYKBN.js?v=7ee60eb6:3699:24)
+    at invokeGuardedCallback (chunk-RPCDYKBN.js?v=7ee60eb6:3733:39)
+    at beginWork$1 (chunk-RPCDYKBN.js?v=7ee60eb6:19765:15)
+    at performUnitOfWork (chunk-RPCDYKBN.js?v=7ee60eb6:19198:20)
+sidebar.tsx:42 Uncaught Error: useSidebar must be used within a SidebarProvider.
+    at useSidebar (sidebar.tsx:42:11)
+    at sidebar.tsx:177:60
+    at renderWithHooks (chunk-RPCDYKBN.js?v=7ee60eb6:11548:26)
+    at updateForwardRef (chunk-RPCDYKBN.js?v=7ee60eb6:14325:28)
+    at beginWork (chunk-RPCDYKBN.js?v=7ee60eb6:15946:22)
+    at HTMLUnknownElement.callCallback2 (chunk-RPCDYKBN.js?v=7ee60eb6:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-RPCDYKBN.js?v=7ee60eb6:3699:24)
+    at invokeGuardedCallback (chunk-RPCDYKBN.js?v=7ee60eb6:3733:39)
+    at beginWork$1 (chunk-RPCDYKBN.js?v=7ee60eb6:19765:15)
+    at performUnitOfWork (chunk-RPCDYKBN.js?v=7ee60eb6:19198:20)
+chunk-RPCDYKBN.js?v=7ee60eb6:14032 The above error occurred in the <Header> component:
+
+    at Header (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/layout/Header.tsx:51:35)
+    at div
+    at MainLayout (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/layout/MainLayout.tsx:19:23)
+    at ProtectedRoute (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/auth/ProtectedRoute.tsx:22:3)
+    at Route (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=7ee60eb6:191:16)
+    at Switch (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=7ee60eb6:247:17)
+    at div
+    at ActiveVenueProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/hooks/useActiveVenue.tsx:21:39)
+    at V (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/next-themes.js?v=7ee60eb6:44:25)
+    at J (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/next-themes.js?v=7ee60eb6:42:18)
+    at ThemeProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/theme-provider.tsx:18:33)
+    at AuthProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/contexts/AuthContext.tsx:28:32)
+    at QueryClientProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=7ee60eb6:2805:3)
+    at App
+    at QueryClientProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=7ee60eb6:2805:3)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+logCapturedError @ chunk-RPCDYKBN.js?v=7ee60eb6:14032
+Show 1 more frame
+Show less
+chunk-RPCDYKBN.js?v=7ee60eb6:14032 The above error occurred in the <Sidebar> component:
+
+    at https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/ui/sidebar.tsx:155:7
+    at UnifiedSidebar (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/layout/UnifiedSidebar.tsx:36:22)
+    at div
+    at SidebarLayout (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/layout/SidebarLayout.tsx:18:33)
+    at div
+    at div
+    at MainLayout (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/layout/MainLayout.tsx:19:23)
+    at ProtectedRoute (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/auth/ProtectedRoute.tsx:22:3)
+    at Route (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=7ee60eb6:191:16)
+    at Switch (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=7ee60eb6:247:17)
+    at div
+    at ActiveVenueProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/hooks/useActiveVenue.tsx:21:39)
+    at V (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/next-themes.js?v=7ee60eb6:44:25)
+    at J (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/next-themes.js?v=7ee60eb6:42:18)
+    at ThemeProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/theme-provider.tsx:18:33)
+    at AuthProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/contexts/AuthContext.tsx:28:32)
+    at QueryClientProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=7ee60eb6:2805:3)
+    at App
+    at QueryClientProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=7ee60eb6:2805:3)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+logCapturedError @ chunk-RPCDYKBN.js?v=7ee60eb6:14032
+Show 1 more frame
+Show less
+chunk-RPCDYKBN.js?v=7ee60eb6:9129 Uncaught Error: useSidebar must be used within a SidebarProvider.
+    at useSidebar (sidebar.tsx:42:11)
+    at Header (Header.tsx:46:29)
+    at renderWithHooks (chunk-RPCDYKBN.js?v=7ee60eb6:11548:26)
+    at mountIndeterminateComponent (chunk-RPCDYKBN.js?v=7ee60eb6:14926:21)
+    at beginWork (chunk-RPCDYKBN.js?v=7ee60eb6:15914:22)
+    at beginWork$1 (chunk-RPCDYKBN.js?v=7ee60eb6:19753:22)
+    at performUnitOfWork (chunk-RPCDYKBN.js?v=7ee60eb6:19198:20)
+    at workLoopSync (chunk-RPCDYKBN.js?v=7ee60eb6:19137:13)
+    at renderRootSync (chunk-RPCDYKBN.js?v=7ee60eb6:19116:15)
+    at recoverFromConcurrentError (chunk-RPCDYKBN.js?v=7ee60eb6:18736:28)
