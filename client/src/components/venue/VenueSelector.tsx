@@ -52,9 +52,9 @@ export const VenueSelector: React.FC = () => {
           {!venueData && activeVenueId && "Loading..."}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-0">
+      <PopoverContent className="w-[300px] p-0" role="dialog" aria-label="Select Venue">
         <Command>
-          <div className="sr-only">Select Venue Dialog</div>
+          <div className="px-3 pt-2 pb-1 text-sm font-medium">Select Venue</div>
           <CommandInput placeholder="Search venues..." />
           <CommandEmpty>No venues found.</CommandEmpty>
           <CommandGroup>

@@ -83,8 +83,8 @@ export default function App() {
                 </ProtectedRoute>
               </Route>
             </Switch>
-          </SidebarProvider>
-        </ActiveVenueProvider>
+          </ActiveVenueProvider>
+        </SidebarProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
