@@ -32,7 +32,7 @@ const ActiveVenueContext = createContext<ActiveVenueContextType>(defaultActiveVe
 export const ActiveVenueProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [venueId, setVenueId] = useState<number | null>(45); // Default to first venue (Empty Bottle)
+  const [venueId, setVenueId] = useState<number | null>(38); // Default to Bug Jar venue (ID 38)
   const [activeVenue, setActiveVenue] = useState<Venue | null>(null);
   
   // Function to refresh venue data
@@ -43,53 +43,121 @@ export const ActiveVenueProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   }, [venueId, queryClient]);
   
-  // Simplified handling of venueId changes
+  // Handle venueId changes with cache clearing
   const handleSetVenueId = useCallback((id: number | null) => {
     console.log(`Setting venueId from ${venueId} to ${id}`);
-    setVenueId(id || 45); // Always use a default venue ID if null is passed
-  }, [venueId]);
+    
+    // Use the enhanced client for better logging and error handling
+    EnhancedBandsintownDiscoveryClient.clearCache()
+      .then((result) => {
+        console.log("API cache cleared for venue ID change:", result);
+        
+        // After clearing the cache, invalidate related queries
+        queryClient.invalidateQueries({ queryKey: ['/api/venues'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/bandsintown-discovery-v2'] });
+        
+        // Update the venue ID after cache is cleared
+        setVenueId(id);
+      })
+      .catch((error) => {
+        console.error("Failed to clear API cache:", error);
+        // Still update the venue ID even if cache clearing fails
+        setVenueId(id);
+        // Still invalidate queries
+        queryClient.invalidateQueries({ queryKey: ['/api/venues'] });
+      });
+  }, [venueId, queryClient]);
   
-  // Fetch venue data from the API - always using the default venue
+  // Fetch venue data from the API
   const { data: venue, isLoading, error: venueError } = useQuery({
     queryKey: ['/api/venues', venueId],
     queryFn: async () => {
-      console.log(`!!! Fetching specific venue with ID: ${venueId}`);
+      if (!venueId) return null;
+      console.log(`Fetching specific venue with ID: ${venueId}`);
       const response = await fetch(`/api/venues/${venueId}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch venue with ID ${venueId}`);
       }
       const data = await response.json() as Venue;
-      console.log(`!!! Loaded venue data:`, data);
+      console.log(`Loaded venue data:`, data);
+      return data;
+    },
+    enabled: !!venueId,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+  });
+  
+  // Fetch all venues for selection
+  const { data: venues } = useQuery({
+    queryKey: ['/api/venues'],
+    queryFn: async () => {
+      console.log('Fetching all venues');
+      const response = await fetch('/api/venues');
+      if (!response.ok) {
+        throw new Error('Failed to fetch venues');
+      }
+      const data = await response.json() as Venue[];
+      console.log(`Loaded ${data.length} venues`);
       return data;
     },
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
   
-  // Simplified direct setter for active venue
+  // Direct setter with better logging and cache management
   const handleSetActiveVenue = useCallback((venue: Venue | null) => {
     console.log(`Setting active venue to:`, venue);
     
     if (venue) {
-      // Update both venue ID and active venue immediately
-      setVenueId(venue.id);
-      setActiveVenue(venue);
-    } else {
-      // If null is passed, use default venue ID
-      setVenueId(45);
+      // Ensure venueId is also updated
+      if (venueId !== venue.id) {
+        console.log(`Updating venueId to match: ${venue.id}`);
+        
+        // Use the enhanced client for better logging and error handling
+        EnhancedBandsintownDiscoveryClient.clearCache()
+          .then((result) => {
+            console.log("API cache cleared for direct venue change:", result);
+            
+            // After clearing the cache, invalidate related queries
+            queryClient.invalidateQueries({ queryKey: ['/api/venues'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/bandsintown-discovery-v2'] });
+            
+            // Set the venue ID after cache is cleared
+            setVenueId(venue.id);
+          })
+          .catch((error) => {
+            console.error("Failed to clear API cache:", error);
+            // Still update the venue ID even if cache clearing fails
+            setVenueId(venue.id);
+          });
+      }
     }
-  }, []);
+    
+    // Always update the active venue object
+    setActiveVenue(venue);
+  }, [venueId, queryClient]);
   
   // Update activeVenue when venue data changes
   useEffect(() => {
     if (venue) {
       console.log(`Setting active venue from fetched data:`, venue);
       setActiveVenue(venue);
+    } else if (venues && venues.length > 0 && !activeVenue) {
+      // If we have venues but no active venue, set the first one or Bug Jar
+      const bugJar = venues.find(v => v.name === "Bug Jar") || venues[0];
+      console.log(`Setting default venue to:`, bugJar);
+      setActiveVenue(bugJar);
+      setVenueId(bugJar.id);
+      
+      toast({
+        title: "Default venue selected",
+        description: `Selected venue: ${bugJar.name}`,
+        duration: 3000
+      });
     }
-  }, [venue]);
+  }, [venue, venues, activeVenue, toast]);
 
   // When venue ID changes, log information
   useEffect(() => {
-    console.log(`!!!!! Current venue ID: ${venueId}, Venue object:`, activeVenue);
+    console.log(`Current venue ID: ${venueId}, Venue object:`, activeVenue);
   }, [venueId, activeVenue]);
 
   const contextValue: ActiveVenueContextType = {

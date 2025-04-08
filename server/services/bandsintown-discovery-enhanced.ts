@@ -115,7 +115,7 @@ export class EnhancedBandsintownDiscoveryService {
     const distanceScore = Math.max(0, 100 - (distanceToVenue / maxDistance) * 100);
     const detourScore = Math.max(0, 100 - (detourDistance / maxDistance) * 50);
     const timeScore = daysBetween >= 1 && daysBetween <= 4 ? 100 : Math.max(0, 100 - Math.abs(daysBetween - 2) * 20);
-
+    
     return Math.round((distanceScore * 0.4) + (detourScore * 0.4) + (timeScore * 0.2));
   }
 
@@ -130,7 +130,7 @@ export class EnhancedBandsintownDiscoveryService {
 
     const venueLat = parseFloat(venue.latitude || '0');
     const venueLng = parseFloat(venue.longitude || '0');
-
+    
     const sortedEvents = [...artist.events].sort(
       (a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime()
     );
@@ -153,7 +153,7 @@ export class EnhancedBandsintownDiscoveryService {
       const distanceToVenue1 = this.calculateDistance(event1Lat, event1Lng, venueLat, venueLng);
       const distanceToVenue2 = this.calculateDistance(event2Lat, event2Lng, venueLat, venueLng);
       const originalDistance = this.calculateDistance(event1Lat, event1Lng, event2Lat, event2Lng);
-
+      
       const detourDistance = 
         this.calculateDistance(event1Lat, event1Lng, venueLat, venueLng) +
         this.calculateDistance(venueLat, venueLng, event2Lat, event2Lng) -
@@ -219,7 +219,7 @@ export class EnhancedBandsintownDiscoveryService {
   }: DiscoveryOptions): Promise<DiscoveryResults> {
     const startTime = Date.now();
     const { storage } = await import('../storage');
-
+    
     const venue = await storage.getVenue(venueId);
     if (!venue) throw new Error(`Venue ${venueId} not found`);
 
@@ -241,7 +241,7 @@ export class EnhancedBandsintownDiscoveryService {
     const batchSize = this.MAX_CONCURRENT_REQUESTS;
     for (let i = 0; i < artistsToQuery.length; i += batchSize) {
       const batch = artistsToQuery.slice(i, i + batchSize);
-
+      
       const batchResults = await this.apiService.getMultipleArtistsWithEvents(
         batch,
         startDate,
@@ -265,7 +265,7 @@ export class EnhancedBandsintownDiscoveryService {
       if (newResults.length > 0) {
         results.push(...newResults);
         stats.artistsPassingNear += newResults.length;
-
+        
         if (onIncrementalResults) {
           onIncrementalResults(newResults);
         }
@@ -334,6 +334,9 @@ export class EnhancedBandsintownDiscoveryService {
     }
   }
 
+  /**
+   * Calculate the distance between two points using the Haversine formula
+   */
   private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
     const R = 3958.8; // Earth's radius in miles
     const dLat = this.deg2rad(lat2 - lat1);
@@ -355,39 +358,26 @@ export class EnhancedBandsintownDiscoveryService {
     return deg * (Math.PI / 180);
   }
 
+  /**
+   * Calculate a routing score to rank bands' proximity and fit
+   * Lower score = better fit for the venue
+   */
   private calculateRoutingScore(
     distanceToVenue: number,
     detourDistance: number,
-    daysBetween: number,
-    venueDrawSize: number = 0,
-    venueCapacity: number = 0,
-    numberOfStops: number = 1
+    daysBetween: number
   ): number {
-    // Enhanced distance scoring with progressive penalty and multi-stop consideration
-    const distanceThreshold = Math.min(300 + (venueCapacity / 10), 500) * Math.sqrt(numberOfStops);
-    const distancePenalty = distanceToVenue > distanceThreshold
+    // Distance penalty (0-100 points)
+    const distancePenalty = distanceToVenue > 200
       ? 100
-      : Math.round((Math.pow(distanceToVenue / distanceThreshold, 1.8)) * 100);
+      : Math.round((distanceToVenue / 200) * 100);
 
-    // Dynamic detour threshold based on venue metrics and number of stops
-    const stopMultiplier = 1 + (Math.log(numberOfStops) / Math.log(2)) * 0.2; // Logarithmic scaling
-    const maxAcceptableDetour = Math.min(
-      distanceToVenue * (1.5 + (venueDrawSize / 1000) + (venueCapacity / 2000)) * stopMultiplier,
-      Math.max(300, distanceThreshold * 1.2)
-    );
-
-    // Multi-stop bonus (rewards efficient routing between multiple venues)
-    const multiStopBonus = numberOfStops > 1 ? Math.min(20, numberOfStops * 5) : 0;
-
-    // Bonus for optimal venue size match
-    const venueSizeBonus = venueDrawSize > 0 && venueCapacity > 0
-      ? Math.max(0, 20 - Math.abs(venueDrawSize - venueCapacity) / 100)
-      : 0;
-    
-    // Exponential detour penalty
+    // Detour penalty (0-100 points)
+    // If detour is more than 2x the distance to venue or more than 200 miles, max penalty
+    const maxAcceptableDetour = Math.min(distanceToVenue * 2, 200);
     const detourPenalty = detourDistance > maxAcceptableDetour
       ? 100
-      : Math.round((Math.pow(detourDistance / maxAcceptableDetour, 1.8)) * 100);
+      : Math.round((detourDistance / maxAcceptableDetour) * 100);
 
     // Days penalty (0-100 points)
     // Ideal is 1-3 days between shows, with 2 being perfect
@@ -399,17 +389,14 @@ export class EnhancedBandsintownDiscoveryService {
     else if (daysBetween === 5) daysPenalty = 50; // Acceptable
     else if (daysBetween > 5) daysPenalty = 50 + (daysBetween - 5) * 10; // Less ideal
 
-    // Efficiency bonus for optimal number of days between shows
-    const efficiencyBonus = daysBetween >= 1 && daysBetween <= 3 ? 15 : 0;
-
     // Overall score (0-300, lower is better)
-    // Enhanced weighting system with bonuses
-    return (
-      (distancePenalty * 1.5 + detourPenalty * 1.2 + daysPenalty * 0.8) -
-      (venueSizeBonus + multiStopBonus + efficiencyBonus)
-    );
+    // We give higher weight to distance (1.5x) and detour (1.2x) factors
+    return distancePenalty * 1.5 + detourPenalty * 1.2 + daysPenalty * 0.8;
   }
 
+  /**
+   * Find bands that will be passing near a venue in a given date range
+   */
   async findBandsNearVenue(options: DiscoveryOptions): Promise<DiscoveryResults> {
     const startTime = Date.now();
     this.apiService.resetStats();
@@ -642,10 +629,10 @@ export class EnhancedBandsintownDiscoveryService {
             events: sortedEvents,
             bandsintownId: artist.id
           };
-
+          
           bandDiscoveryResults.push(newResult);
           incremental.results.push(newResult);
-
+          
           // Send incremental results as soon as we get a match (one at a time)
           // This allows the UI to update immediately when we find a good match
           if (options.onIncrementalResults && incremental.results.length > 0) {
@@ -754,94 +741,3 @@ export class EnhancedBandsintownDiscoveryService {
     this.apiService.clearCache();
   }
 }
-
-async function calculateDistance(loc1: { lat: number; lng: number }, loc2: { lat: number; lng: number }): Promise<number> {
-    const R = 6371; // Earth's radius in km
-    const dLat = (loc2.lat - loc1.lat) * Math.PI / 180;
-    const dLng = (loc2.lng - loc1.lng) * Math.PI / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(loc1.lat * Math.PI / 180) * Math.cos(loc2.lat * Math.PI / 180) *
-      Math.sin(dLng / 2) * Math.sin(dLng / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  }
-
-  async function analyzeRoute(events: Event[], venue: Venue): Promise<RouteAnalysis> {
-    // Sort events by date
-    const sortedEvents = events.sort((a, b) =>
-      new Date(a.datetime).getTime() - new Date(b.datetime).getTime()
-    );
-
-    // Find closest events before and after potential venue date
-    const venueLocation = {
-      lat: parseFloat(venue.latitude),
-      lng: parseFloat(venue.longitude)
-    };
-
-    let bestRoute = {
-      origin: null,
-      destination: null,
-      distanceToVenue: Infinity,
-      detourDistance: Infinity,
-      daysAvailable: 0,
-      routingScore: 0
-    };
-
-    // Analyze all possible combinations of consecutive events
-    for (let i = 0; i < sortedEvents.length - 1; i++) {
-      const origin = sortedEvents[i];
-      const destination = sortedEvents[i + 1];
-
-      const originLocation = {
-        lat: parseFloat(origin.venue.latitude),
-        lng: parseFloat(origin.venue.longitude)
-      };
-
-      const destinationLocation = {
-        lat: parseFloat(destination.venue.latitude),
-        lng: parseFloat(destination.venue.longitude)
-      };
-
-      // Calculate distances
-      const distanceToVenue = await calculateDistance(originLocation, venueLocation);
-      const directDistance = await calculateDistance(originLocation, destinationLocation);
-      const detourDistance = await calculateDistance(originLocation, venueLocation) +
-        await calculateDistance(venueLocation, destinationLocation) -
-        directDistance;
-
-      // Calculate available days between events
-      const daysAvailable = Math.floor(
-        (new Date(destination.datetime).getTime() - new Date(origin.datetime).getTime())
-        / (1000 * 60 * 60 * 24)
-      );
-
-      const routingScore = this.calculateRoutingScore(distanceToVenue, detourDistance, daysAvailable, 200);
-
-      // Update best route if this one is better
-      if (detourDistance < bestRoute.detourDistance && daysAvailable >= 1 && routingScore > bestRoute.routingScore) {
-        bestRoute = {
-          origin: {
-            city: origin.venue.city,
-            state: origin.venue.region,
-            date: origin.datetime,
-            lat: originLocation.lat,
-            lng: originLocation.lng
-          },
-          destination: {
-            city: destination.venue.city,
-            state: destination.venue.region,
-            date: destination.datetime,
-            lat: destinationLocation.lat,
-            lng: destinationLocation.lng
-          },
-          distanceToVenue,
-          detourDistance,
-          daysAvailable,
-          routingScore
-        };
-      }
-    }
-
-    return bestRoute;
-  }

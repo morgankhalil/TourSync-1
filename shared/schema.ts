@@ -144,6 +144,20 @@ export const insertArtistDiscoverySchema = createInsertSchema(artistDiscovery);
 
 export type ArtistDiscovery = typeof artistDiscovery.$inferSelect;
 export type InsertArtistDiscovery = z.infer<typeof insertArtistDiscoverySchema>;
+export interface Venue {
+  id: number;
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  latitude: string;
+  longitude: string;
+  capacity?: number;
+  website?: string;
+  phone?: string;
+  email?: string;
+}
 
 export interface Artist {
   id: string;

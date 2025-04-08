@@ -19,8 +19,8 @@ const VenueSidebar = () => {
 
   // Fetch venue availability
   const { data: availabilityList, isLoading: isAvailabilityLoading } = useQuery<VenueAvailability[]>({
-    queryKey: [`/api/venues/${activeVenue?.id}/availability`],
-    enabled: !!activeVenue?.id && true,
+    queryKey: [`/api/venues/${activeVenue?.id || 38}/availability`], // Bug Jar's ID is 38
+    enabled: true,
   });
 
   // Determine the sidebar classes based on mobile and open state
@@ -59,7 +59,7 @@ const VenueSidebar = () => {
               Manage Availability
             </Button>
           </Link>
-
+          
           {/* Current Venue */}
           {isVenueLoading ? (
             <div className="mt-4">
@@ -97,7 +97,7 @@ const VenueSidebar = () => {
               </button>
             </Link>
           </div>
-
+          
           {isAvailabilityLoading ? (
             <div className="space-y-2">
               {Array.from({ length: 5 }).map((_, i) => (

@@ -37,16 +37,12 @@ let bandsintownIntegration: BandsintownIntegration | null = null;
 // Helper to get the integration
 function getIntegration(): BandsintownIntegration {
   if (!bandsintownIntegration) {
-    const apiKey = process.env.BANDSINTOWN_API_KEY?.trim();
+    // Check for API key in environment variables
+    const apiKey = process.env.BANDSINTOWN_API_KEY;
     if (!apiKey) {
       throw new Error('BANDSINTOWN_API_KEY environment variable is not set');
     }
-    try {
-      bandsintownIntegration = createBandsintownIntegration(apiKey);
-    } catch (error) {
-      console.error('Failed to create Bandsintown integration:', error);
-      throw new Error('Invalid Bandsintown API key configuration');
-    }
+    bandsintownIntegration = createBandsintownIntegration(apiKey);
   }
   return bandsintownIntegration;
 }

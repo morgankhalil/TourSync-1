@@ -31,29 +31,6 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 
-const TourVisualizationCard = ({ confirmedShows, pendingShows, totalCities, tourLength }: { confirmedShows: number; pendingShows: number; totalCities: number; tourLength: number }) => {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      <div className="bg-muted/30 p-4 rounded-lg text-center">
-        <CalendarDays className="h-6 w-6 mx-auto mb-2 text-primary" />
-        <div className="text-sm text-muted-foreground">Confirmed Shows</div>
-        <div className="text-2xl font-bold">{confirmedShows}</div>
-      </div>
-      <div className="bg-muted/30 p-4 rounded-lg text-center">
-        <Calendar className="h-6 w-6 mx-auto mb-2 text-primary" />
-        <div className="text-sm text-muted-foreground">Pending Shows</div>
-        <div className="text-2xl font-bold">{pendingShows}</div>
-      </div>
-      <div className="bg-muted/30 p-4 rounded-lg text-center">
-        <Globe className="h-6 w-6 mx-auto mb-2 text-primary" />
-        <div className="text-sm text-muted-foreground">Total Cities</div>
-        <div className="text-2xl font-bold">{totalCities}</div>
-      </div>
-    </div>
-  );
-};
-
-
 const TourDashboard = () => {
   const { tours, activeTour, isLoading: isLoadingTours } = useTours();
   const [selectedTour, setSelectedTour] = useState<Tour | null>(null);
@@ -116,12 +93,12 @@ const TourDashboard = () => {
   const handleOptimizationVenueSelect = (venue: Venue) => {
     // Handle venue selection from optimization panel
     if (!selectedTour || !tourDates.length) return;
-
+    
     toast({
       title: "Venue Selected",
       description: `${venue.name} has been selected. Add it to an available date in your tour.`,
     });
-
+    
     // Could add functionality here to auto-assign to an open date
     // or open a modal to select which date to assign it to
   };
@@ -194,14 +171,8 @@ const TourDashboard = () => {
           <div className="lg:col-span-3 space-y-6">
             {selectedTour ? (
               <>
-                <TourVisualizationCard 
-                  confirmedShows={tourStats?.confirmed || 0}
-                  pendingShows={tourStats?.pending || 0}
-                  totalCities={new Set(tourDates.map(date => date.city)).size}
-                  tourLength={tourDates.length}
-                />
                 {/* Tour Header Card */}
-                <Card className="mt-6">
+                <Card>
                   <CardHeader>
                     <CardTitle>{selectedTour.name}</CardTitle>
                     <CardDescription>
@@ -210,7 +181,23 @@ const TourDashboard = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {/* Removed existing visualization as it's now in TourVisualizationCard */}
+                      <div className="bg-muted/30 p-4 rounded-lg text-center">
+                        <CalendarDays className="h-6 w-6 mx-auto mb-2 text-primary" />
+                        <div className="text-sm text-muted-foreground">Total Shows</div>
+                        <div className="text-2xl font-bold">{tourStats?.totalShows || tourDates.length}</div>
+                      </div>
+                      <div className="bg-muted/30 p-4 rounded-lg text-center">
+                        <Calendar className="h-6 w-6 mx-auto mb-2 text-primary" />
+                        <div className="text-sm text-muted-foreground">Open Dates</div>
+                        <div className="text-2xl font-bold">{tourStats?.openDates || tourDates.filter((d: TourDate) => d.isOpenDate).length}</div>
+                      </div>
+                      <div className="bg-muted/30 p-4 rounded-lg text-center">
+                        <Globe className="h-6 w-6 mx-auto mb-2 text-primary" />
+                        <div className="text-sm text-muted-foreground">Cities</div>
+                        <div className="text-2xl font-bold">
+                          {new Set(tourDates.map(date => date.city)).size}
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                   <CardFooter className="border-t bg-muted/20 justify-between">
@@ -233,7 +220,7 @@ const TourDashboard = () => {
                     <TabsTrigger value="optimize">Optimize Tour</TabsTrigger>
                     <TabsTrigger value="map">Map View</TabsTrigger>
                   </TabsList>
-
+                  
                   <TabsContent value="overview" className="space-y-4 mt-6">
                     <Card>
                       <CardHeader>
@@ -275,7 +262,7 @@ const TourDashboard = () => {
                                           )}
                                         </div>
                                       </div>
-
+                                      
                                       {!date.venueId && (
                                         <Button 
                                           variant="outline" 
@@ -298,7 +285,7 @@ const TourDashboard = () => {
                       </CardContent>
                     </Card>
                   </TabsContent>
-
+                  
                   <TabsContent value="optimize" className="mt-6">
                     <TourOptimizationPanel 
                       tour={selectedTour} 
@@ -306,7 +293,7 @@ const TourDashboard = () => {
                       onSelectVenue={handleOptimizationVenueSelect}
                     />
                   </TabsContent>
-
+                  
                   <TabsContent value="map" className="mt-6">
                     <Card>
                       <CardHeader>

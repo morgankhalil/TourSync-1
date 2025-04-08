@@ -1,3 +1,4 @@
+
 import { db } from '../db';
 import { addDays } from 'date-fns';
 import { venues, tours, tourDates, venueAvailability, bands } from '@shared/schema';
@@ -6,7 +7,7 @@ import { BandsintownApiService } from '../services/bandsintown-api';
 async function importEmptyBottleEvents() {
   try {
     console.log('Starting Empty Bottle data import...');
-
+    
     // Validate required environment variables
     if (!process.env.BANDSINTOWN_API_KEY) {
       throw new Error('BANDSINTOWN_API_KEY environment variable is not set');
@@ -32,10 +33,14 @@ async function importEmptyBottleEvents() {
       }
     }
 
-    // API service was already initialized above with retry logic
-    if (!bandsintownApi) {
-      throw new Error('Failed to initialize Bandsintown API service');
+    // Validate API key
+    const apiKey = process.env.BANDSINTOWN_API_KEY;
+    if (!apiKey) {
+      throw new Error('BANDSINTOWN_API_KEY environment variable is not set');
     }
+    
+    // Initialize Bandsintown API service
+    const bandsintownApi = new BandsintownApiService(apiKey);
 
     // 1. Create or get the Empty Bottle venue
     const existingVenue = await db.query.venues.findFirst({
@@ -97,30 +102,14 @@ async function importEmptyBottleEvents() {
       .returning();
 
       if (band) {
-        // Create a tour for the band with proper date handling
-        const eventDate = new Date(event.datetime);
-        
-        // Normalize dates to local midnight
-        const tourStartDate = new Date(eventDate.toISOString().split('T')[0]);
-        const tourEndDate = new Date(tourStartDate);
-        tourEndDate.setDate(tourEndDate.getDate() + 30);
-
-        // Validate dates
-        if (isNaN(tourStartDate.getTime()) || isNaN(tourEndDate.getTime())) {
-          console.error(`Invalid date for tour: ${event.lineup[0]} - ${event.datetime}`);
-          continue;
-        }
-
-        // Additional validation for future dates only
-        if (tourStartDate < new Date()) {
-          console.warn(`Skipping past event for: ${event.lineup[0]}`);
-          continue;
-        }
+        // Create a tour for the band
+        const tourStartDate = new Date(event.datetime);
+        const tourEndDate = addDays(tourStartDate, 30); // Assume 30-day tour
 
         const [tour] = await db.insert(tours).values({
           name: `${event.lineup[0]} ${tourStartDate.getFullYear()} Tour`,
-          startDate: tourStartDate.toISOString().split('T')[0], // Store as YYYY-MM-DD
-          endDate: tourEndDate.toISOString().split('T')[0],
+          startDate: tourStartDate.toISOString(),
+          endDate: tourEndDate.toISOString(),
           bandId: band.id,
           notes: event.description || "Midwest Tour",
           isActive: true

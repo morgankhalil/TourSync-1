@@ -7,8 +7,9 @@ import { useToast } from '@/hooks/use-toast';
 import { BandDiscoveryResult, BandPassingNearby, DiscoveryResult, Venue } from '@/types';
 import { getLocationLabel, formatDate, formatDateMedium, calculateDistance, getFitDescription } from '@/lib/utils';
 import { bandsintownService } from '@/services/bandsintown';
-import { BandsintownDiscoveryClient } from '@/services/bandsintown-discovery-unified';
-import MapView from '@/components/maps/MapView';
+import { bandsintownDiscoveryService } from '@/services/bandsintown-discovery';
+import { EnhancedBandsintownDiscoveryClient } from '@/services/bandsintown-discovery-v2';
+import BandMapView from '@/components/maps/BandMapView';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
@@ -80,8 +81,8 @@ const ArtistDiscovery: React.FC = () => {
         setIncrementalResults(prev => [...prev, ...formattedResults]);
       };
       
-      // Use the unified discovery service API
-      const results = await BandsintownDiscoveryClient.findBandsNearVenue({
+      // Use the enhanced discovery service with v2 API
+      const results = await EnhancedBandsintownDiscoveryClient.findBandsNearVenue({
         venueId: activeVenue.id,
         startDate,
         endDate,
@@ -102,8 +103,8 @@ const ArtistDiscovery: React.FC = () => {
     refetchOnWindowFocus: false
   });
 
-  // Use incremental results if available, otherwise use query results, ensuring we always have an array
-  const displayResults = incrementalResults.length > 0 ? incrementalResults : (bandsNearVenue || []);
+  // Use incremental results if available, otherwise use query results
+  const displayResults = incrementalResults.length > 0 ? incrementalResults : bandsNearVenue;
 
   // Function to check Bandsintown API status
   const checkApiStatus = async () => {
@@ -122,7 +123,7 @@ const ArtistDiscovery: React.FC = () => {
         description: 'Verifying connection...',
       });
 
-      const status = await BandsintownDiscoveryClient.checkStatus();
+      const status = await bandsintownDiscoveryService.checkStatus();
 
       if (status.apiKeyConfigured && status.discoveryEnabled) {
         toast({
@@ -302,13 +303,13 @@ const ArtistDiscovery: React.FC = () => {
                       <div className="flex justify-between text-xs mt-2">
                         <span>
                           {result.route.origin && 
-                           `${formatDate(result.route.origin.date)} ${result.route.origin.city}`}
+                           `${formatDate(result.route.origin.date, { month: 'short', day: 'numeric' })} ${result.route.origin.city}`}
                         </span>
                         {result.route.destination ? (
                           <>
                             <span>→</span>
                             <span>
-                              {`${formatDate(result.route.destination.date)} ${result.route.destination.city}`}
+                              {`${formatDate(result.route.destination.date, { month: 'short', day: 'numeric' })} ${result.route.destination.city}`}
                             </span>
                           </>
                         ) : (
@@ -377,24 +378,9 @@ const ArtistDiscovery: React.FC = () => {
                 <div>
                   <h3 className="font-medium mb-2">Tour Route</h3>
                   <div className="h-[300px] w-full rounded overflow-hidden border">
-                    <MapView
-                      center={{ 
-                        lat: selectedBand.route.origin?.lat || 0,
-                        lng: selectedBand.route.origin?.lng || 0
-                      }}
-                      markers={[
-                        // Only add markers that have valid data
-                        ...(selectedBand.route.origin ? [{
-                          lat: Number(selectedBand.route.origin.lat),
-                          lng: Number(selectedBand.route.origin.lng),
-                          label: 'O'
-                        }] : []),
-                        ...(selectedBand.route.destination ? [{
-                          lat: Number(selectedBand.route.destination.lat),
-                          lng: Number(selectedBand.route.destination.lng),
-                          label: 'D'
-                        }] : [])
-                      ]}
+                    <BandMapView
+                      band={selectedBand.band}
+                      route={selectedBand.route}
                     />
                   </div>
                 </div>
@@ -404,7 +390,7 @@ const ArtistDiscovery: React.FC = () => {
                     <div className="text-sm text-muted-foreground">Previous Show</div>
                     <div className="font-medium">
                       {selectedBand.route.origin
-                        ? `${formatDate(selectedBand.route.origin.date)}`
+                        ? `${formatDate(selectedBand.route.origin.date, { month: 'short', day: 'numeric' })}`
                         : 'None'}
                     </div>
                     <div className="text-sm">
@@ -424,7 +410,7 @@ const ArtistDiscovery: React.FC = () => {
                     <div className="text-sm text-muted-foreground">Next Show</div>
                     <div className="font-medium">
                       {selectedBand.route.destination
-                        ? `${formatDate(selectedBand.route.destination.date)}`
+                        ? `${formatDate(selectedBand.route.destination.date, { month: 'short', day: 'numeric' })}`
                         : 'None'}
                     </div>
                     <div className="text-sm">

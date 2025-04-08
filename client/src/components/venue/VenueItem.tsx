@@ -6,25 +6,18 @@ import { cn } from "../../lib/utils";
 
 interface VenueItemProps {
   venue: Venue;
-  onClick?: (venue: Venue) => void;
+  onClick?: () => void;
   isSelected?: boolean;
 }
 
 const VenueItem = ({ venue, onClick, isSelected = false }: VenueItemProps) => {
-  const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (onClick) {
-      onClick(venue);
-    }
-  };
   return (
     <Card 
       className={cn(
         "cursor-pointer transition-colors hover:bg-muted/50",
         isSelected && "border-primary"
       )}
-      onClick={handleClick}
+      onClick={onClick}
     >
       <CardContent className="p-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between">
@@ -37,7 +30,7 @@ const VenueItem = ({ venue, onClick, isSelected = false }: VenueItemProps) => {
               </span>
             </div>
           </div>
-
+          
           <div className="flex flex-wrap gap-2 mt-2 md:mt-0">
             {venue.capacity && (
               <Badge variant="outline" className="flex items-center gap-1">
@@ -45,14 +38,14 @@ const VenueItem = ({ venue, onClick, isSelected = false }: VenueItemProps) => {
                 <span>{venue.capacity}</span>
               </Badge>
             )}
-
+            
             {venue.dealType && (
               <Badge variant="outline" className="flex items-center gap-1">
                 <DollarSign className="h-3 w-3" />
                 <span>{venue.dealType}</span>
               </Badge>
             )}
-
+            
             {venue.genre && (
               <Badge variant="outline" className="flex items-center gap-1">
                 <Music className="h-3 w-3" />
@@ -61,11 +54,11 @@ const VenueItem = ({ venue, onClick, isSelected = false }: VenueItemProps) => {
             )}
           </div>
         </div>
-
+        
         {venue.description && (
           <p className="text-sm text-muted-foreground mt-2">{venue.description}</p>
         )}
-
+        
         {venue.contactName && (
           <div className="text-sm mt-2">
             <span className="font-medium">Contact:</span> {venue.contactName} 

@@ -2,7 +2,7 @@ import React from 'react';
 import { useParams } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { Tour, Venue } from '../types';
-import MapView from '@/components/maps/MapView';
+import VenueMapView from '../components/maps/VenueMapView';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, Music, MapPin, Users, Tag } from 'lucide-react';
@@ -23,13 +23,6 @@ const VenueView = () => {
 
   const { data: venue, isLoading: isVenueLoading } = useQuery<Venue>({
     queryKey: [`/api/venues/${id}`],
-    queryFn: async () => {
-      const response = await fetch(`/api/venues/${id}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch venue');
-      }
-      return response.json();
-    },
     enabled: !!id,
   });
 
@@ -111,7 +104,7 @@ const VenueView = () => {
           <CardTitle>Location</CardTitle>
         </CardHeader>
         <CardContent className="h-[calc(100%-5rem)]">
-          <MapView venue={venue} onTourClick={handleTourClick} selectedDate={selectedDate} />
+          <VenueMapView venue={venue} onTourClick={handleTourClick} selectedDate={selectedDate} />
         </CardContent>
       </Card>
 

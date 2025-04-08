@@ -5,7 +5,6 @@ import { createServer as createViteServer, createLogger } from "vite";
 import { type Server } from "http";
 import viteConfig from "../vite.config";
 import { nanoid } from "nanoid";
-import { ViteDevServer } from 'vite';
 
 const viteLogger = createLogger();
 
@@ -20,32 +19,7 @@ export function log(message: string, source = "express") {
   console.log(`${formattedTime} [${source}] ${message}`);
 }
 
-export async function configureVite(app: any) {
-  if (process.env.NODE_ENV === 'development') {
-    const vite = require('vite');
-
-    return vite.createServer({
-      server: {
-        middlewareMode: true,
-        hmr: {
-          port: 5173,
-          host: '0.0.0.0',
-          protocol: 'ws'
-        },
-      },
-      appType: 'custom'
-    }).then((viteServer: ViteDevServer) => {
-      app.use(viteServer.middlewares);
-      return viteServer;
-    });
-  }
-  return Promise.resolve(null);
-}
-
 export async function setupVite(app: Express, server: Server) {
-  const viteServer = await configureVite(app);
-  if (viteServer) return; // Vite handled in configureVite for development
-
   const serverOptions = {
     middlewareMode: true,
     hmr: { server },

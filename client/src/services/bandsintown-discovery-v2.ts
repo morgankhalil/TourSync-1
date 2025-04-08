@@ -109,7 +109,7 @@ export class EnhancedBandsintownDiscoveryClient {
       };
     }
   }
-
+  
 
 
   /**
@@ -134,7 +134,7 @@ export class EnhancedBandsintownDiscoveryClient {
         maxBands: options.maxBands || 20,
         streaming: !!options.onIncrementalResults
       });
-
+      
       const queryParams = new URLSearchParams({
         venueId: options.venueId.toString(),
         startDate: options.startDate,
@@ -156,11 +156,11 @@ export class EnhancedBandsintownDiscoveryClient {
       // If incremental results callback is provided, set up streaming response handling
       if (options.onIncrementalResults) {
         console.log("Setting up streaming response handling");
-
+        
         // This is our simple approach - just create several fake results for testing
         if (options.useDemoMode) {
           console.log("Using demo mode, generating fake incremental results");
-
+          
           // Create several demo bands to simulate incremental results
           const demoBands = [
             {
@@ -203,7 +203,7 @@ export class EnhancedBandsintownDiscoveryClient {
               destState: "OH",
             }
           ];
-
+          
           // Simulate incremental results appearing
           setTimeout(() => {
             const now = new Date();
@@ -211,7 +211,7 @@ export class EnhancedBandsintownDiscoveryClient {
             tomorrow.setDate(tomorrow.getDate() + 1);
             const nextWeek = new Date(now);
             nextWeek.setDate(nextWeek.getDate() + 7);
-
+            
             const demoResult: DiscoveryResult = {
               name: demoBands[0].name,
               image: demoBands[0].image,
@@ -263,10 +263,10 @@ export class EnhancedBandsintownDiscoveryClient {
               genre: demoBands[0].genre,
               drawSize: 150
             };
-
+            
             options.onIncrementalResults!([demoResult]);
           }, 1500);
-
+          
           // Send second result after a bit
           setTimeout(() => {
             const now = new Date();
@@ -274,7 +274,7 @@ export class EnhancedBandsintownDiscoveryClient {
             dayAfter.setDate(dayAfter.getDate() + 2);
             const nextWeek = new Date(now);
             nextWeek.setDate(nextWeek.getDate() + 9);
-
+            
             const demoResult: DiscoveryResult = {
               name: demoBands[1].name,
               image: demoBands[1].image,
@@ -326,10 +326,10 @@ export class EnhancedBandsintownDiscoveryClient {
               genre: demoBands[1].genre,
               drawSize: 200
             };
-
+            
             options.onIncrementalResults!([demoResult]);
           }, 3000);
-
+          
           // Send third result later
           setTimeout(() => {
             const now = new Date();
@@ -337,7 +337,7 @@ export class EnhancedBandsintownDiscoveryClient {
             dayAfter.setDate(dayAfter.getDate() + 4);
             const nextWeek = new Date(now);
             nextWeek.setDate(nextWeek.getDate() + 12);
-
+            
             const demoResult: DiscoveryResult = {
               name: demoBands[2].name,
               image: demoBands[2].image,
@@ -389,10 +389,10 @@ export class EnhancedBandsintownDiscoveryClient {
               genre: demoBands[2].genre,
               drawSize: 300
             };
-
+            
             options.onIncrementalResults!([demoResult]);
           }, 4500);
-
+          
           // Return final full response after all bands have been added incrementally
           return new Promise((resolve) => {
             setTimeout(() => {
@@ -402,7 +402,7 @@ export class EnhancedBandsintownDiscoveryClient {
                 dayAfter.setDate(dayAfter.getDate() + (index * 2 + 1));
                 const nextWeek = new Date(now);
                 nextWeek.setDate(nextWeek.getDate() + (index * 3 + 7));
-
+                
                 return {
                   name: band.name,
                   image: band.image,
@@ -455,7 +455,7 @@ export class EnhancedBandsintownDiscoveryClient {
                   drawSize: 150 + index * 50
                 };
               });
-
+              
               resolve({
                 data: fullData,
                 stats: {
@@ -480,7 +480,7 @@ export class EnhancedBandsintownDiscoveryClient {
             }, 6000);
           });
         }
-
+        
         // Get a reader from the response body
         const reader = response.body!.getReader();
         const decoder = new TextDecoder();
@@ -493,36 +493,36 @@ export class EnhancedBandsintownDiscoveryClient {
         // Process the stream
         while (true) {
           const { value, done } = await reader.read();
-
+          
           if (done) {
             console.log("Stream reading complete");
             break;
           }
-
+          
           // Decode the chunk and add it to our buffer
           const chunk = decoder.decode(value, { stream: true });
           buffer += chunk;
           console.log("Received chunk:", chunk);
-
+          
           // Process complete lines in the buffer
           const lines = buffer.split('\n');
-
+          
           // Keep the last line in the buffer if it's incomplete
           buffer = lines.pop() || '';
-
+          
           for (const line of lines) {
             if (!line.trim()) continue; // Skip empty lines
-
+            
             try {
               console.log("Processing line:", line);
               const data = JSON.parse(line);
               console.log("Parsed data:", data);
-
+              
               if (data.status === 'in-progress' && data.results) {
                 console.log("Got in-progress results:", data.results.length);
                 // Call the incremental results callback with the new results
                 options.onIncrementalResults(data.results);
-
+                
                 // Add to our accumulated results
                 allResults = [...allResults, ...data.results];
               } else if (data.status === 'complete') {
@@ -543,7 +543,7 @@ export class EnhancedBandsintownDiscoveryClient {
             }
           }
         }
-
+        
         // Return the final accumulated result
         console.log("Returning final result:", allResults.length, "artists");
         return {
@@ -559,7 +559,7 @@ export class EnhancedBandsintownDiscoveryClient {
           venue: venue || { id: options.venueId, name: '', address: '', city: '', state: '', zipCode: '', latitude: '0', longitude: '0' }
         };
       }
-
+      
       // For non-streaming requests, just return the JSON response
       console.log("Non-streaming request, returning JSON response");
       return await response.json();

@@ -3,9 +3,7 @@ import {
   venues, type Venue, type InsertVenue,
   tours, type Tour, type InsertTour,
   tourDates, type TourDate, type InsertTourDate,
-  venueAvailability, type VenueAvailability, type InsertVenueAvailability,
-  artists, type Artist, type InsertArtist,
-  artistDiscovery, type ArtistDiscovery, type InsertArtistDiscovery
+  venueAvailability, type VenueAvailability, type InsertVenueAvailability
 } from "@shared/schema";
 
 // Helper to calculate distance between two points using haversine formula
@@ -22,19 +20,7 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 }
 
 export interface IStorage {
-  // Artist operations
-  getArtist(id: string): Promise<Artist | undefined>;
-  getArtists(options?: { limit?: number; genres?: string[] }): Promise<Artist[]>;
-  createArtist(artist: InsertArtist): Promise<Artist>;
-  updateArtist(id: string, artist: Partial<InsertArtist>): Promise<Artist | undefined>;
-  deleteArtist(id: string): Promise<boolean>;
-  
-  // Artist discovery tracking
-  getArtistDiscovery(artistId: string): Promise<ArtistDiscovery | undefined>;
-  recordArtistDiscovery(discovery: InsertArtistDiscovery): Promise<ArtistDiscovery>;
-  updateArtistDiscovery(artistId: string, discovery: Partial<InsertArtistDiscovery>): Promise<ArtistDiscovery | undefined>;
-
-  // Band operations  
+  // Band operations
   getBand(id: number): Promise<Band | undefined>;
   getBands(): Promise<Band[]>;
   createBand(band: InsertBand): Promise<Band>;

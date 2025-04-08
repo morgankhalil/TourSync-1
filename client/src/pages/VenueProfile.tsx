@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { useActiveVenue } from "@/hooks/useActiveVenue";
 import { apiRequest } from "@/lib/queryClient";
 import { Venue } from "@shared/schema";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,21 +10,20 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import PastPerformancesManager from "@/components/venue/PastPerformancesManager";
 import { Loader2, MapPin, Users, Info, CheckIcon, Link as LinkIcon, Mail, Phone } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
-import MapView from "@/components/maps/MapView";
+// Import VenueMapView as a fallback if VenueMap is unavailable
+import SimpleVenueMap from "../components/maps/SimpleVenueMap";
 
 export default function VenueProfile() {
   const params = useParams();
   const [, setLocation] = useLocation();
   const venueId = params.id ? parseInt(params.id) : null;
   const [activeTab, setActiveTab] = useState("details");
-  const { activeVenue, setActiveVenue } = useActiveVenue();
 
   useEffect(() => {
-    if (!venueId && !activeVenue) {
-      setLocation('/');
-      return;
+    if (!venueId) {
+      setLocation("/venues");
     }
-  }, [venueId, activeVenue, setLocation]);
+  }, [venueId, setLocation]);
 
   const {
     data: venue,
@@ -35,29 +33,12 @@ export default function VenueProfile() {
   } = useQuery({
     queryKey: ["/api/venues", venueId],
     queryFn: async () => {
-      const response = await fetch(`/api/venues/${venueId}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch venue data');
-      }
-      return response.json();
+      const result = await apiRequest(`/api/venues/${venueId}`);
+      return result as Venue;
     },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-    refetchOnWindowFocus: false,
     enabled: !!venueId,
+    staleTime: 60000
   });
-
-  // All useEffect hooks grouped together
-  useEffect(() => {
-    if (!venueId) {
-      setLocation("/venues");
-    }
-  }, [venueId, setLocation]);
-
-  useEffect(() => {
-    if (venue && (!activeVenue || activeVenue.id !== venue.id)) {
-      setActiveVenue(venue);
-    }
-  }, [venue, activeVenue, setActiveVenue]);
 
   if (!venueId) {
     return <div>Invalid venue ID. Redirecting...</div>;
@@ -213,17 +194,7 @@ export default function VenueProfile() {
                   <CardTitle>Location</CardTitle>
                 </CardHeader>
                 <CardContent className="h-[400px]">
-                  <MapView 
-                    center={{ 
-                      lat: parseFloat(venue.latitude), 
-                      lng: parseFloat(venue.longitude) 
-                    }}
-                    markers={[{
-                      lat: parseFloat(venue.latitude),
-                      lng: parseFloat(venue.longitude),
-                      label: venue.name
-                    }]}
-                  />
+                  <SimpleVenueMap venue={venue} />
                 </CardContent>
               </Card>
 
@@ -257,14 +228,7 @@ export default function VenueProfile() {
         </TabsContent>
 
         <TabsContent value="performances">
-          <Card>
-            <CardHeader>
-              <CardTitle>Past Performances</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <PastPerformancesManager venueId={venueId} />
-            </CardContent>
-          </Card>
+          <PastPerformancesManager venueId={venueId} />
         </TabsContent>
 
         <TabsContent value="calendar">
@@ -274,9 +238,11 @@ export default function VenueProfile() {
               <CardDescription>Manage dates when your venue is available for booking</CardDescription>
             </CardHeader>
             <CardContent>
+              {/* Using a simplified version of VenueAvailability component */}
               <div className="flex flex-col gap-4">
                 <div className="calendar-container border rounded-md p-4 bg-white">
                   <div className="w-full max-w-md mx-auto">
+                    {/* Using a div here to prevent button nesting issues */}
                     <div className="calendar-wrapper">
                       <Calendar
                         mode="multiple"
@@ -299,7 +265,7 @@ export default function VenueProfile() {
                     <div className="w-4 h-4 rounded-full bg-primary"></div>
                     <span className="text-sm">Available</span>
                   </div>
-                  <div>
+                  <div> {/* Wrap in div to prevent button nesting issues */}
                     <Button type="button">
                       <span className="flex items-center gap-1">
                         <CheckIcon className="h-4 w-4" />

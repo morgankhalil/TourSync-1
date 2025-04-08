@@ -1,53 +1,33 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import path from 'path'
-import { fileURLToPath } from 'url'
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import themePlugin from "@replit/vite-plugin-shadcn-theme-json";
+import path from "path";
+import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 export default defineConfig({
   plugins: [
     react(),
-    //runtimeErrorOverlay(),  Removed as per edited code.  themePlugin() also removed.
-    // ...(process.env.NODE_ENV !== "production" &&
-    // process.env.REPL_ID !== undefined
-    //   ? [
-    //       await import("@replit/vite-plugin-cartographer").then((m) =>
-    //         m.cartographer(),
-    //       ),
-    //     ]
-    //   : []),  Removed as per edited code.
+    runtimeErrorOverlay(),
+    themePlugin(),
+    ...(process.env.NODE_ENV !== "production" &&
+    process.env.REPL_ID !== undefined
+      ? [
+          await import("@replit/vite-plugin-cartographer").then((m) =>
+            m.cartographer(),
+          ),
+        ]
+      : []),
   ],
-  optimizeDeps: {
-    exclude: [
-      'react-beautiful-dnd',
-      '@radix-ui/react-slider',
-      'drizzle-zod'
-    ]
-  },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './client/src'),
-      "@shared": path.resolve(__dirname, "shared"), //Retained from original
-      "@assets": path.resolve(__dirname, "attached_assets"), //Retained from original
+      "@": path.resolve(import.meta.dirname, "client", "src"),
+      "@shared": path.resolve(import.meta.dirname, "shared"),
+      "@assets": path.resolve(import.meta.dirname, "attached_assets"),
     },
   },
-  root: path.resolve(__dirname, "client"), //Retained from original
+  root: path.resolve(import.meta.dirname, "client"),
   build: {
-    outDir: path.resolve(__dirname, "dist/public"), //Retained from original
-    emptyOutDir: true, //Retained from original
+    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    emptyOutDir: true,
   },
-  server: {
-    host: '0.0.0.0', //Retained from original
-    hmr: {
-      clientPort: 443, //Retained from original
-      protocol: 'wss' //Retained from original
-    },
-    proxy: {
-      '/api': {
-        target: 'http://0.0.0.0:5000',
-        changeOrigin: true,
-      },
-    },
-  },
-})
+});
