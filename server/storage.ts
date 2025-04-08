@@ -995,7 +995,7 @@ export class MemStorage implements IStorage {
         ticketUrl: "https://tickets.com/event1",
         collaborationOpen: true,
         createdAt: new Date(),
-        posterUrl: "https://example.com/melodic_harmony_tour.jpg" // Adding tour poster
+        posterUrl: "https://images.unsplash.com/photo-1508252592163-5d3c3c559404?q=80&w=200&auto=format&fit=crop" // Live concert image
       },
       {
         id: "evt2",
@@ -1010,7 +1010,7 @@ export class MemStorage implements IStorage {
         ticketUrl: "https://tickets.com/event2",
         collaborationOpen: true,
         createdAt: new Date(),
-        posterUrl: "https://example.com/electronic_dreams_tour.jpg" // Adding tour poster
+        posterUrl: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?q=80&w=200&auto=format&fit=crop" // Electronic music show image
       },
       {
         id: "evt3",
@@ -1025,7 +1025,7 @@ export class MemStorage implements IStorage {
         ticketUrl: "https://tickets.com/event3",
         collaborationOpen: false,
         createdAt: new Date(),
-        posterUrl: "https://example.com/rhythm_collective_tour.jpg" // Adding tour poster
+        posterUrl: "https://images.unsplash.com/photo-1511192336575-5a79af67a629?q=80&w=200&auto=format&fit=crop" // Jazz club image
       }
     ];
     
