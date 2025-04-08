@@ -62,3 +62,17 @@ CREATE TABLE IF NOT EXISTS "artist_compatibility" (
   "updated_at" TIMESTAMP DEFAULT NOW(),
   PRIMARY KEY ("artist_id1", "artist_id2")
 );
+
+-- Create venue_clusters table
+CREATE TABLE venue_clusters (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  region_code TEXT NOT NULL DEFAULT 'UNKNOWN',
+  is_static BOOLEAN DEFAULT false,
+  center_latitude TEXT,
+  center_longitude TEXT,
+  radius_km INTEGER,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP
+);
