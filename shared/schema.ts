@@ -277,6 +277,8 @@ export const venueClusters = pgTable("venue_clusters", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
+  regionCode: text("region_code").notNull().default("UNKNOWN"), // US region code (NE, MW, SE, etc.)
+  isStatic: boolean("is_static").default(false), // Whether this is a static region-based cluster
   centerLatitude: text("center_latitude"),
   centerLongitude: text("center_longitude"),
   radiusKm: integer("radius_km"),

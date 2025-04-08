@@ -17,6 +17,8 @@ type VenueCluster = {
   id: number;
   name: string;
   description: string | null;
+  regionCode: string;
+  isStatic: boolean | null;
   centerLatitude: string | null;
   centerLongitude: string | null;
   radiusKm: number | null;
@@ -28,6 +30,7 @@ type VenueCluster = {
     addedAt: string;
     venue: any;
   }>;
+  venueCount?: number; // Used for regional clusters
 };
 
 type RoutingPattern = {
@@ -223,6 +226,22 @@ export const createAutomaticClusters = async (params: {
     {
       method: "POST",
       body: params,
+    }
+  );
+};
+
+/**
+ * Creates static regional clusters based on predefined US geographic regions
+ */
+export const createRegionalClusters = async (): Promise<{
+  clusters: VenueCluster[];
+  totalClusters: number;
+  totalVenuesAssigned: number;
+}> => {
+  return apiRequest(
+    "/api/venue-network/create-regional-clusters",
+    {
+      method: "POST"
     }
   );
 };

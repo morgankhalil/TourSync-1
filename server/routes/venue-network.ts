@@ -12,6 +12,7 @@ import {
   collaborativeOffers,
   venues
 } from "../../shared/schema";
+import { US_REGIONS, getRegionForState, regionToCluster, determineVenueRegion } from "../utils/region-utils";
 
 /**
  * Calculate the distance between two points on Earth using the Haversine formula
@@ -495,6 +496,9 @@ export async function registerVenueNetworkRoutes(app: any) {
     }
   });
 
+  /**
+   * Dynamically generate venue clusters based on proximity
+   */
   app.post("/api/venue-network/auto-cluster", async (req: Request, res: Response) => {
     try {
       const {
@@ -571,6 +575,8 @@ export async function registerVenueNetworkRoutes(app: any) {
         const clusterResult = await db.insert(venueClusters).values({
           name: `${namePrefix} ${i + 1}`,
           description: `Automatic cluster centered around ${centerVenue.name}`,
+          regionCode: determineVenueRegion(centerVenue.state),
+          isStatic: false,
           centerLatitude: centerVenue.latitude,
           centerLongitude: centerVenue.longitude,
           radiusKm: distanceThresholdKm
@@ -616,6 +622,93 @@ export async function registerVenueNetworkRoutes(app: any) {
     } catch (error) {
       console.error("Error generating automatic clusters:", error);
       res.status(500).json({ error: "Failed to generate automatic clusters" });
+    }
+  });
+  
+  /**
+   * Generate static region-based clusters across the US
+   */
+  app.post("/api/venue-network/create-regional-clusters", async (req: Request, res: Response) => {
+    try {
+      // Check if region clusters already exist
+      const existingRegionalClusters = await db
+        .select()
+        .from(venueClusters)
+        .where(eq(venueClusters.isStatic, true));
+
+      if (existingRegionalClusters.length > 0) {
+        return res.status(409).json({
+          error: "Regional clusters already exist",
+          clusters: existingRegionalClusters
+        });
+      }
+
+      // Fetch all venues with state info
+      const allVenues = await db
+        .select()
+        .from(venues)
+        .where(sql`${venues.state} IS NOT NULL`);
+
+      if (allVenues.length === 0) {
+        return res.status(404).json({ error: "No venues with state information found" });
+      }
+
+      // Create clusters for each US region
+      const createdClusters = [];
+
+      for (const region of US_REGIONS) {
+        // Insert cluster for this region
+        const clusterResult = await db.insert(venueClusters).values(
+          regionToCluster(region)
+        ).returning();
+
+        const clusterId = clusterResult[0].id;
+        
+        // Find all venues in this region
+        const regionVenues = allVenues.filter(venue => 
+          region.states.includes(venue.state.toUpperCase())
+        );
+        
+        // Add venues to this cluster
+        for (const venue of regionVenues) {
+          await db.insert(venueClusterMembers).values({
+            clusterId,
+            venueId: venue.id
+          });
+        }
+        
+        // Get complete cluster with members
+        const completeCluster = await db
+          .select()
+          .from(venueClusters)
+          .where(eq(venueClusters.id, clusterId));
+
+        const members = await db
+          .select()
+          .from(venueClusterMembers)
+          .leftJoin(venues, eq(venueClusterMembers.venueId, venues.id))
+          .where(eq(venueClusterMembers.clusterId, clusterId));
+
+        const result = {
+          ...completeCluster[0],
+          members: members.map(m => ({
+            ...m.venue_cluster_members,
+            venue: m.venues
+          })),
+          venueCount: members.length
+        };
+        
+        createdClusters.push(result);
+      }
+
+      res.status(201).json({
+        clusters: createdClusters,
+        totalClusters: createdClusters.length,
+        totalVenuesAssigned: createdClusters.reduce((total, cluster) => total + cluster.venueCount, 0)
+      });
+    } catch (error) {
+      console.error("Error generating regional clusters:", error);
+      res.status(500).json({ error: "Failed to generate regional clusters" });
     }
   });
 

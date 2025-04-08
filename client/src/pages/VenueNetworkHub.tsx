@@ -5,7 +5,8 @@ import {
   getRoutingGaps, 
   getSharedBookings, 
   getCollaborativeOffers,
-  createAutomaticClusters
+  createAutomaticClusters,
+  createRegionalClusters
 } from "../services/venue-network-service";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -119,6 +120,32 @@ export default function VenueNetworkHub() {
       });
     } finally {
       setIsGeneratingClusters(false);
+    }
+  };
+  
+  // Handle regional cluster generation
+  const [isGeneratingRegionalClusters, setIsGeneratingRegionalClusters] = useState(false);
+  
+  const handleCreateRegionalClusters = async () => {
+    setIsGeneratingRegionalClusters(true);
+    try {
+      const result = await createRegionalClusters();
+      toast({
+        title: "Regional Clusters Created",
+        description: `Created ${result.totalClusters} regional clusters with ${result.totalVenuesAssigned} venues.`,
+      });
+      
+      // Refetch clusters and wait for completion
+      await refetchClusters();
+    } catch (error) {
+      console.error("Error generating regional clusters:", error);
+      toast({
+        title: "Regional Cluster Creation Failed",
+        description: "There was an error creating regional venue clusters.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingRegionalClusters(false);
     }
   };
 
@@ -264,9 +291,18 @@ export default function VenueNetworkHub() {
         <TabsContent value="clusters" className="space-y-4">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold">Venue Clusters</h2>
-            <Button onClick={() => setIsClusteringDialogOpen(true)}>
-              Generate Geographic Clusters
-            </Button>
+            <div className="flex space-x-2">
+              <Button 
+                variant="outline" 
+                onClick={handleCreateRegionalClusters}
+                disabled={isGeneratingRegionalClusters}
+              >
+                {isGeneratingRegionalClusters ? "Creating..." : "Create Regional Clusters"}
+              </Button>
+              <Button onClick={() => setIsClusteringDialogOpen(true)}>
+                Generate Geographic Clusters
+              </Button>
+            </div>
           </div>
           
           {clustersLoading ? (
