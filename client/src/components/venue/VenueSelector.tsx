@@ -54,6 +54,7 @@ export const VenueSelector: React.FC = () => {
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-0">
         <Command>
+          <div className="sr-only">Select Venue Dialog</div>
           <CommandInput placeholder="Search venues..." />
           <CommandEmpty>No venues found.</CommandEmpty>
           <CommandGroup>

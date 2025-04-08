@@ -6,6 +6,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ActiveVenueProvider } from './hooks/useActiveVenue';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import MainLayout from './components/layout/MainLayout';
 
 import Dashboard from './pages/Dashboard';
 import ArtistDiscovery from './pages/ArtistDiscovery';
@@ -31,8 +32,8 @@ export default function App() {
     // Single QueryClientProvider at the root
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ActiveVenueProvider>
-          <SidebarProvider>
+        <SidebarProvider>
+          <ActiveVenueProvider>
             <Switch>
               {/* Authentication Routes */}
               <Route path="/login" component={LoginPage} />
