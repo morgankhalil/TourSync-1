@@ -85,11 +85,9 @@ const VenueDiscoveryPanel = ({
           <div className="mb-4 p-3 bg-purple-50 rounded-md border border-purple-200">
             <h3 className="font-semibold mb-2 flex items-center gap-2">
               <Zap className="w-4 h-4" />
-              AI Recommendations
+              AI Venue Recommendations
             </h3>
-            <p className="text-sm text-gray-600">
-              Analyzing venues based on {selectedBand.name}'s style and requirements...
-            </p>
+            <AIRecommendationDisplay band={selectedBand} venues={filteredVenues || []} />
           </div>
         )}
 
