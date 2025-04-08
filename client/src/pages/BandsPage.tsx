@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { useSidebar } from "@/context/SidebarContext";
 import { useMediaQuery } from "@/hooks/use-mobile";
-import MapView from "@/components/maps/BandMapView";
+import { InteractiveMapView } from "@/components/maps/InteractiveMapView";
 import Sidebar from "@/components/layout/Sidebar";
 
 const BandsPage = () => {
@@ -18,7 +18,7 @@ const BandsPage = () => {
   return (
     <div className="flex flex-1 overflow-hidden">
       <Sidebar />
-      <MapView />
+      <InteractiveMapView locations={[]} showPaths={true} />
     </div>
   );
 };
