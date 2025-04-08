@@ -19,12 +19,11 @@ const VenueSidebar = () => {
   const { isOpen, toggle, close, isMobile } = useSidebar();
   const { activeVenue, isLoading: isVenueLoading } = useActiveVenue();
   const { data: venues, isLoading: isVenuesLoading } = useVenues();
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   if (isVenuesLoading) {
     return <div className="p-4"><Spinner /></div>;
   }
-
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   // Fetch venue availability
   const { data: availabilityList, isLoading: isAvailabilityLoading } = useQuery<VenueAvailability[]>({
