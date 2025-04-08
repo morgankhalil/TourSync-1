@@ -17,7 +17,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useActiveVenue } from '@/hooks/useActiveVenue';
 import { Button } from '@/components/ui/button';
-import { useSidebar } from '@/components/ui/sidebar-fixed';
+import { useSidebar } from '@/components/ui/sidebar';
 import {
   DropdownMenu,
   DropdownMenuContent,

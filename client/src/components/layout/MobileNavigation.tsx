@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { Home, Search, Calendar, Settings, User, Menu } from 'lucide-react';
-import { useSidebar } from '@/context/SidebarContext';
+import { useSidebar } from '@/components/ui/sidebar';
 
 export default function MobileNavigation() {
   const [location] = useLocation();
