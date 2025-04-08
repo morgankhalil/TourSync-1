@@ -501,7 +501,14 @@ export async function registerVenueNetworkRoutes(app: any) {
       await db.delete(venueClusterMembers);
       await db.delete(venueClusters);
 
-      // Get all venues
+      const {
+        distanceThresholdKm = 100,
+        minVenuesPerCluster = 2,
+        maxVenuesPerCluster = 10,
+        namePrefix = "Venue Cluster"
+      } = req.body;
+
+      // Fetch all venues with coordinates
       const allVenues = await db
         .select()
         .from(venues)
@@ -512,41 +519,76 @@ export async function registerVenueNetworkRoutes(app: any) {
           )
         );
 
-      // Group venues by region
-      const venuesByRegion = new Map<string, typeof allVenues>();
-      
+      if (allVenues.length === 0) {
+        return res.status(404).json({ error: "No venues with valid coordinates found" });
+      }
+
+      // Group venues by proximity
+      const clusters: { center: typeof allVenues[0]; members: typeof allVenues }[] = [];
+      const assignedVenues = new Set<number>();
+
+      // For each venue not yet assigned to a cluster
       for (const venue of allVenues) {
-        const region = getVenueRegion(venue);
-        if (region) {
-          if (!venuesByRegion.has(region)) {
-            venuesByRegion.set(region, []);
+        if (assignedVenues.has(venue.id)) continue;
+
+        // Start a new potential cluster with this venue as the center
+        const clusterMembers = [venue];
+        assignedVenues.add(venue.id);
+
+        // Find all venues within the distance threshold
+        for (const otherVenue of allVenues) {
+          if (otherVenue.id === venue.id || assignedVenues.has(otherVenue.id)) continue;
+
+          const distance = calculateDistance(
+            parseFloat(venue.latitude),
+            parseFloat(venue.longitude),
+            parseFloat(otherVenue.latitude),
+            parseFloat(otherVenue.longitude)
+          );
+
+          if (distance <= distanceThresholdKm && clusterMembers.length < maxVenuesPerCluster) {
+            clusterMembers.push(otherVenue);
+            assignedVenues.add(otherVenue.id);
           }
-          venuesByRegion.get(region)?.push(venue);
+        }
+
+        // Only keep clusters with minimum number of venues
+        if (clusterMembers.length >= minVenuesPerCluster) {
+          clusters.push({
+            center: venue,
+            members: clusterMembers
+          });
+        } else {
+          // Remove assignment if not enough members
+          assignedVenues.delete(venue.id);
         }
       }
 
+      // Create database records for valid clusters
       const createdClusters = [];
 
-      // Create a cluster for each region that has venues
-      for (const [region, regionVenues] of venuesByRegion.entries()) {
-        const regionData = US_REGIONS[region as keyof typeof US_REGIONS];
-        
-        // Create cluster
+      for (let i = 0; i < clusters.length; i++) {
+        const cluster = clusters[i];
+        const centerVenue = cluster.center;
+
+        // Insert cluster record
         const clusterResult = await db.insert(venueClusters).values({
-          name: regionData.name,
-          description: `Venues in the ${regionData.name} region`,
-          centerLatitude: regionData.centerLat.toString(),
-          centerLongitude: regionData.centerLong.toString(),
-          radiusKm: 800 // Approximate radius to cover a region
+          name: `${namePrefix} ${i + 1}`,
+          description: `Automatic cluster centered around ${centerVenue.name}`,
+          centerLatitude: centerVenue.latitude,
+          centerLongitude: centerVenue.longitude,
+          radiusKm: distanceThresholdKm
+          // Let the database handle timestamps
         }).returning();
 
         const clusterId = clusterResult[0].id;
 
         // Add members to cluster
-        for (const venue of regionVenues) {
+        for (const member of cluster.members) {
           await db.insert(venueClusterMembers).values({
             clusterId,
-            venueId: venue.id
+            venueId: member.id
+            // Let the database handle addedAt timestamp
           });
         }
 
@@ -573,121 +615,13 @@ export async function registerVenueNetworkRoutes(app: any) {
       res.status(201).json({
         clusters: createdClusters,
         totalClusters: createdClusters.length,
-        totalVenuesAssigned: allVenues.length
+        totalVenuesAssigned: assignedVenues.size
       });
     } catch (error) {
       console.error("Error generating automatic clusters:", error);
       res.status(500).json({ error: "Failed to generate automatic clusters" });
     }
   });
-
-  const getVenueRegion = (venue: any) => {
-        const venueLat = parseFloat(venue.latitude);
-        const venueLng = parseFloat(venue.longitude);
-        
-        for (const [region, data] of Object.entries(US_REGIONS)) {
-          // Check if venue is roughly within region bounds
-          const distanceToCenter = calculateDistance(
-            venueLat,
-            venueLng,
-            data.centerLat,
-            data.centerLong
-          );
-          
-          if (distanceToCenter <= 800) { // ~500 miles radius
-            return region;
-          }
-        }
-        return null;
-      };
-
-      const US_REGIONS = {
-        NORTHEAST: {
-          name: "Northeast",
-          centerLat: 42.0,
-          centerLong: -73.0
-        },
-        SOUTHEAST: {
-          name: "Southeast",
-          centerLat: 33.0,
-          centerLong: -84.0
-        },
-        MIDWEST: {
-          name: "Midwest",
-          centerLat: 41.0,
-          centerLong: -89.0
-        },
-        SOUTHWEST: {
-          name: "Southwest",
-          centerLat: 32.0,
-          centerLong: -100.0
-        },
-        WEST: {
-          name: "West",
-          centerLat: 37.0,
-          centerLong: -119.0
-        }
-      };
-
-      // Create database records for valid clusters
-      const createdClusters = [];
-
-      try {
-        for (let i = 0; i < clusters.length; i++) {
-          const cluster = clusters[i];
-          const centerVenue = cluster.center;
-
-          // Insert cluster record
-          const clusterResult = await db.insert(venueClusters).values({
-            name: `${namePrefix} ${i + 1}`,
-            description: `Automatic cluster centered around ${centerVenue.name}`,
-            centerLatitude: centerVenue.latitude,
-            centerLongitude: centerVenue.longitude,
-            radiusKm: distanceThresholdKm
-            // Let the database handle timestamps
-          }).returning();
-
-          const clusterId = clusterResult[0].id;
-
-          // Add members to cluster
-          for (const member of cluster.members) {
-            await db.insert(venueClusterMembers).values({
-              clusterId,
-              venueId: member.id
-              // Let the database handle addedAt timestamp
-            });
-          }
-
-          // Get the complete cluster with members
-          const completeCluster = await db
-            .select()
-            .from(venueClusters)
-            .where(eq(venueClusters.id, clusterId));
-
-          const members = await db
-            .select()
-            .from(venueClusterMembers)
-            .leftJoin(venues, eq(venueClusterMembers.venueId, venues.id))
-            .where(eq(venueClusterMembers.clusterId, clusterId));
-
-          completeCluster[0].members = members.map(m => ({
-            ...m.venue_cluster_members,
-            venue: m.venues
-          }));
-
-          createdClusters.push(completeCluster[0]);
-        }
-
-        res.status(201).json({
-          clusters: createdClusters,
-          totalClusters: createdClusters.length,
-          totalVenuesAssigned: assignedVenues.size
-        });
-      } catch (error) {
-        console.error("Error generating automatic clusters:", error);
-        res.status(500).json({ error: "Failed to generate automatic clusters" });
-      }
-    });
 
   /**
    * Routing Patterns API
