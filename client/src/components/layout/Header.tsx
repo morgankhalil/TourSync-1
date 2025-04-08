@@ -9,7 +9,9 @@ import {
   Search,
   Building,
   Handshake,
-  Menu
+  Menu,
+  Network,
+  MapPin
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useActiveVenue } from '@/hooks/useActiveVenue';
@@ -20,6 +22,18 @@ export function Header() {
   const [location] = useLocation();
   const { activeVenueId, venueData } = useActiveVenue();
   const { toggleSidebar } = useSidebar();
+
+  // Navigation items shared between mobile and desktop
+  const navigationItems = [
+    { href: '/', label: 'Dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
+    { href: '/artists/discovery', label: 'Artist Discovery', icon: <Music className="h-4 w-4" /> },
+    { href: '/venues/tour-finder', label: 'Tour Finder Pro', icon: <Route className="h-4 w-4" /> },
+    { href: '/calendar', label: 'Calendar', icon: <Calendar className="h-4 w-4" /> },
+    { href: '/venues', label: 'Venues', icon: <Building className="h-4 w-4" /> },
+    { href: '/venue-network', label: 'Venue Network', icon: <Network className="h-4 w-4" /> },
+    { href: '/tours/route-visualization', label: 'Tour Routes', icon: <MapPin className="h-4 w-4" /> },
+    { href: '/collaboration-requests', label: 'Collaborations', icon: <Handshake className="h-4 w-4" /> },
+  ];
 
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-20">
@@ -39,66 +53,22 @@ export function Header() {
           <span>BandConnect</span>
         </div>
         
-        <nav className="hidden md:flex items-center gap-5 mx-6">
-          <Link href="/" className={cn(
-              "text-sm font-medium transition-colors flex items-center gap-1",
-              location === "/" 
-                ? "text-primary" 
-                : "text-muted-foreground hover:text-foreground"
-            )}>
-              <LayoutDashboard className="h-4 w-4" />
-              Dashboard
-          </Link>
-          
-          <Link href="/artists/discovery" className={cn(
-              "text-sm font-medium transition-colors flex items-center gap-1",
-              location === "/artists/discovery" 
-                ? "text-primary" 
-                : "text-muted-foreground hover:text-foreground"
-            )}>
-              <Search className="h-4 w-4" />
-              Artist Discovery
-          </Link>
-          
-          <Link href="/venues/tour-finder" className={cn(
-              "text-sm font-medium transition-colors flex items-center gap-1",
-              location === "/venues/tour-finder" 
-                ? "text-primary" 
-                : "text-muted-foreground hover:text-foreground"
-            )}>
-              <Route className="h-4 w-4" />
-              Tour Finder Pro
-          </Link>
-          
-          <Link href="/calendar" className={cn(
-              "text-sm font-medium transition-colors flex items-center gap-1",
-              location === "/calendar" 
-                ? "text-primary" 
-                : "text-muted-foreground hover:text-foreground"
-            )}>
-              <Calendar className="h-4 w-4" />
-              Calendar
-          </Link>
-          
-          <Link href="/venues" className={cn(
-              "text-sm font-medium transition-colors flex items-center gap-1",
-              location === "/venues" 
-                ? "text-primary" 
-                : "text-muted-foreground hover:text-foreground"
-            )}>
-              <Building className="h-4 w-4" />
-              Venues
-          </Link>
-          
-          <Link href="/venue-network" className={cn(
-              "text-sm font-medium transition-colors flex items-center gap-1",
-              location === "/venue-network" 
-                ? "text-primary" 
-                : "text-muted-foreground hover:text-foreground"
-            )}>
-              <Users className="h-4 w-4" />
-              Venue Network
-          </Link>
+        <nav className="hidden md:flex items-center gap-5 mx-6 overflow-x-auto">
+          {navigationItems.map((item) => (
+            <Link 
+              key={item.href} 
+              href={item.href}
+              className={cn(
+                "text-sm font-medium transition-colors flex items-center gap-1 whitespace-nowrap",
+                (location === item.href || location.startsWith(item.href + '/'))
+                  ? "text-primary" 
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {item.icon}
+              {item.label}
+            </Link>
+          ))}
         </nav>
         
         <div className="ml-auto flex items-center gap-4">

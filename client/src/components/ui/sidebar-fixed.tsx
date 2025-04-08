@@ -121,14 +121,11 @@ export function Sidebar({ children }: SidebarProps) {
     }
   }, [location, isMobile, mobileOpen, setMobileOpen]);
 
-  const navigationItems = [
-    { href: '/', label: 'Dashboard', icon: <Home className="h-5 w-5" /> },
-    { href: '/artists/discovery', label: 'Artist Discovery', icon: <Music className="h-5 w-5" /> },
-    { href: '/calendar', label: 'Event Calendar', icon: <Calendar className="h-5 w-5" /> },
-    { href: '/venues', label: 'Venue Search', icon: <Search className="h-5 w-5" /> },
-    { href: '/venue-network', label: 'Venue Network', icon: <Network className="h-5 w-5" /> },
-    { href: '/tours/route-visualization', label: 'Tour Routes', icon: <Route className="h-5 w-5" /> },
-    { href: '/collaboration-requests', label: 'Collaborations', icon: <Handshake className="h-5 w-5" /> },
+  // Sidebar-specific links focused on venue management
+  const venueManagementItems = [
+    { href: '/venues/manage', label: 'Venue Manager', icon: <Building className="h-5 w-5" /> },
+    { href: '/venues/analytics', label: 'Venue Analytics', icon: <BarChart className="h-5 w-5" /> },
+    { href: '/venues/connections', label: 'Venue Connections', icon: <Network className="h-5 w-5" /> },
   ];
 
   // Mobile sidebar
@@ -177,7 +174,7 @@ export function Sidebar({ children }: SidebarProps) {
               <Separator className="my-2" />
               
               <nav className="flex flex-col gap-2 mt-4">
-                {navigationItems.map((item) => (
+                {venueManagementItems.map((item) => (
                   <Link key={item.href} href={item.href}>
                     <div 
                       className={cn(
@@ -238,7 +235,7 @@ export function Sidebar({ children }: SidebarProps) {
       <ScrollArea className="flex-1">
         <div className="p-3">
           <nav className="flex flex-col gap-1">
-            {navigationItems.map((item) => (
+            {venueManagementItems.map((item) => (
               <Link key={item.href} href={item.href}>
                 <div 
                   className={cn(
