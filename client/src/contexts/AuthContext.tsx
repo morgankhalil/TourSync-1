@@ -57,10 +57,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const response = await axios.get('/api/auth/me');
         if (response.status === 200 && response.data.user) {
           setUser(response.data.user);
+          // Store user in localStorage for useActiveVenue
+          localStorage.setItem('user', JSON.stringify(response.data.user));
         }
       } catch (error) {
-        console.error('Failed to check authentication status:', error);
+        // Only log real errors, not auth failures
+        if (error?.response?.status !== 401) {
+          console.error('Failed to check authentication status:', error);
+        }
         setUser(null);
+        localStorage.removeItem('user');
       } finally {
         setIsLoading(false);
       }
