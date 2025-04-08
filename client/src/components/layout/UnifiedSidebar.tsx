@@ -23,21 +23,22 @@ export default function UnifiedSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center justify-between p-4">
-          <h2 className="text-2xl font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">TourSync</h2>
+        <div className="flex items-center gap-2 p-4">
+          <h2 className="text-xl font-semibold bg-gradient-to-r from-primary/90 to-primary/70 bg-clip-text text-transparent">TourSync</h2>
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="px-2">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
               isActive={location === '/venue-manager'}
               tooltip="Venue Manager"
+              size="lg"
             >
               <Link href="/venue-manager" className="w-full">
-                <Building2 className="h-4 w-4" />
+                <Building2 className="h-5 w-5" />
                 <span>Venue Manager</span>
               </Link>
             </SidebarMenuButton>
@@ -48,10 +49,11 @@ export default function UnifiedSidebar() {
               asChild
               isActive={location === '/venue-analytics'}
               tooltip="Analytics"
+              size="lg"
             >
               <Link href="/venue-analytics" className="w-full">
-                <BarChart3 className="h-4 w-4" />
-                <span>Venue Analytics</span>
+                <BarChart3 className="h-5 w-5" />
+                <span>Analytics</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -61,10 +63,11 @@ export default function UnifiedSidebar() {
               asChild
               isActive={location === '/venue-connections'}
               tooltip="Connections"
+              size="lg"
             >
               <Link href="/venue-connections" className="w-full">
-                <Network className="h-4 w-4" />
-                <span>Venue Connections</span>
+                <Network className="h-5 w-5" />
+                <span>Network</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -73,10 +76,10 @@ export default function UnifiedSidebar() {
         {activeVenue && (
           <SidebarGroup>
             <SidebarGroupContent>
-              <div className="p-4 space-y-3 bg-muted/50 rounded-lg">
+              <div className="mt-4 p-4 space-y-4 bg-card rounded-xl border shadow-sm">
                 <div className="flex items-center gap-2">
                   <Building2 className="h-5 w-5 text-primary" />
-                  <span className="font-medium">{activeVenue.name}</span>
+                  <span className="font-medium truncate">{activeVenue.name}</span>
                 </div>
                 
                 <div className="text-sm text-muted-foreground">
@@ -84,26 +87,28 @@ export default function UnifiedSidebar() {
                 </div>
                 
                 <div className="flex gap-2">
-                  <Badge variant="outline">Capacity {activeVenue.capacity}</Badge>
+                  <Badge variant="secondary" className="w-full justify-center">
+                    Capacity {activeVenue.capacity}
+                  </Badge>
                 </div>
                 
                 <div className="space-y-2">
-                  <a href={`mailto:${activeVenue.email}`} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary">
+                  <a href={`mailto:${activeVenue.email}`} className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary">
                     <Mail className="h-4 w-4" />
-                    {activeVenue.email}
+                    <span className="truncate">{activeVenue.email}</span>
                   </a>
-                  <a href={`tel:${activeVenue.phone}`} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary">
+                  <a href={`tel:${activeVenue.phone}`} className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary">
                     <Phone className="h-4 w-4" />
-                    {activeVenue.phone}
+                    <span className="truncate">{activeVenue.phone}</span>
                   </a>
                 </div>
                 
                 <div className="flex gap-2 pt-2">
-                  <Button variant="outline" size="sm" className="flex-1">
+                  <Button variant="outline" size="sm" className="flex-1 h-9">
                     <Calendar className="h-4 w-4 mr-2" />
                     Calendar
                   </Button>
-                  <Button variant="outline" size="sm" className="flex-1">
+                  <Button variant="outline" size="sm" className="flex-1 h-9">
                     <Network className="h-4 w-4 mr-2" />
                     Network
                   </Button>
