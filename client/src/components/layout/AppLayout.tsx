@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ActiveVenueProvider } from '../../hooks/useActiveVenue';
 import { useLocation } from 'wouter';
 import TopNav from './TopNav';
 // Import the Sidebar directly from layout with its full path
