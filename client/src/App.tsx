@@ -24,6 +24,7 @@ const queryClient = new QueryClient();
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <ActiveVenueProvider>
       <ThemeProvider defaultTheme="system" enableSystem>
         <AuthProvider>
           <ActiveVenueProvider>
@@ -56,6 +57,7 @@ export default function App() {
           </ActiveVenueProvider>
         </AuthProvider>
       </ThemeProvider>
+    </ActiveVenueProvider>
     </QueryClientProvider>
   );
 }
