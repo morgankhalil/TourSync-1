@@ -4,7 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useActiveVenue } from "@/hooks/useActiveVenue";
 import { Venue } from "@/types";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { MapPin, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { MapPin, Users, Music, Calendar } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Home = () => {
@@ -25,16 +26,16 @@ const Home = () => {
 
   const handleVenueSelect = async (venue: Venue) => {
     await setActiveVenue(venue);
-    setLocation(`/venue/${venue.id}/dashboard`);
+    setLocation(`/venues/${venue.id}/dashboard`);
   };
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6">
         <div className="max-w-2xl mx-auto text-center mb-12">
-          <h1 className="text-4xl font-bold tracking-tight mb-4">Select Your Venue</h1>
+          <h1 className="text-4xl font-bold tracking-tight mb-4">Welcome to VenueHub</h1>
           <p className="text-xl text-muted-foreground">
-            Choose a venue to manage shows, discover artists, and plan tours
+            Select a venue to manage shows, discover artists, and plan tours
           </p>
         </div>
 
@@ -66,16 +67,32 @@ const Home = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Users className="h-4 w-4" />
-                    Capacity: {venue.capacity || 'Not specified'}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Users className="h-4 w-4" />
+                      Capacity: {venue.capacity || 'Not specified'}
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Music className="h-4 w-4" />
+                      {venue.genre || 'All genres'}
+                    </div>
+                    <div className="mt-4">
+                      <Button className="w-full">
+                        Manage Venue
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             ))
           ) : (
             <div className="col-span-full text-center py-12">
-              <p className="text-muted-foreground">No venues found. Please add a venue to get started.</p>
+              <Music className="h-12 w-12 mx-auto text-muted-foreground" />
+              <h2 className="mt-4 text-xl font-semibold">No Venues Found</h2>
+              <p className="text-muted-foreground mt-2">Add your first venue to get started</p>
+              <Button onClick={() => setLocation('/venues/new')} className="mt-4">
+                Add Venue
+              </Button>
             </div>
           )}
         </div>
