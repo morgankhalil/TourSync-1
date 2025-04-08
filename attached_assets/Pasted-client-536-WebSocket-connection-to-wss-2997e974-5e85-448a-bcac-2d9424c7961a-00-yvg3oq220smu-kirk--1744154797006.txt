@@ -1,0 +1,47 @@
+client:536 WebSocket connection to 'wss://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/?token=gxkAcDkvrhdT' failed: Error during WebSocket handshake: Unexpected response code: 400
+setupWebSocket @ client:536
+client:536 Uncaught (in promise) DOMException: Failed to construct 'WebSocket': The URL 'wss://localhost:undefined/?token=gxkAcDkvrhdT' is invalid.
+    at setupWebSocket (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@vite/client:536:19)
+    at fallback (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@vite/client:509:16)
+    at WebSocket.<anonymous> (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@vite/client:555:7)
+chunk-276SZO74.js?v=081cd8c2:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+2App.tsx:25 Uncaught ReferenceError: React is not defined
+    at ErrorBoundary (App.tsx:25:29)
+    at renderWithHooks (chunk-276SZO74.js?v=081cd8c2:11548:26)
+    at mountIndeterminateComponent (chunk-276SZO74.js?v=081cd8c2:14926:21)
+    at beginWork (chunk-276SZO74.js?v=081cd8c2:15914:22)
+    at HTMLUnknownElement.callCallback2 (chunk-276SZO74.js?v=081cd8c2:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-276SZO74.js?v=081cd8c2:3699:24)
+    at invokeGuardedCallback (chunk-276SZO74.js?v=081cd8c2:3733:39)
+    at beginWork$1 (chunk-276SZO74.js?v=081cd8c2:19765:15)
+    at performUnitOfWork (chunk-276SZO74.js?v=081cd8c2:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=081cd8c2:19137:13)
+chunk-276SZO74.js?v=081cd8c2:14032 The above error occurred in the <ErrorBoundary> component:
+
+    at ErrorBoundary (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/App.tsx?v=E8tbjHJhDMH4fESozWhV6:39:26)
+    at ActiveVenueProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/hooks/useActiveVenue.tsx:21:39)
+    at V (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/next-themes.js?v=081cd8c2:44:25)
+    at J (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/next-themes.js?v=081cd8c2:42:18)
+    at ThemeProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/ui/theme-provider.tsx:18:33)
+    at ThemeProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/components/theme-provider.tsx:18:33)
+    at AuthProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/src/contexts/AuthContext.tsx:28:32)
+    at QueryClientProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=081cd8c2:2805:3)
+    at App
+    at QueryClientProvider (https://2997e974-5e85-448a-bcac-2d9424c7961a-00-yvg3oq220smu.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=081cd8c2:2805:3)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+logCapturedError @ chunk-276SZO74.js?v=081cd8c2:14032
+Show 1 more frame
+Show less
+chunk-276SZO74.js?v=081cd8c2:19413 Uncaught ReferenceError: React is not defined
+    at ErrorBoundary (App.tsx:25:29)
+    at renderWithHooks (chunk-276SZO74.js?v=081cd8c2:11548:26)
+    at mountIndeterminateComponent (chunk-276SZO74.js?v=081cd8c2:14926:21)
+    at beginWork (chunk-276SZO74.js?v=081cd8c2:15914:22)
+    at beginWork$1 (chunk-276SZO74.js?v=081cd8c2:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=081cd8c2:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=081cd8c2:19137:13)
+    at renderRootSync (chunk-276SZO74.js?v=081cd8c2:19116:15)
+    at recoverFromConcurrentError (chunk-276SZO74.js?v=081cd8c2:18736:28)
+    at performConcurrentWorkOnRoot (chunk-276SZO74.js?v=081cd8c2:18684:30)
