@@ -2,10 +2,9 @@ import { Route, Switch } from 'wouter';
 import { Toaster } from '@/components/ui/toaster';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient';
-import { ActiveVenueProvider } from './hooks/useActiveVenue';
-import { MainLayout } from './components/layout/MainLayout';
-import { SidebarProvider } from '@/components/ui/sidebar';
 import { AuthProvider } from './contexts/AuthContext';
+import { ActiveVenueProvider } from './hooks/useActiveVenue';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 import Dashboard from './pages/Dashboard';
@@ -38,7 +37,7 @@ export default function App() {
               {/* Authentication Routes */}
               <Route path="/login" component={LoginPage} />
               <Route path="/register" component={RegisterPage} />
-              
+
               {/* Protected Routes wrapped in MainLayout */}
               <Route>
                 <ProtectedRoute>
@@ -70,7 +69,7 @@ export default function App() {
                       <Route path="/artists/discovery/enhanced" component={EnhancedArtistDiscovery} />
                       <Route path="/artists/:id" component={ArtistProfile} />
                       <Route path="/collaboration-requests" component={CollaborationRequests} />
-                      
+
                       {/* User account routes */}
                       <Route path="/profile" component={ProfilePage} />
                       <Route path="/settings" component={SettingsPage} />
