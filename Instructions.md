@@ -208,3 +208,27 @@ This plan addresses the core issues while providing a clear path forward for imp
 - Improved navigation flows
 - Better mobile responsiveness
 - Clearer action hierarchies
+# Portability Instructions
+
+## Database Setup
+1. Set up PostgreSQL database (local or cloud)
+2. Update DATABASE_URL environment variable
+
+## Environment Variables
+Required variables:
+- DATABASE_URL: PostgreSQL connection string
+- VITE_GOOGLE_MAPS_API_KEY: For maps functionality
+- BANDSINTOWN_APP_ID: For artist data
+
+## Running Locally
+1. Install dependencies: `npm install`
+2. Start dev server: `npm run dev`
+3. Access at http://localhost:5000
+
+## Production Build
+1. Build: `npm run build`
+2. Start: `npm run start`
+
+Note: The app uses standard ports and configurations that work across environments:
+- Backend API: Port 5000
+- Frontend Dev Server: Port 3000
