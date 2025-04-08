@@ -43,17 +43,22 @@ export function Sidebar({ className }: SidebarProps) {
     {
       name: 'Artist Discovery',
       icon: Search,
-      path: '/artist-discovery',
+      path: '/artists/discovery',
+    },
+    {
+      name: 'Artist Discovery Pro',
+      icon: Search,
+      path: '/artists/discovery/pro',
     },
     {
       name: 'Artist Profile',
       icon: Music,
-      path: '/artist-profile',
+      path: '/artists/:id',
     },
     {
       name: 'Event Calendar',
       icon: Calendar,
-      path: '/event-calendar',
+      path: '/calendar',
     },
     {
       name: 'Tour Planning',
@@ -69,11 +74,6 @@ export function Sidebar({ className }: SidebarProps) {
       name: 'Collaboration',
       icon: Handshake,
       path: '/collaboration-requests',
-    },
-    {
-      name: 'Messages',
-      icon: MessageSquare,
-      path: '/messages',
     },
     {
       name: 'Settings',

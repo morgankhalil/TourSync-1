@@ -1,12 +1,17 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
-import { useVenue } from './useVenues';
+import { useVenue, Venue } from './useVenues';
 
 interface ActiveVenueContextType {
+  // Original properties
   activeVenueId: string | null;
   setActiveVenueId: (id: string | null) => void;
   isLoading: boolean;
-  venueData: any | null;
+  venueData: Venue | null;
   error: unknown;
+  
+  // Added properties for enhanced compatibility
+  venue: Venue | null;  // Alias for venueData to maintain compatibility
+  venueId: number | null; // Numeric ID for compatibility with discovery API
 }
 
 const ActiveVenueContext = createContext<ActiveVenueContextType | undefined>(undefined);
@@ -29,12 +34,19 @@ export const ActiveVenueProvider: React.FC<{ children: ReactNode }> = ({ childre
     }
   }, [activeVenueId]);
 
+  // Convert string ID to numeric ID for API compatibility
+  const numericId = activeVenueId ? parseInt(activeVenueId, 10) : null;
+
   const value = {
     activeVenueId,
     setActiveVenueId,
     isLoading,
     venueData: data || null,
-    error
+    error,
+    
+    // Aliases for enhanced compatibility
+    venue: data || null,
+    venueId: !isNaN(numericId as number) ? numericId : null
   };
 
   return (
