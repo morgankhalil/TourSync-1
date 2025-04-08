@@ -1,5 +1,6 @@
 import { Plus, Calendar, MoreVertical, Zap } from "lucide-react";
 import { useSidebar } from "@/context/SidebarContext";
+import VenueBookingsList from "@/components/venue/VenueBookingsList";
 import { Badge } from "@/components/ui/badge";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import { X } from "lucide-react";
