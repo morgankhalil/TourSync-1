@@ -13,7 +13,7 @@ import { BandsintownPage } from "./pages/BandsintownPage";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ActiveVenueProvider } from "./hooks/useActiveVenue";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
-import { MainLayout } from "./components/layout/MainLayout";
+import MainLayout from "./components/layout/MainLayout";
 import { Toaster } from "./components/ui/toaster";
 import { SidebarProvider } from '@/components/ui/sidebar';
 import ProfilePage from './pages/ProfilePage';
@@ -24,9 +24,9 @@ import VenueView from './pages/VenueView';
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <ActiveVenueProvider>
-          <ThemeProvider defaultTheme="system" enableSystem>
+      <ThemeProvider defaultTheme="system" enableSystem>
+        <AuthProvider>
+          <ActiveVenueProvider>
             <div className="min-h-screen">
               <Toaster />
               <Switch>
