@@ -26,6 +26,7 @@ export const VenueSelector: React.FC = () => {
 
   const handleVenueSelect = (venueId: string) => {
     setActiveVenueId(venueId);
+    localStorage.setItem('activeVenueId', venueId);
     setOpen(false);
 
     const selectedVenue = venues?.find(v => v.id.toString() === venueId);

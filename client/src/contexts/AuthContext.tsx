@@ -89,7 +89,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const response = await axios.post('/api/auth/login', credentials);
       if (response.status === 200 && response.data.user) {
-        setUser(response.data.user);
+        const userData = response.data.user;
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+        
+        if (userData.userType === 'venue' && userData.venueId) {
+          localStorage.setItem('activeVenueId', userData.venueId.toString());
+        }
         return true;
       }
       return false;
