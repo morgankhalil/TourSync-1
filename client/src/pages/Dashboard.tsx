@@ -195,10 +195,10 @@ const Dashboard: React.FC = () => {
   });
 
   const { data: compatibleArtists, isLoading: isLoadingCompatible } = useQuery({ 
-    queryKey: ['/api/artists/art1/compatibility'],
+    queryKey: ['/api/artists/1/compatibility'],
     queryFn: async () => {
-      // In a real app we'd get the current user's artist ID
-      const response = await fetch('/api/artists/art1/compatibility?minScore=50');
+      // Using the correct numeric artist ID from the database
+      const response = await fetch('/api/artists/1/compatibility?minScore=50');
       if (!response.ok) throw new Error('Failed to fetch compatible artists');
       return response.json();
     },
@@ -208,28 +208,28 @@ const Dashboard: React.FC = () => {
   const { data: collaborationRequests, isLoading: isLoadingRequests } = useQuery({ 
     queryKey: ['/api/collaboration-requests'],
     queryFn: async () => {
-      // In a real app we'd get the current user's artist ID
-      const response = await fetch('/api/collaboration-requests?artistId=art1&type=received');
+      // Using the correct numeric artist ID
+      const response = await fetch('/api/collaboration-requests?artistId=1&type=received');
       if (!response.ok) throw new Error('Failed to fetch requests');
       return response.json();
     }
   });
 
   const { data: opportunities, isLoading: isLoadingOpportunities } = useQuery({ 
-    queryKey: ['/api/artists/art1/collaboration-opportunities'],
+    queryKey: ['/api/artists/1/collaboration-opportunities'],
     queryFn: async () => {
-      // In a real app we'd get the current user's artist ID
-      const response = await fetch('/api/artists/art1/collaboration-opportunities?maxDistance=100');
+      // Using the correct numeric artist ID
+      const response = await fetch('/api/artists/1/collaboration-opportunities?maxDistance=100');
       if (!response.ok) throw new Error('Failed to fetch opportunities');
       return response.json();
     }
   });
 
   const { data: statistics, isLoading: isLoadingStats } = useQuery({ 
-    queryKey: ['/api/artists/art1/statistics'],
+    queryKey: ['/api/artists/1/statistics'],
     queryFn: async () => {
-      // In a real app we'd get the current user's artist ID
-      const response = await fetch('/api/artists/art1/statistics');
+      // Using the correct numeric artist ID
+      const response = await fetch('/api/artists/1/statistics');
       if (!response.ok) throw new Error('Failed to fetch statistics');
       return response.json();
     }
