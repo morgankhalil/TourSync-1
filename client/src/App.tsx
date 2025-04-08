@@ -36,16 +36,16 @@ export default function App() {
             <Route path="/venues/list" component={VenueList} />
             <Route path="/venues/:id" component={VenueDetail} />
             <Route path="/venues" component={VenueSearch} />
-            
+
             {/* Venue Network Hub */}
             <Route path="/venue-network" component={VenueNetworkHub} />
-            
+
             {/* Calendar */}
             <Route path="/calendar" component={EventCalendar} />
-            
+
             {/* Tour routes */}
             <Route path="/tours/route-visualization" component={TourRouteVisualization} />
-            
+
             {/* Artist-focused routes (kept for compatibility) */}
             <Route path="/artists/dashboard" component={Dashboard} />
             <Route path="/artists/discovery" component={ArtistDiscovery} />
@@ -53,12 +53,12 @@ export default function App() {
             <Route path="/artists/discovery/enhanced" component={EnhancedArtistDiscovery} />
             <Route path="/artists/:id" component={ArtistProfile} />
             <Route path="/collaboration-requests" component={CollaborationRequests} />
-            
+
             {/* 404 Not Found */}
             <Route component={NotFound} />
           </Switch>
+          <Toaster />
         </MainLayout>
-        <Toaster />
       </ActiveVenueProvider>
     </QueryClientProvider>
   );

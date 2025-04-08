@@ -1,21 +1,21 @@
 
-import { ReactNode } from "react";
-import { SidebarProvider } from "@/context/SidebarContext";
-import VenueSidebar from "./VenueSidebar";
+import React from 'react';
+import { Header } from './Header';
+import { useLocation } from 'wouter';
 
-interface MainLayoutProps {
-  children: ReactNode;
-}
+type MainLayoutProps = {
+  children: React.ReactNode;
+};
 
 export function MainLayout({ children }: MainLayoutProps) {
+  const [location] = useLocation();
+
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen bg-background">
-        <VenueSidebar />
-        <main className="flex-1 p-6 md:p-8">
-          {children}
-        </main>
-      </div>
-    </SidebarProvider>
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main className="container mx-auto px-4 py-6">
+        {children}
+      </main>
+    </div>
   );
 }
