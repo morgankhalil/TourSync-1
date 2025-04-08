@@ -153,18 +153,29 @@ const EventCalendar = () => {
                     return (
                       <div key={event.id} className="flex gap-4 p-4 border rounded-lg">
                         {/* Tour poster - use a music-themed placeholder if no image */}
-                        <div className="h-16 w-16 rounded-md bg-primary/10 flex items-center justify-center overflow-hidden">
+                        <div className="h-24 w-24 rounded-md bg-primary/10 flex items-center justify-center overflow-hidden">
                           {event.posterUrl ? (
                             <img 
                               src={event.posterUrl} 
                               alt={`${artist?.name || 'Event'} tour poster`}
                               className="h-full w-full object-cover"
+                              onError={(e) => {
+                                console.log("Image failed to load:", event.posterUrl);
+                                (e.target as HTMLImageElement).style.display = 'none';
+                                (e.target as HTMLImageElement).parentElement!.innerHTML = 
+                                  '<div class="flex items-center justify-center h-full w-full"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-primary/50"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></div>';
+                              }}
                             />
                           ) : artist?.imageUrl ? (
                             <img 
                               src={artist.imageUrl} 
                               alt={artist.name}
                               className="h-full w-full object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                                (e.target as HTMLImageElement).parentElement!.innerHTML = 
+                                  '<div class="flex items-center justify-center h-full w-full"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-primary/50"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></div>';
+                              }}
                             />
                           ) : (
                             <Music className="h-6 w-6 text-primary/50" />
