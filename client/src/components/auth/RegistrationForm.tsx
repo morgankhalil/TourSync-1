@@ -2,9 +2,22 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useLocation } from 'wouter';
+import { useLocation, Link } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Loader2 } from 'lucide-react';
 
 // Form validation schema
 const registrationSchema = z.object({
@@ -86,139 +99,141 @@ export function RegistrationForm() {
   };
 
   return (
-    <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="space-y-2">
-          <label htmlFor="name" className="block text-sm font-medium">
-            Name
-          </label>
-          <input
-            id="name"
-            type="text"
-            {...form.register('name')}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="Your name"
+    <div className="space-y-6">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="Your name" 
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          {form.formState.errors.name && (
-            <p className="text-sm text-red-500">{form.formState.errors.name.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <label htmlFor="email" className="block text-sm font-medium">
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            {...form.register('email')}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="your@email.com"
+          
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="email" 
+                    placeholder="your@email.com" 
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          {form.formState.errors.email && (
-            <p className="text-sm text-red-500">{form.formState.errors.email.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <label htmlFor="password" className="block text-sm font-medium">
-            Password
-          </label>
-          <input
-            id="password"
-            type="password"
-            {...form.register('password')}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="********"
+          
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Password</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="password" 
+                    placeholder="••••••••" 
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          {form.formState.errors.password && (
-            <p className="text-sm text-red-500">{form.formState.errors.password.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <label htmlFor="confirmPassword" className="block text-sm font-medium">
-            Confirm Password
-          </label>
-          <input
-            id="confirmPassword"
-            type="password"
-            {...form.register('confirmPassword')}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="********"
+          
+          <FormField
+            control={form.control}
+            name="confirmPassword"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Confirm Password</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="password" 
+                    placeholder="••••••••" 
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          {form.formState.errors.confirmPassword && (
-            <p className="text-sm text-red-500">{form.formState.errors.confirmPassword.message}</p>
-          )}
+          
+          <FormField
+            control={form.control}
+            name="userType"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel>I am a</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="flex space-x-2"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="artist" id="artist" />
+                      <Label htmlFor="artist">Artist</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="venue" id="venue" />
+                      <Label htmlFor="venue">Venue</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="fan" id="fan" />
+                      <Label htmlFor="fan">Fan</Label>
+                    </div>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <Button type="submit" className="w-full mt-6" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating account...
+              </>
+            ) : (
+              "Create account"
+            )}
+          </Button>
+        </form>
+      </Form>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t" />
         </div>
-
-        <div className="space-y-2">
-          <label className="block text-sm font-medium">I am a</label>
-          <div className="grid grid-cols-3 gap-2">
-            <div className="flex items-center space-x-2">
-              <input
-                id="artist"
-                type="radio"
-                value="artist"
-                {...form.register('userType')}
-                className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
-              />
-              <label htmlFor="artist" className="text-sm text-gray-700">
-                Artist
-              </label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                id="venue"
-                type="radio"
-                value="venue"
-                {...form.register('userType')}
-                className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
-              />
-              <label htmlFor="venue" className="text-sm text-gray-700">
-                Venue
-              </label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                id="fan"
-                type="radio"
-                value="fan"
-                {...form.register('userType')}
-                className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
-              />
-              <label htmlFor="fan" className="text-sm text-gray-700">
-                Fan
-              </label>
-            </div>
-          </div>
-          {form.formState.errors.userType && (
-            <p className="text-sm text-red-500">{form.formState.errors.userType.message}</p>
-          )}
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">
+            Or
+          </span>
         </div>
+      </div>
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full px-4 py-2 text-white bg-primary rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isSubmitting ? 'Creating account...' : 'Create account'}
-        </button>
-      </form>
-
-      <div className="text-center pt-4">
-        <p className="text-sm text-gray-600">
+      <div className="text-center">
+        <p className="text-sm text-muted-foreground">
           Already have an account?{' '}
-          <a 
-            href="/login" 
-            className="text-primary hover:underline"
-            onClick={(e) => {
-              e.preventDefault();
-              setLocation('/login');
-            }}
-          >
+          <Link href="/login" className="text-primary font-medium hover:underline">
             Sign in
-          </a>
+          </Link>
         </p>
       </div>
     </div>
