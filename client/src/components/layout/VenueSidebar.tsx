@@ -15,35 +15,27 @@ export default function VenueSidebar() {
       <SidebarContent>
         <SidebarMenu>
           <SidebarMenuItem>
-            <Link href="/">
-              <a className={`flex items-center gap-2 ${location === '/' ? 'text-primary' : ''}`}>
-                <Menu size={20} />
-                Dashboard
-              </a>
+            <Link href="/" className={`flex items-center gap-2 ${location === '/' ? 'text-primary' : ''}`}>
+              <Menu size={20} />
+              Dashboard
             </Link>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <Link href="/calendar">
-              <a className={`flex items-center gap-2 ${location === '/calendar' ? 'text-primary' : ''}`}>
-                <Calendar size={20} />
-                Calendar
-              </a>
+            <Link href="/calendar" className={`flex items-center gap-2 ${location === '/calendar' ? 'text-primary' : ''}`}>
+              <Calendar size={20} />
+              Calendar
             </Link>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <Link href="/venues/search">
-              <a className={`flex items-center gap-2 ${location === '/venues/search' ? 'text-primary' : ''}`}>
-                <Search size={20} />
-                Find Venues
-              </a>
+            <Link href="/venues/search" className={`flex items-center gap-2 ${location === '/venues/search' ? 'text-primary' : ''}`}>
+              <Search size={20} />
+              Find Venues
             </Link>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <Link href="/venue-network">
-              <a className={`flex items-center gap-2 ${location === '/venue-network' ? 'text-primary' : ''}`}>
-                <Network size={20} />
-                Venue Network
-              </a>
+            <Link href="/venue-network" className={`flex items-center gap-2 ${location === '/venue-network' ? 'text-primary' : ''}`}>
+              <Network size={20} />
+              Venue Network
             </Link>
           </SidebarMenuItem>
         </SidebarMenu>
