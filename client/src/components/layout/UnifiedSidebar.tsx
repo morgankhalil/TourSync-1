@@ -23,8 +23,8 @@ export default function UnifiedSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center justify-between p-2">
-          <h2 className="text-xl font-semibold">TourSync</h2>
+        <div className="flex items-center justify-between p-4">
+          <h2 className="text-2xl font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">TourSync</h2>
         </div>
       </SidebarHeader>
 
