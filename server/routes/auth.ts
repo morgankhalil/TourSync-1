@@ -1,155 +1,247 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import bcrypt from 'bcrypt';
-import { db } from '../db';
-import { users, insertUserSchema } from '../../shared/schema';
-import { eq } from 'drizzle-orm';
 import { z } from 'zod';
+import { db } from '../db';
+import { users } from '../../shared/schema';
+import { eq, sql } from 'drizzle-orm';
 
-const router = Router();
+const router = express.Router();
 
-// Passport configuration
-passport.use(new LocalStrategy(
-  { usernameField: 'email' },
-  async (email, password, done) => {
-    try {
-      const userResults = await db.select().from(users).where(eq(users.email, email));
-      
-      if (userResults.length === 0) {
-        return done(null, false, { message: 'Incorrect email or password.' });
+// Validation schemas
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string(),
+  rememberMe: z.boolean().optional().default(false),
+});
+
+const registerSchema = z.object({
+  name: z.string().min(2),
+  email: z.string().email(),
+  password: z.string().min(8),
+  userType: z.enum(['artist', 'venue', 'fan']),
+});
+
+// Setup passport local strategy
+passport.use(
+  new LocalStrategy(
+    { usernameField: 'email' },
+    async (email, password, done) => {
+      try {
+        // Find user by email
+        const userResults = await db.select().from(users).where(eq(users.email, email)).limit(1);
+        const user = userResults[0];
+
+        if (!user) {
+          return done(null, false, { message: 'Invalid email or password' });
+        }
+
+        // Check password
+        const isMatch = await bcrypt.compare(password, user.passwordHash);
+        if (!isMatch) {
+          return done(null, false, { message: 'Invalid email or password' });
+        }
+
+        // Return user without password hash
+        const { passwordHash, ...userWithoutPassword } = user;
+        return done(null, userWithoutPassword);
+      } catch (error) {
+        return done(error);
       }
-      
-      const user = userResults[0];
-      const isValidPassword = await bcrypt.compare(password, user.passwordHash);
-      
-      if (!isValidPassword) {
-        return done(null, false, { message: 'Incorrect email or password.' });
-      }
-      
-      return done(null, user);
-    } catch (error) {
-      return done(error);
     }
-  }
-));
+  )
+);
 
-// Serialize and deserialize user
+// Serialize user to session
 passport.serializeUser((user: any, done) => {
   done(null, user.id);
 });
 
-passport.deserializeUser(async (id: number, done) => {
+// Deserialize user from session
+passport.deserializeUser(async (id: string, done) => {
   try {
-    const userResults = await db.select().from(users).where(eq(users.id, id));
+    const userResults = await db.select().from(users).where(sql`${users.id} = ${Number(id)}`).limit(1);
+    const user = userResults[0];
     
-    if (userResults.length === 0) {
+    if (!user) {
       return done(null, false);
     }
     
-    // Don't send the password hash to the client
-    const { passwordHash, ...userWithoutPassword } = userResults[0];
-    return done(null, userWithoutPassword);
+    // Return user without password hash
+    const { passwordHash, ...userWithoutPassword } = user;
+    done(null, userWithoutPassword);
   } catch (error) {
-    return done(error);
+    done(error);
   }
-});
-
-// Get current user
-router.get('/user', (req: Request, res: Response) => {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({ error: 'Not authenticated' });
-  }
-  
-  const user = req.user;
-  return res.json(user);
 });
 
 // Login route
 router.post('/login', (req: Request, res: Response, next: NextFunction) => {
-  passport.authenticate('local', (err: Error, user: any, info: any) => {
-    if (err) {
-      return next(err);
-    }
+  try {
+    // Validate request data
+    const validatedData = loginSchema.parse(req.body);
     
-    if (!user) {
-      return res.status(401).json({ error: info.message || 'Authentication failed' });
+    // Set session cookie expiration based on "remember me" option
+    if (req.session) {
+      if (validatedData.rememberMe) {
+        // Set to 30 days
+        req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000;
+      } else {
+        // Set to browser session
+        req.session.cookie.expires = undefined;
+      }
     }
-    
-    req.logIn(user, async (err) => {
+
+    // Authenticate using passport
+    passport.authenticate('local', (err: any, user: any, info: any) => {
       if (err) {
         return next(err);
       }
       
-      // Update last login time
-      await db.update(users)
-        .set({ lastLogin: new Date() })
-        .where(eq(users.id, user.id));
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: info?.message || 'Invalid email or password',
+        });
+      }
       
-      // Don't send the password hash to the client
-      const { passwordHash, ...userWithoutPassword } = user;
-      return res.json(userWithoutPassword);
-    });
-  })(req, res, next);
+      // Log in the user
+      req.login(user, (err) => {
+        if (err) {
+          return next(err);
+        }
+        
+        return res.status(200).json({
+          success: true,
+          message: 'Login successful',
+          user,
+        });
+      });
+    })(req, res, next);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation error',
+        errors: error.errors,
+      });
+    }
+    next(error);
+  }
+});
+
+// Register route
+router.post('/register', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // Validate request data
+    const validatedData = registerSchema.parse(req.body);
+    
+    // Check if user already exists
+    const existingUserResults = await db.select().from(users).where(eq(users.email, validatedData.email)).limit(1);
+    
+    if (existingUserResults.length > 0) {
+      return res.status(409).json({
+        success: false,
+        message: 'Email already in use',
+      });
+    }
+    
+    // Hash password
+    const passwordHash = await bcrypt.hash(validatedData.password, 10);
+    
+    // Create new user
+    const newUser = {
+      name: validatedData.name,
+      email: validatedData.email,
+      passwordHash,
+      userType: validatedData.userType,
+    };
+    
+    const [createdUser] = await db.insert(users).values(newUser).returning();
+    
+    // Log in the new user
+    if (createdUser) {
+      const { passwordHash, ...userWithoutPassword } = createdUser;
+      
+      req.login(userWithoutPassword, (err) => {
+        if (err) {
+          return next(err);
+        }
+        
+        return res.status(201).json({
+          success: true,
+          message: 'Registration successful',
+          user: userWithoutPassword,
+        });
+      });
+    } else {
+      throw new Error('Failed to create user');
+    }
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation error',
+        errors: error.errors,
+      });
+    }
+    next(error);
+  }
 });
 
 // Logout route
 router.post('/logout', (req: Request, res: Response) => {
   req.logout((err) => {
     if (err) {
-      return res.status(500).json({ error: 'Logout failed' });
+      return res.status(500).json({
+        success: false,
+        message: 'Logout failed',
+      });
     }
-    res.json({ message: 'Logged out successfully' });
+    
+    req.session?.destroy((err) => {
+      if (err) {
+        return res.status(500).json({
+          success: false,
+          message: 'Session destruction failed',
+        });
+      }
+      
+      res.clearCookie('connect.sid');
+      return res.status(200).json({
+        success: true,
+        message: 'Logout successful',
+      });
+    });
   });
 });
 
-// Registration route
-router.post('/register', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    // Validate input
-    const validatedData = insertUserSchema.parse(req.body);
-    
-    // Check if email already exists
-    const existingUser = await db.select().from(users).where(eq(users.email, validatedData.email));
-    if (existingUser.length > 0) {
-      return res.status(400).json({ error: 'Email already in use' });
-    }
-    
-    // Hash password
-    const saltRounds = 10;
-    const passwordHash = await bcrypt.hash(validatedData.password, saltRounds);
-    
-    // Create user
-    const result = await db.insert(users).values({
-      name: validatedData.name,
-      email: validatedData.email,
-      passwordHash,
-      role: validatedData.role || 'user',
-      venueId: validatedData.venueId || null
-    }).returning();
-    
-    if (!result || result.length === 0) {
-      return res.status(500).json({ error: 'Failed to create user' });
-    }
-    
-    const newUser = result[0];
-    
-    // Automatically log in the user after registration
-    req.login(newUser, (err) => {
-      if (err) {
-        return next(err);
-      }
-      
-      // Don't send the password hash to the client
-      const { passwordHash, ...userWithoutPassword } = newUser;
-      return res.status(201).json(userWithoutPassword);
+// Get current user route
+router.get('/me', (req: Request, res: Response) => {
+  if (!req.isAuthenticated() || !req.user) {
+    return res.status(401).json({
+      success: false,
+      message: 'Not authenticated',
     });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: error.errors });
-    }
-    next(error);
   }
+  
+  return res.status(200).json({
+    success: true,
+    user: req.user,
+  });
 });
+
+// Middleware to check if user is authenticated
+export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  
+  res.status(401).json({
+    success: false,
+    message: 'Authentication required',
+  });
+};
 
 export default router;

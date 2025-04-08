@@ -1,47 +1,37 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: string;
+  redirectTo?: string;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
+export function ProtectedRoute({ 
   children, 
-  requiredRole 
-}) => {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  redirectTo = '/login' 
+}: ProtectedRouteProps) {
+  const { isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      // Redirect to login if not authenticated
-      setLocation('/login');
-    } else if (!isLoading && isAuthenticated && requiredRole) {
-      // Check for required role if specified
-      const userRole = user?.role || 'user';
-      if (userRole !== requiredRole) {
-        // Redirect to dashboard if user doesn't have the required role
-        setLocation('/');
-      }
+      setLocation(redirectTo);
     }
-  }, [isLoading, isAuthenticated, user, requiredRole, setLocation]);
+  }, [isAuthenticated, isLoading, redirectTo, setLocation]);
 
-  // Show loading state while checking authentication
+  // Show loading state
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex flex-col items-center">
+          <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
       </div>
     );
   }
 
-  // If auth is checked and user is authenticated (and has required role if specified)
-  if (isAuthenticated && (!requiredRole || (user?.role === requiredRole))) {
-    return <>{children}</>;
-  }
-
-  // Don't render anything during redirect to login
-  return null;
+  // Render children only if authenticated
+  return isAuthenticated ? <>{children}</> : null;
 }

@@ -8,6 +8,7 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
+  userType: text("user_type").notNull().default("artist"), // artist, venue, or fan
   role: text("role").default("user"),
   venueId: integer("venue_id"),
   createdAt: timestamp("created_at").defaultNow(),

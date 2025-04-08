@@ -1,83 +1,64 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
-// Types for user data
-export interface User {
+// Types
+type UserType = 'artist' | 'venue' | 'fan';
+
+interface User {
   id: string;
-  name: string;
   email: string;
-  role: string;
-  userType: 'artist' | 'venue' | 'fan';
-  createdAt: string;
+  name: string;
+  userType: UserType;
 }
 
-// Login data interface
-interface LoginData {
+interface LoginCredentials {
   email: string;
   password: string;
   rememberMe?: boolean;
 }
 
-// Register data interface
 interface RegisterData {
   name: string;
   email: string;
   password: string;
-  userType: 'artist' | 'venue' | 'fan';
+  userType: UserType;
 }
 
-// Auth context interface
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (data: LoginData) => Promise<boolean>;
+  login: (credentials: LoginCredentials) => Promise<boolean>;
   register: (data: RegisterData) => Promise<boolean>;
   logout: () => Promise<void>;
-  refreshUser: () => Promise<void>;
 }
 
-// Create context with default values
+// Create context
 const AuthContext = createContext<AuthContextType>({
   user: null,
   isAuthenticated: false,
   isLoading: true,
-  login: async () => false,
-  register: async () => false,
-  logout: async () => {},
-  refreshUser: async () => {},
+  login: () => Promise.resolve(false),
+  register: () => Promise.resolve(false),
+  logout: () => Promise.resolve(),
 });
 
-// Hook to use auth context
-export const useAuth = () => useContext(AuthContext);
-
 // Provider component
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch current user on mount
+  // Check if user is already authenticated on mount
   useEffect(() => {
     const checkAuthStatus = async () => {
-      setIsLoading(true);
       try {
-        const { data } = await axios.get('/api/auth/me');
-        if (data.user) {
-          setUser(data.user);
-          setIsAuthenticated(true);
-        } else {
-          setUser(null);
-          setIsAuthenticated(false);
+        const response = await axios.get('/api/auth/me');
+        if (response.status === 200 && response.data.user) {
+          setUser(response.data.user);
         }
       } catch (error) {
+        console.error('Failed to check authentication status:', error);
         setUser(null);
-        setIsAuthenticated(false);
-        console.error('Error checking authentication status:', error);
       } finally {
         setIsLoading(false);
       }
@@ -87,13 +68,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   // Login function
-  const login = async (loginData: LoginData): Promise<boolean> => {
+  const login = async (credentials: LoginCredentials): Promise<boolean> => {
     try {
-      const { data } = await axios.post('/api/auth/login', loginData);
-      
-      if (data.success) {
-        setUser(data.user);
-        setIsAuthenticated(true);
+      const response = await axios.post('/api/auth/login', credentials);
+      if (response.status === 200 && response.data.user) {
+        setUser(response.data.user);
         return true;
       }
       return false;
@@ -104,13 +83,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   // Register function
-  const register = async (registerData: RegisterData): Promise<boolean> => {
+  const register = async (data: RegisterData): Promise<boolean> => {
     try {
-      const { data } = await axios.post('/api/auth/register', registerData);
-      
-      if (data.success) {
-        setUser(data.user);
-        setIsAuthenticated(true);
+      const response = await axios.post('/api/auth/register', data);
+      if (response.status === 201 && response.data.user) {
+        setUser(response.data.user);
         return true;
       }
       return false;
@@ -125,34 +102,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await axios.post('/api/auth/logout');
       setUser(null);
-      setIsAuthenticated(false);
     } catch (error) {
       console.error('Logout error:', error);
     }
   };
 
-  // Refresh user data
-  const refreshUser = async (): Promise<void> => {
-    try {
-      const { data } = await axios.get('/api/auth/me');
-      if (data.user) {
-        setUser(data.user);
-        setIsAuthenticated(true);
-      }
-    } catch (error) {
-      console.error('Error refreshing user data:', error);
-    }
-  };
-
-  // Create context value object
   const contextValue: AuthContextType = {
     user,
-    isAuthenticated,
+    isAuthenticated: !!user,
     isLoading,
     login,
     register,
     logout,
-    refreshUser,
   };
 
   return (
@@ -161,3 +122,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
+// Context hook
+export const useAuth = () => useContext(AuthContext);
