@@ -65,7 +65,7 @@ import {
 
 export default function TourFinderPro() {
   // Use the venue property from context for consistency
-  const { venue: activeVenue, venueId } = useActiveVenue();
+  const { venue: activeVenue, venueId, setActiveVenueId } = useActiveVenue();
   const { data: venues } = useVenues();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -106,7 +106,12 @@ export default function TourFinderPro() {
   
   // Handle venue selection change  
   const handleVenueChange = (venueId: string) => {
-    queryClient.invalidateQueries({ queryKey: ['/api/venues', venueId] });
+    // Set the active venue using the context
+    setActiveVenueId(venueId);
+    
+    // Invalidate queries to refresh venue data
+    queryClient.invalidateQueries({ queryKey: ['/api/venues-direct', venueId] });
+    
     toast({
       title: "Venue Changed",
       description: `Selected venue is now ${venues?.find(v => v.id === venueId)?.name}`,
