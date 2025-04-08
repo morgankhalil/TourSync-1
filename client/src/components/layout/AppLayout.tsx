@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
-import { ActiveVenueProvider } from '../../hooks/useActiveVenue';
 import { useLocation } from 'wouter';
 import TopNav from './TopNav';
+import Sidebar from './Sidebar';
+import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet';
+import { Button } from '../ui/button';
+import { Menu } from 'lucide-react';
 // Import the Sidebar directly from layout with its full path
 import Sidebar from '@/components/layout/Sidebar';
 import { useActiveVenue } from '@/hooks/useActiveVenue';

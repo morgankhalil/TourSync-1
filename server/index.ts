@@ -70,8 +70,12 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  const port = 5000;
-  app.listen(port, '0.0.0.0', () => {
+  const port = process.env.PORT || 5000;
+  const server = app.listen(port, '0.0.0.0', () => {
     console.log(`Server running at http://0.0.0.0:${port}`);
+  });
+
+  server.on('error', (err) => {
+    console.error('Server error:', err);
   });
 })();
