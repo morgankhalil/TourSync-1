@@ -1,21 +1,17 @@
+
 import React, { useState } from 'react';
 import { useLocation } from 'wouter';
 import TopNav from './TopNav';
 import Sidebar from './Sidebar';
 import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet';
 import { Button } from '../ui/button';
-import { Menu } from 'lucide-react';
-// Import the Sidebar directly from layout with its full path
-import Sidebar from '@/components/layout/Sidebar';
 import { useActiveVenue } from '@/hooks/useActiveVenue';
 import { 
   PlusCircle, 
   Calendar, 
-  Music, 
+  Music,
   Menu
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -53,7 +49,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </main>
       </div>
 
-      {/* Quick Actions - Fixed Position */}
+      {/* Quick Actions */}
       <div className="fixed bottom-6 right-6 flex flex-col gap-2 items-end">
         <div className="flex gap-2">
           {activeVenue && (
