@@ -46,7 +46,12 @@ type VenuesNearResponse = {
  */
 export function useVenueOptions() {
   return useQuery<VenueOptionsResponse>({
-    queryKey: ['/api/auth/venue-options'],
+    queryKey: ['/api/venues-direct'],
+    queryFn: async () => {
+      const response = await fetch('/api/venues-direct');
+      const venues = await response.json();
+      return { success: true, venues };
+    },
     retry: 1,
     refetchOnWindowFocus: false,
   });

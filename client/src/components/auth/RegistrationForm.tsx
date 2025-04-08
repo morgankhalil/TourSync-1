@@ -62,7 +62,7 @@ export function RegistrationForm() {
   const { register: registerUser } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { data: venueOptions, isLoading: isLoadingVenues } = useVenueOptions();
+  const { data: venueOptions, isLoading: isLoadingVenues, error } = useVenueOptions();
 
   // Initialize form with react-hook-form
   const form = useForm<RegistrationFormValues>({
@@ -76,7 +76,7 @@ export function RegistrationForm() {
       existingVenueId: undefined,
     },
   });
-  
+
   // Set up watch for user type changes
   const userType = form.watch('userType');
   const showVenueSelector = userType === 'venue';
@@ -97,15 +97,15 @@ export function RegistrationForm() {
       if (values.userType === 'venue' && values.existingVenueId) {
         registrationData.existingVenueId = Number(values.existingVenueId);
       }
-      
+
       // Log the registration data for debugging
       console.log('Submitting registration with data:', {
         ...registrationData,
         password: '[REDACTED]'
       });
-      
+
       const success = await registerUser(registrationData);
-      
+
       if (success) {
         toast({
           title: 'Registration successful',
@@ -154,7 +154,7 @@ export function RegistrationForm() {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="email"
@@ -172,7 +172,7 @@ export function RegistrationForm() {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="password"
@@ -190,7 +190,7 @@ export function RegistrationForm() {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="confirmPassword"
@@ -208,7 +208,7 @@ export function RegistrationForm() {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="userType"
@@ -239,7 +239,7 @@ export function RegistrationForm() {
               </FormItem>
             )}
           />
-          
+
           {/* Venue selector - only visible when user type is 'venue' */}
           {showVenueSelector && (
             <FormField
@@ -261,6 +261,10 @@ export function RegistrationForm() {
                           <div className="p-2 text-center">
                             <Loader2 className="h-4 w-4 animate-spin mx-auto" />
                             <span className="text-sm">Loading venues...</span>
+                          </div>
+                        ) : error ? (
+                          <div className="p-2 text-center text-destructive">
+                            Error loading venues. Please try again.
                           </div>
                         ) : venueOptions?.venues && venueOptions.venues.length > 0 ? (
                           venueOptions.venues.map((venue) => (
@@ -284,7 +288,7 @@ export function RegistrationForm() {
               )}
             />
           )}
-          
+
           <Button type="submit" className="w-full mt-6" disabled={isSubmitting}>
             {isSubmitting ? (
               <>
