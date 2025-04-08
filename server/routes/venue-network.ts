@@ -1273,17 +1273,10 @@ export async function registerVenueNetworkRoutes(app: any) {
       ];
       
       // Check if capacity clusters already exist
-      const existingCapacityClusters = await db
-        .select()
-        .from(venueClusters)
+      // Delete existing capacity clusters if they exist
+      await db
+        .delete(venueClusters)
         .where(sql`${venueClusters.name} LIKE '%Venues' AND ${venueClusters.description} LIKE '%capacity%'`);
-
-      if (existingCapacityClusters.length > 0) {
-        return res.status(409).json({
-          error: "Capacity-based clusters already exist",
-          clusters: existingCapacityClusters
-        });
-      }
 
       // Fetch all venues with capacity information
       const allVenues = await db
