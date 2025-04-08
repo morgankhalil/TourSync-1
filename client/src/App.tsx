@@ -4,7 +4,7 @@ import { queryClient } from "./lib/queryClient";
 import { ThemeProvider } from "./components/theme-provider";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
-import { Dashboard } from "./pages/Dashboard";
+import { Dashboard } from '@/pages/Dashboard';
 import { VenueDashboard } from "./pages/VenueDashboard";
 import { VenueSearch } from "./pages/VenueSearch";
 import { TourFinderPro } from "./pages/TourFinderPro";

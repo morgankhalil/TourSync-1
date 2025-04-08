@@ -29,7 +29,7 @@ export async function configureVite(app: any) {
         middlewareMode: true,
         hmr: {
           port: 5173,
-          host: '0.0.0.0',
+          host: '0.0.0.0', // Assumed to fix the WebSocket issue
           protocol: 'ws'
         },
       },
