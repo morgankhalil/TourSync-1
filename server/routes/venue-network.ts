@@ -501,12 +501,80 @@ export async function registerVenueNetworkRoutes(app: any) {
       await db.delete(venueClusterMembers);
       await db.delete(venueClusters);
 
-      const {
-        distanceThresholdKm = 100,
-        minVenuesPerCluster = 2,
-        maxVenuesPerCluster = 10,
-        namePrefix = "Venue Cluster"
-      } = req.body;
+      // Get all venues
+      const allVenues = await db
+        .select()
+        .from(venues)
+        .where(
+          and(
+            sql`${venues.latitude} IS NOT NULL`,
+            sql`${venues.longitude} IS NOT NULL`
+          )
+        );
+
+      // Group venues by region
+      const venuesByRegion = new Map<string, typeof allVenues>();
+      
+      for (const venue of allVenues) {
+        const region = getVenueRegion(venue);
+        if (region) {
+          if (!venuesByRegion.has(region)) {
+            venuesByRegion.set(region, []);
+          }
+          venuesByRegion.get(region)?.push(venue);
+        }
+      }
+
+      const createdClusters = [];
+
+      // Create a cluster for each region that has venues
+      for (const [region, regionVenues] of venuesByRegion.entries()) {
+        const regionData = US_REGIONS[region as keyof typeof US_REGIONS];
+        
+        // Create cluster
+        const clusterResult = await db.insert(venueClusters).values({
+          name: regionData.name,
+          description: `Venues in the ${regionData.name} region`,
+          centerLatitude: regionData.centerLat.toString(),
+          centerLongitude: regionData.centerLong.toString(),
+          radiusKm: 800 // Approximate radius to cover a region
+        }).returning();
+
+        const clusterId = clusterResult[0].id;
+
+        // Add members to cluster
+        for (const venue of regionVenues) {
+          await db.insert(venueClusterMembers).values({
+            clusterId,
+            venueId: venue.id
+          });
+        }
+
+        // Get the complete cluster with members
+        const completeCluster = await db
+          .select()
+          .from(venueClusters)
+          .where(eq(venueClusters.id, clusterId));
+
+        const members = await db
+          .select()
+          .from(venueClusterMembers)
+          .leftJoin(venues, eq(venueClusterMembers.venueId, venues.id))
+          .where(eq(venueClusterMembers.clusterId, clusterId));
+
+        completeCluster[0].members = members.map(m => ({
+          ...m.venue_cluster_members,
+          venue: m.venues
+        }));
+
+        createdClusters.push(completeCluster[0]);
+      }
+
+      res.status(201).json({
+        clusters: createdClusters,
+        totalClusters: createdClusters.length,
+        totalVenuesAssigned: allVenues.length
+      });
 
       // Fetch all venues with coordinates
       const allVenues = await db
