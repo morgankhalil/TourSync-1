@@ -24,22 +24,19 @@ const createMockClient = () => {
 // Initialize real client if credentials exist, otherwise use mock
 let supabaseClient;
 try {
-  // Only create client if both URL and key are present and valid
-  if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
-    supabaseClient = createClient(
-      import.meta.env.VITE_SUPABASE_URL,
-      import.meta.env.VITE_SUPABASE_ANON_KEY,
-      {
-        auth: {
-          autoRefreshToken: true,
-          persistSession: true,
-          detectSessionInUrl: true
-        }
-      }
-    );
-  } else {
-    supabaseClient = createMockClient();
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables');
   }
+
+  supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true
+    }
+  });
 } catch (error) {
   console.warn('Error initializing Supabase client:', error);
   supabaseClient = createMockClient();

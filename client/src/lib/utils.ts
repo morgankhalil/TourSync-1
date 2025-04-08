@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
+import axios from 'axios';
 
 /**
  * Combines multiple class names into a single string using clsx and tailwind-merge
@@ -46,7 +47,7 @@ export function debounce<T extends (...args: any[]) => void>(
   ms: number
 ): (...args: Parameters<T>) => void {
   let timeoutId: ReturnType<typeof setTimeout>;
-  
+
   return function(...args: Parameters<T>) {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => fn(...args), ms);
@@ -80,3 +81,22 @@ export function calculateDistance(
 function deg2rad(deg: number): number {
   return deg * (Math.PI / 180);
 }
+
+export const api = axios.create({
+  baseURL: '/api',
+  timeout: 10000,
+  retry: 3,
+  retryDelay: 1000
+});
+
+// Add retry interceptor
+api.interceptors.response.use(undefined, async (err) => {
+  const { config } = err;
+  if (!config || !config.retry) {
+    return Promise.reject(err);
+  }
+  config.retry -= 1;
+  const delayRetry = new Promise(resolve => setTimeout(resolve, config.retryDelay));
+  await delayRetry;
+  return api(config);
+});
