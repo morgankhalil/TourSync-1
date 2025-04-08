@@ -70,11 +70,15 @@ export class UserRoleService {
         throw new Error("Failed to create venue profile");
       }
 
-      // Link venue to user
+      // Link venue to user - use venueId instead of venue_id
       await db
         .update(users)
         .set({ venueId: createdVenue.id })
-        .where(users.id === user.id);
+        .where(eq(users.id, user.id));
+
+      // Fetch the updated user to confirm changes
+      const updatedUserResults = await db.select().from(users).where(eq(users.id, user.id)).limit(1);
+      console.log('Updated user with venue ID:', updatedUserResults[0]);
 
       return createdVenue.id;
     } catch (error) {

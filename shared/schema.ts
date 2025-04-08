@@ -57,7 +57,7 @@ export const insertArtistSchema = createInsertSchema(artists).omit({
 
 // Artist discovery tracking
 export const artistDiscovery = pgTable("artist_discovery", {
-  artistId: text("artist_id").primaryKey(),
+  artistId: integer("artist_id").primaryKey(),
   lastChecked: text("last_checked").notNull(),
   timesChecked: integer("times_checked").notNull().default(1)
 });
@@ -101,7 +101,7 @@ export const insertVenueSchema = createInsertSchema(venues).omit({
 // Events schema
 export const events = pgTable("events", {
   id: text("id").primaryKey(),
-  artistId: text("artist_id").notNull(),
+  artistId: integer("artist_id").notNull(),
   venueName: text("venue_name").notNull(),
   venueCity: text("venue_city").notNull(),
   venueState: text("venue_state"),
@@ -123,8 +123,8 @@ export const insertEventSchema = createInsertSchema(events).omit({
 // Collaboration requests
 export const collaborationRequests = pgTable("collaboration_requests", {
   id: serial("id").primaryKey(),
-  requestingArtistId: text("requesting_artist_id").notNull(),
-  receivingArtistId: text("receiving_artist_id").notNull(),
+  requestingArtistId: integer("requesting_artist_id").notNull(),
+  receivingArtistId: integer("receiving_artist_id").notNull(),
   eventId: text("event_id"),
   message: text("message"),
   status: text("status").default("pending"),
@@ -140,8 +140,8 @@ export const insertCollaborationRequestSchema = createInsertSchema(collaboration
 
 // Artist compatibility scores
 export const artistCompatibility = pgTable("artist_compatibility", {
-  artistId1: text("artist_id1").notNull(),
-  artistId2: text("artist_id2").notNull(),
+  artistId1: integer("artist_id1").notNull(),
+  artistId2: integer("artist_id2").notNull(),
   compatibilityScore: integer("compatibility_score").notNull(),
   genreOverlap: integer("genre_overlap"),
   audienceMatch: integer("audience_match"),
