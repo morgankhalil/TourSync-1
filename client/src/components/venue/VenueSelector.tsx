@@ -143,4 +143,4 @@ const VenueSelector: React.FC = () => {
   );
 };
 
-export default VenueSelector;
+export { VenueSelector };
