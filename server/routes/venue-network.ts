@@ -580,38 +580,53 @@ export async function registerVenueNetworkRoutes(app: any) {
       res.status(500).json({ error: "Failed to generate automatic clusters" });
     }
 
-        // Start a new potential cluster with this venue as the center
-        const clusterMembers = [venue];
-        assignedVenues.add(venue.id);
-
-        // Find all venues within the distance threshold
-        for (const otherVenue of allVenues) {
-          if (otherVenue.id === venue.id || assignedVenues.has(otherVenue.id)) continue;
-
-          const distance = calculateDistance(
-            parseFloat(venue.latitude),
-            parseFloat(venue.longitude),
-            parseFloat(otherVenue.latitude),
-            parseFloat(otherVenue.longitude)
+        const getVenueRegion = (venue: any) => {
+        const venueLat = parseFloat(venue.latitude);
+        const venueLng = parseFloat(venue.longitude);
+        
+        for (const [region, data] of Object.entries(US_REGIONS)) {
+          // Check if venue is roughly within region bounds
+          const distanceToCenter = calculateDistance(
+            venueLat,
+            venueLng,
+            data.centerLat,
+            data.centerLong
           );
-
-          if (distance <= distanceThresholdKm && clusterMembers.length < maxVenuesPerCluster) {
-            clusterMembers.push(otherVenue);
-            assignedVenues.add(otherVenue.id);
+          
+          if (distanceToCenter <= 800) { // ~500 miles radius
+            return region;
           }
         }
+        return null;
+      };
 
-        // Only keep clusters with minimum number of venues
-        if (clusterMembers.length >= minVenuesPerCluster) {
-          clusters.push({
-            center: venue,
-            members: clusterMembers
-          });
-        } else {
-          // Remove assignment if not enough members
-          assignedVenues.delete(venue.id);
+      const US_REGIONS = {
+        NORTHEAST: {
+          name: "Northeast",
+          centerLat: 42.0,
+          centerLong: -73.0
+        },
+        SOUTHEAST: {
+          name: "Southeast",
+          centerLat: 33.0,
+          centerLong: -84.0
+        },
+        MIDWEST: {
+          name: "Midwest",
+          centerLat: 41.0,
+          centerLong: -89.0
+        },
+        SOUTHWEST: {
+          name: "Southwest",
+          centerLat: 32.0,
+          centerLong: -100.0
+        },
+        WEST: {
+          name: "West",
+          centerLat: 37.0,
+          centerLong: -119.0
         }
-      }
+      };
 
       // Create database records for valid clusters
       const createdClusters = [];
