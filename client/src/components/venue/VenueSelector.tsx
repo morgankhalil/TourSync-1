@@ -48,9 +48,8 @@ export const VenueSelector: React.FC = () => {
           aria-expanded={open}
           className="w-full justify-between"
         >
-          {activeVenueId && venueData
-            ? venueData.name
-            : "Select venue..."}
+          {venueData?.name || "Select venue..."}
+          {!venueData && activeVenueId && "Loading..."}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-0">

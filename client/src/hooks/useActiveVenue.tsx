@@ -19,18 +19,16 @@ const ActiveVenueContext = createContext<ActiveVenueContextType | undefined>(und
 export const ActiveVenueProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [activeVenueId, setActiveVenueId] = useState<string | null>(() => {
     try {
-      // Try to get from localStorage or user's venueId
-      const storedId = localStorage.getItem('activeVenueId');
-      if (storedId) return storedId;
-      
       const userData = localStorage.getItem('user');
       if (userData) {
         const user = JSON.parse(userData);
         if (user.userType === 'venue' && user.venueId) {
-          console.log('Setting active venue ID:', user.venueId);
+          localStorage.setItem('activeVenueId', user.venueId.toString());
           return user.venueId.toString();
         }
       }
+      const storedId = localStorage.getItem('activeVenueId');
+      if (storedId) return storedId;
     } catch (e) {
       console.error('Error reading venue ID:', e);
     }
