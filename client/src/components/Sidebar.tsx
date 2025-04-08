@@ -83,11 +83,6 @@ export function Sidebar({ className }: SidebarProps) {
       path: '/venues/tour-finder',
     },
     {
-      name: 'Venue Search',
-      icon: MapPin,
-      path: '/venues/search',
-    },
-    {
       name: 'Artist Profile',
       icon: Music,
       path: '/artists/:id',

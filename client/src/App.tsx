@@ -39,9 +39,8 @@ export default function App() {
           <Route path="/artists/:id" component={withMainLayout(ArtistProfile)} />
           <Route path="/calendar" component={withMainLayout(EventCalendar)} />
           <Route path="/collaboration-requests" component={withMainLayout(CollaborationRequests)} />
-          <Route path="/venues/search" component={withMainLayout(VenueSearch)} />
           <Route path="/venues/:id" component={withMainLayout(VenueDetail)} />
-          <Route path="/venues" component={withMainLayout(VenueList)} />
+          <Route path="/venues" component={withMainLayout(VenueSearch)} />
           <Route component={withMainLayout(NotFound)} />
         </Switch>
         <Toaster />
