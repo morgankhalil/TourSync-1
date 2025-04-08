@@ -26,7 +26,8 @@ export const ActiveVenueProvider: React.FC<{ children: ReactNode }> = ({ childre
       const userData = localStorage.getItem('user');
       if (userData) {
         const user = JSON.parse(userData);
-        if (user.venueId) {
+        if (user.userType === 'venue' && user.venueId) {
+          console.log('Setting active venue ID:', user.venueId);
           return user.venueId.toString();
         }
       }

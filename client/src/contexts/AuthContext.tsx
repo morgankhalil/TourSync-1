@@ -56,21 +56,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const response = await axios.get('/api/auth/me');
         if (response.data.user) {
-          setUser(response.data.user);
-          localStorage.setItem('user', JSON.stringify(response.data.user));
+          const userData = response.data.user;
+          setUser(userData);
+          localStorage.setItem('user', JSON.stringify(userData));
+
+          // If user is a venue user and has a venueId, update the activeVenueId
+          if (userData.userType === 'venue' && userData.venueId) {
+            localStorage.setItem('activeVenueId', userData.venueId.toString());
+          }
         } else {
           setUser(null);
           localStorage.removeItem('user');
+          localStorage.removeItem('activeVenueId');
         }
       } catch (error: any) {
-        // Don't log 401s as they're expected when not logged in
         if (error?.response?.status !== 401) {
           console.error('Failed to check authentication status:', error);
         }
         setUser(null);
         localStorage.removeItem('user');
-        setUser(null);
-        localStorage.removeItem('user');
+        localStorage.removeItem('activeVenueId');
       } finally {
         setIsLoading(false);
       }
