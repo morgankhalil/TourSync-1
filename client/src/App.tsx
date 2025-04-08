@@ -7,7 +7,7 @@ import { MainLayout } from './components/layout/MainLayout';
 
 import Dashboard from './pages/Dashboard';
 import ArtistDiscovery from './pages/ArtistDiscovery';
-import ArtistDiscoveryPro from './pages/ArtistDiscoveryPro';
+import TourFinderPro from './pages/TourFinderPro';
 import ArtistProfile from './pages/ArtistProfile';
 import EventCalendar from './pages/EventCalendar';
 import CollaborationRequests from './pages/CollaborationRequests';
@@ -28,7 +28,10 @@ export default function App() {
         <Switch>
           <Route path="/" component={withMainLayout(Dashboard)} />
           <Route path="/artists/discovery" component={withMainLayout(ArtistDiscovery)} />
-          <Route path="/artists/discovery/pro" component={withMainLayout(ArtistDiscoveryPro)} />
+          {/* Updated route name to better reflect venue-centric tour finder */}
+          <Route path="/venues/tour-finder" component={withMainLayout(TourFinderPro)} />
+          {/* Keep the old route for backward compatibility */}
+          <Route path="/artists/discovery/pro" component={withMainLayout(TourFinderPro)} />
           <Route path="/artists/discovery/enhanced" component={withMainLayout(EnhancedArtistDiscovery)} />
           <Route path="/artists/:id" component={withMainLayout(ArtistProfile)} />
           <Route path="/calendar" component={withMainLayout(EventCalendar)} />

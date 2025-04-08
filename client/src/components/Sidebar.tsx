@@ -48,7 +48,7 @@ export function Sidebar({ className }: SidebarProps) {
     {
       name: 'Tour Finder Pro',
       icon: Route,
-      path: '/artists/discovery/pro',
+      path: '/venues/tour-finder',
     },
     {
       name: 'Artist Profile',

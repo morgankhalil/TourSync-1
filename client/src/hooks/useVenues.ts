@@ -21,15 +21,15 @@ export interface Venue {
 
 export function useVenues() {
   return useQuery({
-    queryKey: ['/api/venues'],
-    queryFn: () => apiRequest<Venue[]>('/api/venues')
+    queryKey: ['/api/venues-direct'],
+    queryFn: () => apiRequest<Venue[]>('/api/venues-direct')
   });
 }
 
 export function useVenue(id: string) {
   return useQuery({
-    queryKey: ['/api/venues', id],
-    queryFn: () => apiRequest<Venue>(`/api/venues/${id}`),
+    queryKey: ['/api/venues-direct', id],
+    queryFn: () => apiRequest<Venue>(`/api/venues-direct/${id}`),
     enabled: !!id
   });
 }
@@ -37,12 +37,12 @@ export function useVenue(id: string) {
 export function useCreateVenue() {
   return useMutation({
     mutationFn: (venue: Partial<Venue>) => 
-      apiRequest<Venue>('/api/venues', { 
+      apiRequest<Venue>('/api/venues-direct', { 
         method: 'POST', 
         body: venue 
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/venues'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/venues-direct'] });
     }
   });
 }
@@ -50,13 +50,13 @@ export function useCreateVenue() {
 export function useUpdateVenue() {
   return useMutation({
     mutationFn: ({ id, ...venue }: Partial<Venue> & { id: string }) => 
-      apiRequest<Venue>(`/api/venues/${id}`, { 
+      apiRequest<Venue>(`/api/venues-direct/${id}`, { 
         method: 'PATCH', 
         body: venue 
       }),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/venues', variables.id] });
-      queryClient.invalidateQueries({ queryKey: ['/api/venues'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/venues-direct', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['/api/venues-direct'] });
     }
   });
 }
@@ -64,19 +64,19 @@ export function useUpdateVenue() {
 export function useDeleteVenue() {
   return useMutation({
     mutationFn: (id: string) => 
-      apiRequest(`/api/venues/${id}`, { 
+      apiRequest(`/api/venues-direct/${id}`, { 
         method: 'DELETE' 
       }),
     onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/venues', id] });
-      queryClient.invalidateQueries({ queryKey: ['/api/venues'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/venues-direct', id] });
+      queryClient.invalidateQueries({ queryKey: ['/api/venues-direct'] });
     }
   });
 }
 
 export function useVenueAvailability(venueId: string, startDate?: Date, endDate?: Date) {
   return useQuery({
-    queryKey: ['/api/venues/availability', venueId, startDate?.toISOString(), endDate?.toISOString()],
+    queryKey: ['/api/venues-direct/availability', venueId, startDate?.toISOString(), endDate?.toISOString()],
     queryFn: () => {
       const queryParams: Record<string, string> = {};
       if (startDate) queryParams.startDate = startDate.toISOString();
@@ -84,7 +84,7 @@ export function useVenueAvailability(venueId: string, startDate?: Date, endDate?
       
       return apiRequest<{
         dates: { date: string; available: boolean; eventId?: string }[]
-      }>(`/api/venues/${venueId}/availability`, { 
+      }>(`/api/venues-direct/${venueId}/availability`, { 
         queryParams 
       });
     },

@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
 import { Sidebar } from '@/components/Sidebar';
+import { Header } from './Header';
 import { SidebarProvider } from '@/context/SidebarContext';
 import { cn } from '@/lib/utils';
 
@@ -12,9 +13,12 @@ export function MainLayout({ children }: MainLayoutProps) {
     <SidebarProvider>
       <div className="flex h-screen overflow-hidden bg-background">
         <Sidebar className="h-screen" />
-        <main className="flex-1 overflow-auto p-6 pb-10">
-          {children}
-        </main>
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Header />
+          <main className="flex-1 overflow-auto p-6 pb-10">
+            {children}
+          </main>
+        </div>
       </div>
     </SidebarProvider>
   );

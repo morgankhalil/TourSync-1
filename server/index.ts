@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import cache from "express-cache-controller";
 import { registerRoutes } from "./routes";
 import calendarRoutes from "./routes/calendar";
+import venuesApiRoutes from "./routes/venues-api";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
@@ -10,6 +11,7 @@ app.use(cache({
   maxAge: 60 // Cache responses for 60 seconds by default
 }));
 app.use('/api/calendar', calendarRoutes);
+app.use('/api/venues-direct', venuesApiRoutes);
 app.use(express.urlencoded({ extended: false }));
 
 // Disable caching
