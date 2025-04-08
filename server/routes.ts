@@ -469,17 +469,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Venue availability routes
-  app.get("/api/venues/:venueId/availability", async (req, res) => {
-    try {
-      const venueId = parseInt(req.params.venueId);
-      const availabilities = await storage.getVenueAvailability(venueId);
-      res.json(availabilities);
-    } catch (error) {
-      console.error("Error fetching venue availability:", error);
-      res.status(500).json({ message: "Error fetching venue availability" });
-    }
-  });
+  // Venue availability routes are defined above (line 55)
+  // This was a duplicate route
 
   app.post("/api/venue-availability", async (req, res) => {
     try {
