@@ -61,9 +61,10 @@ export default function VenueNetworkHub() {
   const { 
     data: clusters = [], 
     isLoading: clustersLoading,
-    refetch: refetchClusters
+    refetch: refetchClusters,
+    error: clustersError
   } = useQuery({
-    queryKey: ['/api/venue-network/clusters'],
+    queryKey: ['venue-network-clusters'],
     queryFn: getVenueClusters
   });
 

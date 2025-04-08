@@ -160,10 +160,10 @@ export const deleteVenueRelationship = async (id: number): Promise<void> => {
  * Venue Cluster API functions
  */
 export const getVenueClusters = async (): Promise<VenueCluster[]> => {
-  return apiRequest({
-    url: "/api/venue-network/clusters",
-    method: "GET",
+  const response = await apiRequest("/api/venue-network/clusters", {
+    method: "GET"
   });
+  return response || [];
 };
 
 export const getVenueCluster = async (id: number): Promise<VenueCluster> => {
