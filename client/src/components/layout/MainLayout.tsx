@@ -1,7 +1,8 @@
+
 import React, { ReactNode } from 'react';
 import { Sidebar } from '@/components/ui/sidebar';
 import { Header } from './Header';
-import { SidebarProvider } from '@/context/SidebarContext';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 
 interface MainLayoutProps {
@@ -11,14 +12,14 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
   return (
     <SidebarProvider>
-      <div className="flex h-screen overflow-hidden bg-background">
-        <Sidebar className="h-screen" />
-        <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex min-h-screen">
+        <Sidebar>
+          {/* Sidebar content */}
+        </Sidebar>
+        <main className="flex-1">
           <Header />
-          <main className="flex-1 overflow-auto p-6 pb-10">
-            {children}
-          </main>
-        </div>
+          {children}
+        </main>
       </div>
     </SidebarProvider>
   );
