@@ -31,9 +31,20 @@ export default function App() {
             <div className="min-h-screen">
               <Toaster />
               <Switch>
-                <Route path="/login" component={LoginPage} />
-                <Route path="/register" component={RegisterPage} />
                 <Route path="/test" component={TestPage} />
+                
+                {/* Wrap login/register with SidebarProvider */}
+                <Route path="/login">
+                  <SidebarProvider>
+                    <LoginPage />
+                  </SidebarProvider>
+                </Route>
+                <Route path="/register">
+                  <SidebarProvider>
+                    <RegisterPage />
+                  </SidebarProvider>
+                </Route>
+                
                 <Route path="/">
                   <ProtectedRoute>
                     <MainLayout>
