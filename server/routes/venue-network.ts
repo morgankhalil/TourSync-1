@@ -1258,4 +1258,104 @@ export async function registerVenueNetworkRoutes(app: any) {
       res.status(500).json({ error: "Failed to update collaborative offer" });
     }
   });
+
+  /**
+   * Generate capacity-based venue clusters
+   * Groups venues into small (0-300), medium (301-800), and large (801+) capacity categories
+   */
+  app.post("/api/venue-network/create-capacity-clusters", async (req: Request, res: Response) => {
+    try {
+      // Define capacity categories
+      const capacityCategories = [
+        { name: "Small Venues", min: 0, max: 300, description: "Intimate venues with capacity up to 300" },
+        { name: "Medium Venues", min: 301, max: 800, description: "Mid-sized venues with capacity from 301 to 800" },
+        { name: "Large Venues", min: 801, max: Number.MAX_SAFE_INTEGER, description: "Large venues with capacity over 800" },
+      ];
+      
+      // Check if capacity clusters already exist
+      const existingCapacityClusters = await db
+        .select()
+        .from(venueClusters)
+        .where(sql`${venueClusters.name} LIKE '%Venues' AND ${venueClusters.description} LIKE '%capacity%'`);
+
+      if (existingCapacityClusters.length > 0) {
+        return res.status(409).json({
+          error: "Capacity-based clusters already exist",
+          clusters: existingCapacityClusters
+        });
+      }
+
+      // Fetch all venues with capacity information
+      const allVenues = await db
+        .select()
+        .from(venues)
+        .where(sql`${venues.capacity} IS NOT NULL`);
+
+      if (allVenues.length === 0) {
+        return res.status(404).json({ error: "No venues with capacity information found" });
+      }
+
+      // Create clusters for each capacity category
+      const createdClusters = [];
+
+      for (const category of capacityCategories) {
+        // Insert capacity cluster
+        const clusterResult = await db.insert(venueClusters).values({
+          name: category.name,
+          description: category.description,
+          regionCode: "CAPACITY", // Custom code to indicate this is a capacity-based cluster
+          isStatic: true,  // These are static clusters
+        }).returning();
+
+        const clusterId = clusterResult[0].id;
+        
+        // Find all venues in this capacity range
+        const capacityVenues = allVenues.filter(venue => 
+          venue.capacity !== null && 
+          venue.capacity >= category.min && 
+          venue.capacity <= category.max
+        );
+        
+        // Add venues to this cluster
+        for (const venue of capacityVenues) {
+          await db.insert(venueClusterMembers).values({
+            clusterId,
+            venueId: venue.id
+          });
+        }
+        
+        // Get complete cluster with members
+        const completeCluster = await db
+          .select()
+          .from(venueClusters)
+          .where(eq(venueClusters.id, clusterId));
+
+        const members = await db
+          .select()
+          .from(venueClusterMembers)
+          .leftJoin(venues, eq(venueClusterMembers.venueId, venues.id))
+          .where(eq(venueClusterMembers.clusterId, clusterId));
+
+        const result = {
+          ...completeCluster[0],
+          members: members.map(m => ({
+            ...m.venue_cluster_members,
+            venue: m.venues
+          })),
+          venueCount: members.length
+        };
+        
+        createdClusters.push(result);
+      }
+
+      res.status(201).json({
+        clusters: createdClusters,
+        totalClusters: createdClusters.length,
+        totalVenuesAssigned: createdClusters.reduce((sum, cluster) => sum + cluster.venueCount, 0)
+      });
+    } catch (error) {
+      console.error("Error creating capacity-based clusters:", error);
+      res.status(500).json({ error: "Failed to create capacity-based clusters" });
+    }
+  });
 }

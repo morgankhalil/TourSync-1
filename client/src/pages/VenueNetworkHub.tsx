@@ -4,7 +4,8 @@ import {
   getVenueClusters, 
   getRoutingGaps, 
   getSharedBookings, 
-  getCollaborativeOffers
+  getCollaborativeOffers,
+  createCapacityClusters
 } from "../services/venue-network-service";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,16 +31,37 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 export default function VenueNetworkHub() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
+  const [clusterView, setClusterView] = useState<"regional" | "capacity">("regional");
 
   // Fetch clusters
   const { 
     data: clusters = [], 
     isLoading: clustersLoading,
-    error: clustersError
+    error: clustersError,
+    refetch: refetchClusters
   } = useQuery({
     queryKey: ['venue-network-clusters'],
     queryFn: getVenueClusters
   });
+  
+  // Handle creating capacity clusters
+  const handleCreateCapacityClusters = async () => {
+    try {
+      const result = await createCapacityClusters();
+      toast({
+        title: "Capacity clusters created",
+        description: `Created ${result.totalClusters} capacity-based venue clusters.`,
+      });
+      refetchClusters();
+    } catch (error) {
+      console.error("Error creating capacity clusters:", error);
+      toast({
+        title: "Error creating capacity clusters",
+        description: "There was a problem creating the capacity-based clusters.",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Fetch routing gaps
   const { 
@@ -210,68 +232,130 @@ export default function VenueNetworkHub() {
         {/* Venue Clusters Tab */}
         <TabsContent value="clusters" className="space-y-4">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold">Regional Venue Clusters</h2>
+            <h2 className="text-2xl font-bold">Venue Clusters</h2>
             <div className="flex space-x-2">
-              <Badge className="bg-blue-100 text-blue-800">
-                Pre-defined Regions
-              </Badge>
+              <Button 
+                variant={clusterView === "regional" ? "default" : "outline"}
+                onClick={() => setClusterView("regional")}
+                size="sm"
+              >
+                Regional Clusters
+              </Button>
+              <Button 
+                variant={clusterView === "capacity" ? "default" : "outline"}
+                onClick={() => setClusterView("capacity")}
+                size="sm"
+              >
+                Capacity Clusters
+              </Button>
+            </div>
+          </div>
+          
+          {/* Cluster description and action buttons */}
+          <div className="flex justify-between items-start mb-4">
+            <div className="max-w-2xl">
+              {clusterView === "regional" ? (
+                <>
+                  <Badge className="bg-blue-100 text-blue-800 mb-2">
+                    Geographic Regions
+                  </Badge>
+                  <p className="text-sm text-muted-foreground">
+                    Regional clusters organize venues into standard US geographic regions (Northeast, Southeast, Midwest, Southwest, West) 
+                    for more efficient tour routing and regional booking coordination.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <Badge className="bg-green-100 text-green-800 mb-2">
+                    Venue Capacity
+                  </Badge>
+                  <p className="text-sm text-muted-foreground">
+                    Capacity-based clusters group venues by their size: Small (0-300), Medium (301-800), and Large (801+).
+                    This helps artists find appropriately sized venues for their tours based on draw capacity.
+                  </p>
+                </>
+              )}
+            </div>
+            <div>
+              {clusterView === "capacity" && (
+                <Button 
+                  variant="outline" 
+                  onClick={handleCreateCapacityClusters}
+                  disabled={clustersLoading}
+                >
+                  Generate Capacity Clusters
+                </Button>
+              )}
             </div>
           </div>
           
           {clustersLoading ? (
-            <div className="text-center py-8">Loading regional venue clusters...</div>
+            <div className="text-center py-8">Loading venue clusters...</div>
           ) : clusters.length === 0 ? (
             <Alert className="bg-muted">
               <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>No regional venue clusters found</AlertTitle>
+              <AlertTitle>No {clusterView} venue clusters found</AlertTitle>
               <AlertDescription>
-                Regional clusters are pre-defined geographic groupings that organize venues into standard US regions for improved tour routing.
+                {clusterView === "regional" 
+                  ? "Regional clusters are pre-defined geographic groupings that organize venues into standard US regions for improved tour routing." 
+                  : "Capacity-based clusters help organize venues by their size. Click the 'Generate Capacity Clusters' button to create them."}
               </AlertDescription>
             </Alert>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {clusters.map((cluster) => (
-                <Card key={cluster.id}>
-                  <CardHeader>
-                    <CardTitle>{cluster.name}</CardTitle>
-                    <CardDescription>{cluster.description || "Geographic venue cluster"}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center mb-2">
-                      <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <span className="text-sm">
-                        Radius: {cluster.radiusKm || "Unknown"} km
-                      </span>
-                    </div>
-                    <div className="flex items-center mb-2">
-                      <Users className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <span className="text-sm">
-                        {cluster.members?.length || 0} member venues
-                      </span>
-                    </div>
-                    {cluster.members && cluster.members.length > 0 && (
-                      <div className="mt-4">
-                        <span className="text-sm font-medium">Members:</span>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {cluster.members.slice(0, 5).map((member) => (
-                            <Badge key={member.venueId} variant="outline">
-                              {member.venue?.name || `Venue #${member.venueId}`}
-                            </Badge>
-                          ))}
-                          {cluster.members.length > 5 && (
-                            <Badge variant="outline">+{cluster.members.length - 5} more</Badge>
-                          )}
+              {clusters
+                .filter(cluster => {
+                  // Filter based on the current view:
+                  // - For regional view, show clusters with region_code
+                  // - For capacity view, show clusters without region_code (capacity-based)
+                  return clusterView === "regional" 
+                    ? cluster.regionCode 
+                    : !cluster.regionCode;
+                })
+                .map((cluster) => (
+                  <Card key={cluster.id}>
+                    <CardHeader>
+                      <CardTitle>{cluster.name}</CardTitle>
+                      <CardDescription>{cluster.description || "Venue cluster"}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {clusterView === "regional" && (
+                        <div className="flex items-center mb-2">
+                          <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                          <span className="text-sm">
+                            Radius: {cluster.radiusKm || "Unknown"} km
+                          </span>
                         </div>
+                      )}
+                      <div className="flex items-center mb-2">
+                        <Users className="h-4 w-4 mr-2 text-muted-foreground" />
+                        <span className="text-sm">
+                          {cluster.members?.length || 0} member venues
+                        </span>
                       </div>
-                    )}
-                  </CardContent>
-                  <CardFooter>
-                    <Button variant="outline" className="w-full">
-                      View Cluster Details
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
+                      {cluster.members && cluster.members.length > 0 && (
+                        <div className="mt-4">
+                          <span className="text-sm font-medium">Members:</span>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {cluster.members.slice(0, 5).map((member) => (
+                              <Badge key={member.venueId} variant="outline">
+                                {member.venue?.name || `Venue #${member.venueId}`}
+                              </Badge>
+                            ))}
+                            {cluster.members.length > 5 && (
+                              <Badge variant="outline">+{cluster.members.length - 5} more</Badge>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                    <CardFooter>
+                      <Button variant="outline" className="w-full">
+                        View Cluster Details
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
             </div>
           )}
         </TabsContent>

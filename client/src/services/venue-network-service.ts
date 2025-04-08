@@ -247,6 +247,22 @@ export const createRegionalClusters = async (): Promise<{
 };
 
 /**
+ * Creates capacity-based venue clusters (small, medium, large)
+ */
+export const createCapacityClusters = async (): Promise<{
+  clusters: VenueCluster[];
+  totalClusters: number;
+  totalVenuesAssigned: number;
+}> => {
+  return apiRequest(
+    "/api/venue-network/create-capacity-clusters",
+    {
+      method: "POST"
+    }
+  );
+};
+
+/**
  * Routing Pattern API functions
  */
 export const getRoutingPatterns = async (): Promise<RoutingPattern[]> => {
