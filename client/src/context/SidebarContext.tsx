@@ -1,20 +1,21 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useMobile } from '@/hooks/use-mobile';
 
-interface SidebarContextType {
+type SidebarContext = {
   isOpen: boolean;
   toggle: () => void;
   open: () => void;
   close: () => void;
+  isMobile: boolean;
 }
 
-const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
+const SidebarContext = createContext<SidebarContext | undefined>(undefined);
 
-export function SidebarProvider({ children }: { children: ReactNode }) {
+export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const isMobile = useMobile();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(!isMobile);
   
-  // Close sidebar by default on mobile, open by default on desktop
   useEffect(() => {
     setIsOpen(!isMobile);
   }, [isMobile]);
@@ -23,15 +24,14 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   const open = () => setIsOpen(true);
   const close = () => setIsOpen(false);
   
-  const value = {
-    isOpen,
-    toggle,
-    open,
-    close
-  };
-  
   return (
-    <SidebarContext.Provider value={value}>
+    <SidebarContext.Provider value={{
+      isOpen,
+      toggle,
+      open,
+      close,
+      isMobile
+    }}>
       {children}
     </SidebarContext.Provider>
   );
@@ -39,10 +39,8 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
 
 export function useSidebar() {
   const context = useContext(SidebarContext);
-  
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useSidebar must be used within a SidebarProvider');
   }
-  
   return context;
 }
