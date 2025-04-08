@@ -56,9 +56,11 @@ export function Sidebar({ className }: SidebarProps) {
     // Invalidate queries to refresh venue data
     queryClient.invalidateQueries({ queryKey: ['/api/venues-direct', venueId] });
     
+    // Convert venueId to number for comparison since venue.id is a number
+    const numericVenueId = parseInt(venueId, 10);
     toast({
       title: "Venue Changed",
-      description: `Active venue is now ${venues?.find(v => v.id === venueId)?.name}`,
+      description: `Active venue is now ${venues?.find(v => v.id === numericVenueId)?.name}`,
       duration: 3000,
     });
   };
@@ -154,7 +156,7 @@ export function Sidebar({ className }: SidebarProps) {
               </SelectTrigger>
               <SelectContent>
                 {venues?.map(venue => (
-                  <SelectItem key={venue.id} value={venue.id}>
+                  <SelectItem key={venue.id} value={venue.id.toString()}>
                     {venue.name}
                   </SelectItem>
                 ))}

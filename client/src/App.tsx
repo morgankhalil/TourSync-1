@@ -12,6 +12,7 @@ import ArtistProfile from './pages/ArtistProfile';
 import EventCalendar from './pages/EventCalendar';
 import CollaborationRequests from './pages/CollaborationRequests';
 import EnhancedArtistDiscovery from './pages/EnhancedArtistDiscovery';
+import VenueSearch from './pages/VenueSearch';
 import NotFound from './pages/not-found';
 
 // Wrap a component with the MainLayout
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="/artists/:id" component={withMainLayout(ArtistProfile)} />
           <Route path="/calendar" component={withMainLayout(EventCalendar)} />
           <Route path="/collaboration-requests" component={withMainLayout(CollaborationRequests)} />
+          <Route path="/venues/search" component={withMainLayout(VenueSearch)} />
           <Route component={withMainLayout(NotFound)} />
         </Switch>
         <Toaster />
