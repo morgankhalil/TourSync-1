@@ -105,8 +105,8 @@ export default function VenueNetworkHub() {
         description: `Created ${result.totalClusters} clusters with ${result.totalVenuesAssigned} venues.`,
       });
       
-      // Refetch clusters
-      refetchClusters();
+      // Refetch clusters and wait for completion
+      await refetchClusters();
       
       setIsClusteringDialogOpen(false);
     } catch (error) {
