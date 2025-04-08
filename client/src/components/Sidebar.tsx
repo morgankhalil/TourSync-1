@@ -181,19 +181,18 @@ export function Sidebar({ className }: SidebarProps) {
         <ul className="space-y-1 px-2">
           {navItems.map((item) => (
             <li key={item.path}>
-              <Link href={item.path}>
-                <a
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm",
-                    isActive(item.path)
-                      ? "bg-primary text-primary-foreground"
-                      : "hover:bg-accent hover:text-accent-foreground",
-                    !isOpen && "justify-center"
-                  )}
-                >
-                  <item.icon size={18} />
-                  {isOpen && <span>{item.name}</span>}
-                </a>
+              <Link 
+                href={item.path}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm",
+                  isActive(item.path)
+                    ? "bg-primary text-primary-foreground"
+                    : "hover:bg-accent hover:text-accent-foreground",
+                  !isOpen && "justify-center"
+                )}
+              >
+                <item.icon size={18} />
+                {isOpen && <span>{item.name}</span>}
               </Link>
             </li>
           ))}
