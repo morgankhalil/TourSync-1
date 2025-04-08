@@ -5,6 +5,8 @@ import { queryClient } from './lib/queryClient';
 import { ActiveVenueProvider } from './hooks/useActiveVenue';
 import { MainLayout } from './components/layout/MainLayout';
 import { SidebarProvider } from '@/components/ui/sidebar';
+import { AuthProvider } from './contexts/AuthContext';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 import Dashboard from './pages/Dashboard';
 import ArtistDiscovery from './pages/ArtistDiscovery';
@@ -20,49 +22,64 @@ import VenueDashboard from './pages/VenueDashboard';
 import TourRouteVisualization from './pages/TourRouteVisualization';
 import VenueNetworkHub from './pages/VenueNetworkHub';
 import NotFound from './pages/not-found';
+import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
 
 export default function App() {
   return (
     // Single QueryClientProvider at the root
     <QueryClientProvider client={queryClient}>
-      <ActiveVenueProvider>
-        <SidebarProvider>
-          <MainLayout>
-          <Switch>
-            {/* Use VenueDashboard as the main landing page */}
-            <Route path="/" component={VenueDashboard} />
-            {/* Venue-focused routes */}
-            <Route path="/venues/dashboard" component={VenueDashboard} />
-            <Route path="/venues/tour-finder" component={TourFinderPro} />
-            <Route path="/venues/search" component={VenueSearch} />
-            <Route path="/venues/list" component={VenueList} />
-            <Route path="/venues/:id" component={VenueDetail} />
-            <Route path="/venues" component={VenueSearch} />
+      <AuthProvider>
+        <ActiveVenueProvider>
+          <SidebarProvider>
+            <Switch>
+              {/* Authentication Routes */}
+              <Route path="/login" component={LoginPage} />
+              <Route path="/register" component={RegisterPage} />
+              
+              {/* Protected Routes wrapped in MainLayout */}
+              <Route>
+                <ProtectedRoute>
+                  <MainLayout>
+                    <Switch>
+                      {/* Use VenueDashboard as the main landing page */}
+                      <Route path="/" component={VenueDashboard} />
+                      {/* Venue-focused routes */}
+                      <Route path="/venues/dashboard" component={VenueDashboard} />
+                      <Route path="/venues/tour-finder" component={TourFinderPro} />
+                      <Route path="/venues/search" component={VenueSearch} />
+                      <Route path="/venues/list" component={VenueList} />
+                      <Route path="/venues/:id" component={VenueDetail} />
+                      <Route path="/venues" component={VenueSearch} />
 
-            {/* Venue Network Hub */}
-            <Route path="/venue-network" component={VenueNetworkHub} />
+                      {/* Venue Network Hub */}
+                      <Route path="/venue-network" component={VenueNetworkHub} />
 
-            {/* Calendar */}
-            <Route path="/calendar" component={EventCalendar} />
+                      {/* Calendar */}
+                      <Route path="/calendar" component={EventCalendar} />
 
-            {/* Tour routes */}
-            <Route path="/tours/route-visualization" component={TourRouteVisualization} />
+                      {/* Tour routes */}
+                      <Route path="/tours/route-visualization" component={TourRouteVisualization} />
 
-            {/* Artist-focused routes (kept for compatibility) */}
-            <Route path="/artists/dashboard" component={Dashboard} />
-            <Route path="/artists/discovery" component={ArtistDiscovery} />
-            <Route path="/artists/discovery/pro" component={TourFinderPro} />
-            <Route path="/artists/discovery/enhanced" component={EnhancedArtistDiscovery} />
-            <Route path="/artists/:id" component={ArtistProfile} />
-            <Route path="/collaboration-requests" component={CollaborationRequests} />
+                      {/* Artist-focused routes (kept for compatibility) */}
+                      <Route path="/artists/dashboard" component={Dashboard} />
+                      <Route path="/artists/discovery" component={ArtistDiscovery} />
+                      <Route path="/artists/discovery/pro" component={TourFinderPro} />
+                      <Route path="/artists/discovery/enhanced" component={EnhancedArtistDiscovery} />
+                      <Route path="/artists/:id" component={ArtistProfile} />
+                      <Route path="/collaboration-requests" component={CollaborationRequests} />
 
-            {/* 404 Not Found */}
-            <Route component={NotFound} />
-          </Switch>
-          <Toaster />
-        </MainLayout>
-        </SidebarProvider>
-      </ActiveVenueProvider>
+                      {/* 404 Not Found */}
+                      <Route component={NotFound} />
+                    </Switch>
+                    <Toaster />
+                  </MainLayout>
+                </ProtectedRoute>
+              </Route>
+            </Switch>
+          </SidebarProvider>
+        </ActiveVenueProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
