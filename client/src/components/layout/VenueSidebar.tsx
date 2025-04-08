@@ -5,6 +5,7 @@ import VenueBookingsList from "@/components/venue/VenueBookingsList";
 import { Badge } from "@/components/ui/badge";
 import { format, addDays } from "date-fns";
 import { Button } from "@/components/ui/button";
+import VenueSelector from "@/components/venue/VenueSelector";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -64,13 +65,16 @@ const VenueSidebar = () => {
 
       <aside className={sidebarClasses}>
         <div className="h-full flex flex-col">
-          <div className="p-4 border-b flex items-center justify-between">
-            <h2 className="font-semibold text-lg">TourSync</h2>
-            {isMobile && (
-              <Button variant="ghost" size="icon" onClick={close}>
-                <X className="h-5 w-5" />
-              </Button>
-            )}
+          <div className="p-4 border-b">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold text-lg">TourSync</h2>
+              {isMobile && (
+                <Button variant="ghost" size="icon" onClick={close}>
+                  <X className="h-5 w-5" />
+                </Button>
+              )}
+            </div>
+            <VenueSelector />
           </div>
 
           <div className="flex-1 overflow-auto p-4">
