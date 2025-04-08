@@ -237,6 +237,190 @@ export const insertBandSchema = createInsertSchema(bands).omit({
   id: true
 });
 
+// Venue relationship types
+export const venueRelationshipTypes = pgTable("venue_relationship_types", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description")
+});
+
+export const insertVenueRelationshipTypeSchema = createInsertSchema(venueRelationshipTypes).omit({
+  id: true
+});
+
+// Venue relationships - connections between venues
+export const venueRelationships = pgTable("venue_relationships", {
+  id: serial("id").primaryKey(),
+  venueId1: integer("venue_id1").notNull().references(() => venues.id),
+  venueId2: integer("venue_id2").notNull().references(() => venues.id),
+  relationshipTypeId: integer("relationship_type_id").references(() => venueRelationshipTypes.id),
+  strength: integer("strength").default(0), // 0-100 indicating relationship strength
+  lastUsed: timestamp("last_used"), // When this relationship was last utilized
+  totalBookings: integer("total_bookings").default(0), // Number of shared bookings
+  createdAt: timestamp("created_at").defaultNow(),
+  notes: text("notes"),
+  status: text("status").default("active"),
+  trustScore: integer("trust_score").default(50) // 0-100 trust level
+}, (table) => {
+  return {
+    uniqueIdx: primaryKey({ columns: [table.venueId1, table.venueId2] })
+  };
+});
+
+export const insertVenueRelationshipSchema = createInsertSchema(venueRelationships).omit({
+  id: true,
+  createdAt: true
+});
+
+// Geographic venue clusters
+export const venueClusters = pgTable("venue_clusters", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  centerLatitude: text("center_latitude"),
+  centerLongitude: text("center_longitude"),
+  radiusKm: integer("radius_km"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at")
+});
+
+export const insertVenueClusterSchema = createInsertSchema(venueClusters).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+
+// Venues in clusters
+export const venueClusterMembers = pgTable("venue_cluster_members", {
+  clusterId: integer("cluster_id").notNull().references(() => venueClusters.id),
+  venueId: integer("venue_id").notNull().references(() => venues.id),
+  addedAt: timestamp("added_at").defaultNow()
+}, (table) => {
+  return {
+    pk: primaryKey({ columns: [table.clusterId, table.venueId] })
+  };
+});
+
+export const insertVenueClusterMemberSchema = createInsertSchema(venueClusterMembers).omit({
+  addedAt: true
+});
+
+// Tour routing patterns
+export const routingPatterns = pgTable("routing_patterns", {
+  id: serial("id").primaryKey(),
+  sourceVenueId: integer("source_venue_id").notNull().references(() => venues.id),
+  destinationVenueId: integer("destination_venue_id").notNull().references(() => venues.id),
+  frequency: integer("frequency").default(1), // How many times this route has been used
+  averageDaysGap: integer("average_days_gap"), // Average days between shows
+  confidenceScore: integer("confidence_score").default(50), // 0-100 confidence level
+  lastObserved: timestamp("last_observed"),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+export const insertRoutingPatternSchema = createInsertSchema(routingPatterns).omit({
+  id: true,
+  createdAt: true
+});
+
+// Shared booking information
+export const sharedBookings = pgTable("shared_bookings", {
+  id: serial("id").primaryKey(),
+  sourceVenueId: integer("source_venue_id").notNull().references(() => venues.id),
+  bandId: integer("band_id"),
+  bandName: text("band_name").notNull(),
+  bookingDate: date("booking_date").notNull(),
+  sharingLevel: text("sharing_level").default("public"), // public, trusted, private
+  confirmedStatus: text("confirmed_status").default("pending"), // pending, confirmed, cancelled
+  sharerId: integer("sharer_id"), // User who shared the booking
+  routeEligible: boolean("route_eligible").default(true), // Can be used for routing suggestions
+  createdAt: timestamp("created_at").defaultNow(),
+  contactInfo: text("contact_info") // Optional contact info for the band
+});
+
+export const insertSharedBookingSchema = createInsertSchema(sharedBookings).omit({
+  id: true,
+  createdAt: true
+});
+
+// Booking collaboration offers
+export const collaborativeOffers = pgTable("collaborative_offers", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  bandId: integer("band_id"),
+  bandName: text("band_name").notNull(),
+  initiatingVenueId: integer("initiating_venue_id").notNull().references(() => venues.id),
+  dateRange: jsonb("date_range").$type<{start: string, end: string}>().notNull(),
+  status: text("status").default("draft"), // draft, sent, accepted, declined
+  offerDetails: jsonb("offer_details").$type<Record<string, any>>(), // Offer terms
+  createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at")
+});
+
+export const insertCollaborativeOfferSchema = createInsertSchema(collaborativeOffers).omit({
+  id: true,
+  createdAt: true
+});
+
+// Participating venues in collaborative offers
+export const offerParticipants = pgTable("offer_participants", {
+  offerId: integer("offer_id").notNull().references(() => collaborativeOffers.id),
+  venueId: integer("venue_id").notNull().references(() => venues.id),
+  proposedDate: date("proposed_date"),
+  confirmationStatus: text("confirmation_status").default("pending"),
+  venueNotes: text("venue_notes"),
+  venueOffer: jsonb("venue_offer").$type<Record<string, any>>(),
+  addedAt: timestamp("added_at").defaultNow()
+}, (table) => {
+  return {
+    pk: primaryKey({ columns: [table.offerId, table.venueId] })
+  };
+});
+
+export const insertOfferParticipantSchema = createInsertSchema(offerParticipants).omit({
+  addedAt: true
+});
+
+// Gap opportunities for routing
+export const routingGaps = pgTable("routing_gaps", {
+  id: serial("id").primaryKey(),
+  priorVenueId: integer("prior_venue_id").notNull().references(() => venues.id),
+  nextVenueId: integer("next_venue_id").notNull().references(() => venues.id),
+  bandId: integer("band_id"),
+  bandName: text("band_name").notNull(),
+  gapStartDate: date("gap_start_date").notNull(),
+  gapEndDate: date("gap_end_date").notNull(),
+  eligibleVenues: jsonb("eligible_venues").$type<number[]>(), // Array of venue IDs
+  notifiedVenues: jsonb("notified_venues").$type<number[]>(), // Array of venue IDs
+  status: text("status").default("open"),
+  createdAt: timestamp("created_at").defaultNow(),
+  resolvedAt: timestamp("resolved_at")
+});
+
+export const insertRoutingGapSchema = createInsertSchema(routingGaps).omit({
+  id: true,
+  createdAt: true,
+  resolvedAt: true
+});
+
+// User notification preferences
+export const venueNotificationPreferences = pgTable("venue_notification_preferences", {
+  venueId: integer("venue_id").primaryKey().references(() => venues.id),
+  emailNotifications: boolean("email_notifications").default(true),
+  pushNotifications: boolean("push_notifications").default(false),
+  gapOpportunityAlerts: boolean("gap_opportunity_alerts").default(true),
+  tourPredictionAlerts: boolean("tour_prediction_alerts").default(true),
+  collaborativeOfferAlerts: boolean("collaborative_offer_alerts").default(true),
+  notificationRadius: integer("notification_radius").default(250), // km
+  genrePreferences: jsonb("genre_preferences").$type<string[]>(),
+  minCapacity: integer("min_capacity"),
+  maxCapacity: integer("max_capacity"),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+export const insertVenueNotificationPreferenceSchema = createInsertSchema(venueNotificationPreferences).omit({
+  updatedAt: true
+});
+
 // Export types
 export type Tour = typeof tours.$inferSelect;
 export type InsertTour = z.infer<typeof insertTourSchema>;
@@ -246,3 +430,34 @@ export type InsertTourDate = z.infer<typeof insertTourDateSchema>;
 
 export type Band = typeof bands.$inferSelect;
 export type InsertBand = z.infer<typeof insertBandSchema>;
+
+// Venue Network Types
+export type VenueRelationshipType = typeof venueRelationshipTypes.$inferSelect;
+export type InsertVenueRelationshipType = z.infer<typeof insertVenueRelationshipTypeSchema>;
+
+export type VenueRelationship = typeof venueRelationships.$inferSelect;
+export type InsertVenueRelationship = z.infer<typeof insertVenueRelationshipSchema>;
+
+export type VenueCluster = typeof venueClusters.$inferSelect;
+export type InsertVenueCluster = z.infer<typeof insertVenueClusterSchema>;
+
+export type VenueClusterMember = typeof venueClusterMembers.$inferSelect;
+export type InsertVenueClusterMember = z.infer<typeof insertVenueClusterMemberSchema>;
+
+export type RoutingPattern = typeof routingPatterns.$inferSelect;
+export type InsertRoutingPattern = z.infer<typeof insertRoutingPatternSchema>;
+
+export type SharedBooking = typeof sharedBookings.$inferSelect;
+export type InsertSharedBooking = z.infer<typeof insertSharedBookingSchema>;
+
+export type CollaborativeOffer = typeof collaborativeOffers.$inferSelect;
+export type InsertCollaborativeOffer = z.infer<typeof insertCollaborativeOfferSchema>;
+
+export type OfferParticipant = typeof offerParticipants.$inferSelect;
+export type InsertOfferParticipant = z.infer<typeof insertOfferParticipantSchema>;
+
+export type RoutingGap = typeof routingGaps.$inferSelect;
+export type InsertRoutingGap = z.infer<typeof insertRoutingGapSchema>;
+
+export type VenueNotificationPreference = typeof venueNotificationPreferences.$inferSelect;
+export type InsertVenueNotificationPreference = z.infer<typeof insertVenueNotificationPreferenceSchema>;

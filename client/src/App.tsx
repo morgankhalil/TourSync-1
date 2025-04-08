@@ -16,6 +16,7 @@ import VenueSearch from './pages/VenueSearch';
 import VenueList from './pages/VenueList';
 import VenueDetail from './pages/VenueDetail';
 import TourRouteVisualization from './pages/TourRouteVisualization';
+import VenueNetworkHub from './pages/VenueNetworkHub';
 import NotFound from './pages/not-found';
 
 // Wrap a component with the MainLayout
@@ -44,6 +45,7 @@ export default function App() {
             <Route path="/venues/:id" component={VenueDetail} />
             <Route path="/venues" component={VenueSearch} />
             <Route path="/tours/route-visualization" component={TourRouteVisualization} />
+            <Route path="/venue-network" component={VenueNetworkHub} />
             <Route component={NotFound} />
           </Switch>
         </MainLayout>
