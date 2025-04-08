@@ -1,4 +1,3 @@
-
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Route, Switch } from "wouter";
 import { queryClient } from "./lib/queryClient";
@@ -12,7 +11,10 @@ import { TourFinderPro } from "@/pages/TourFinderPro";
 import { EnhancedArtistDiscovery } from "@/pages/EnhancedArtistDiscovery";
 import { BandsintownPage } from "./pages/BandsintownPage";
 import TestPage from './pages/TestPage';
-import { AuthProvider } from "./contexts/AuthContext";
+import { SupabaseExample } from './pages/SupabaseExample';
+import { SupabaseLogin } from './pages/SupabaseLogin';
+import { SupabaseRealtime } from './pages/SupabaseRealtime';
+import { AuthProvider } from "./contexts/SupabaseAuthContext";
 import { ActiveVenueProvider } from "./hooks/useActiveVenue";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { MainLayout } from "./components/layout/MainLayout";
@@ -26,45 +28,31 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ThemeProvider defaultTheme="system" enableSystem>
+        <ThemeProvider defaultTheme="light" enableSystem={false}>
           <ActiveVenueProvider>
             <div className="min-h-screen">
               <Toaster />
-              <Switch>
-                <Route path="/test" component={TestPage} />
-                
-                {/* Wrap login/register with SidebarProvider */}
-                <Route path="/login">
-                  <SidebarProvider>
-                    <LoginPage />
-                  </SidebarProvider>
-                </Route>
-                <Route path="/register">
-                  <SidebarProvider>
-                    <RegisterPage />
-                  </SidebarProvider>
-                </Route>
-                
-                <Route path="/">
-                  <ProtectedRoute>
-                    <SidebarProvider>
-                      <MainLayout>
-                        <Switch>
-                          <Route path="/" component={Dashboard} />
-                          <Route path="/venues" component={VenueDashboard} />
-                          <Route path="/venues/search" component={VenueSearch} />
-                          <Route path="/venues/:id" component={VenueView} />
-                          <Route path="/tours/finder" component={TourFinderPro} />
-                          <Route path="/artists/discovery" component={EnhancedArtistDiscovery} />
-                          <Route path="/bandsintown" component={BandsintownPage} />
-                          <Route path="/profile" component={ProfilePage} />
-                          <Route path="/settings" component={SettingsPage} />
-                        </Switch>
-                      </MainLayout>
-                    </SidebarProvider>
-                  </ProtectedRoute>
-                </Route>
-              </Switch>
+              <SidebarProvider>
+                <MainLayout>
+                  <Switch>
+                    <Route path="/" component={Dashboard} />
+                    <Route path="/login" component={LoginPage} />
+                    <Route path="/register" component={RegisterPage} />
+                    <Route path="/venue-dashboard" component={VenueDashboard} />
+                    <Route path="/venue-search" component={VenueSearch} />
+                    <Route path="/tour-finder-pro" component={TourFinderPro} />
+                    <Route path="/artist-discovery" component={EnhancedArtistDiscovery} />
+                    <Route path="/bandsintown" component={BandsintownPage} />
+                    <Route path="/test" component={TestPage} />
+                    <Route path="/supabase" component={SupabaseExample} />
+                    <Route path="/supabase-login" component={SupabaseLogin} />
+                    <Route path="/supabase-realtime" component={SupabaseRealtime} />
+                    <Route path="/profile" component={ProfilePage} />
+                    <Route path="/settings" component={SettingsPage} />
+                    <Route path="/venue/:id" component={VenueView} />
+                  </Switch>
+                </MainLayout>
+              </SidebarProvider>
             </div>
           </ActiveVenueProvider>
         </ThemeProvider>

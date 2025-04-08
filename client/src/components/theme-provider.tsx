@@ -1,7 +1,6 @@
-
 import * as React from "react"
-import { ThemeProvider as NextThemesProvider } from "next-themes"
+import { ThemeProvider as ThemeProviderBase } from "@/components/ui/theme-provider"
 
 export function ThemeProvider({ children, ...props }: { children: React.ReactNode } & any) {
-  return <NextThemesProvider {...props}>{children}</NextThemesProvider>
+  return <ThemeProviderBase {...props}>{children}</ThemeProviderBase>
 }
