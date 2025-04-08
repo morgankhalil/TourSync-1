@@ -28,21 +28,23 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ActiveVenueProvider>
-        <Switch>
-          <Route path="/" component={withMainLayout(Dashboard)} />
-          <Route path="/artists/discovery" component={withMainLayout(ArtistDiscovery)} />
-          {/* Updated route name to better reflect venue-centric tour finder */}
-          <Route path="/venues/tour-finder" component={withMainLayout(TourFinderPro)} />
-          {/* Keep the old route for backward compatibility */}
-          <Route path="/artists/discovery/pro" component={withMainLayout(TourFinderPro)} />
-          <Route path="/artists/discovery/enhanced" component={withMainLayout(EnhancedArtistDiscovery)} />
-          <Route path="/artists/:id" component={withMainLayout(ArtistProfile)} />
-          <Route path="/calendar" component={withMainLayout(EventCalendar)} />
-          <Route path="/collaboration-requests" component={withMainLayout(CollaborationRequests)} />
-          <Route path="/venues/:id" component={withMainLayout(VenueDetail)} />
-          <Route path="/venues" component={withMainLayout(VenueSearch)} />
-          <Route component={withMainLayout(NotFound)} />
-        </Switch>
+        <MainLayout>
+          <Switch>
+            <Route path="/" component={Dashboard} />
+            <Route path="/artists/discovery" component={ArtistDiscovery} />
+            {/* Updated route name to better reflect venue-centric tour finder */}
+            <Route path="/venues/tour-finder" component={TourFinderPro} />
+            {/* Keep the old route for backward compatibility */}
+            <Route path="/artists/discovery/pro" component={TourFinderPro} />
+            <Route path="/artists/discovery/enhanced" component={EnhancedArtistDiscovery} />
+            <Route path="/artists/:id" component={ArtistProfile} />
+            <Route path="/calendar" component={EventCalendar} />
+            <Route path="/collaboration-requests" component={CollaborationRequests} />
+            <Route path="/venues/:id" component={VenueDetail} />
+            <Route path="/venues" component={VenueSearch} />
+            <Route component={NotFound} />
+          </Switch>
+        </MainLayout>
         <Toaster />
       </ActiveVenueProvider>
     </QueryClientProvider>
