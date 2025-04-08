@@ -1,6 +1,6 @@
 
 import { ReactNode } from "react";
-import VenueSidebar from "./VenueSidebar";
+import UnifiedSidebar from "./UnifiedSidebar";
 
 interface SidebarLayoutProps {
   children: ReactNode;
@@ -9,7 +9,7 @@ interface SidebarLayoutProps {
 export function SidebarLayout({ children }: SidebarLayoutProps) {
   return (
     <div className="flex flex-1">
-      <VenueSidebar />
+      <UnifiedSidebar />
       <div className="flex-1">
         {children}
       </div>
