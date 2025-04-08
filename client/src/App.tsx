@@ -15,6 +15,7 @@ import EnhancedArtistDiscovery from './pages/EnhancedArtistDiscovery';
 import VenueSearch from './pages/VenueSearch';
 import VenueList from './pages/VenueList';
 import VenueDetail from './pages/VenueDetail';
+import VenueDashboard from './pages/VenueDashboard';
 import TourRouteVisualization from './pages/TourRouteVisualization';
 import VenueNetworkHub from './pages/VenueNetworkHub';
 import NotFound from './pages/not-found';
@@ -26,20 +27,34 @@ export default function App() {
       <ActiveVenueProvider>
         <MainLayout>
           <Switch>
-            <Route path="/" component={Dashboard} />
-            <Route path="/artists/discovery" component={ArtistDiscovery} />
-            {/* Updated route name to better reflect venue-centric tour finder */}
+            {/* Use VenueDashboard as the main landing page */}
+            <Route path="/" component={VenueDashboard} />
+            {/* Venue-focused routes */}
+            <Route path="/venues/dashboard" component={VenueDashboard} />
             <Route path="/venues/tour-finder" component={TourFinderPro} />
-            {/* Keep the old route for backward compatibility */}
+            <Route path="/venues/search" component={VenueSearch} />
+            <Route path="/venues/list" component={VenueList} />
+            <Route path="/venues/:id" component={VenueDetail} />
+            <Route path="/venues" component={VenueSearch} />
+            
+            {/* Venue Network Hub */}
+            <Route path="/venue-network" component={VenueNetworkHub} />
+            
+            {/* Calendar */}
+            <Route path="/calendar" component={EventCalendar} />
+            
+            {/* Tour routes */}
+            <Route path="/tours/route-visualization" component={TourRouteVisualization} />
+            
+            {/* Artist-focused routes (kept for compatibility) */}
+            <Route path="/artists/dashboard" component={Dashboard} />
+            <Route path="/artists/discovery" component={ArtistDiscovery} />
             <Route path="/artists/discovery/pro" component={TourFinderPro} />
             <Route path="/artists/discovery/enhanced" component={EnhancedArtistDiscovery} />
             <Route path="/artists/:id" component={ArtistProfile} />
-            <Route path="/calendar" component={EventCalendar} />
             <Route path="/collaboration-requests" component={CollaborationRequests} />
-            <Route path="/venues/:id" component={VenueDetail} />
-            <Route path="/venues" component={VenueSearch} />
-            <Route path="/tours/route-visualization" component={TourRouteVisualization} />
-            <Route path="/venue-network" component={VenueNetworkHub} />
+            
+            {/* 404 Not Found */}
             <Route component={NotFound} />
           </Switch>
         </MainLayout>
