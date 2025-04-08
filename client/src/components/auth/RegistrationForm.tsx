@@ -107,6 +107,11 @@ export function RegistrationForm() {
       const success = await registerUser(registrationData);
 
       if (success) {
+        // If registering as a venue, set the active venue ID
+        if (values.userType === 'venue' && values.existingVenueId) {
+          localStorage.setItem('activeVenueId', values.existingVenueId);
+        }
+        
         toast({
           title: 'Registration successful',
           description: 'Welcome to the platform!',

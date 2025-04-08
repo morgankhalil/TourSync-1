@@ -53,13 +53,18 @@ export function useVenueOptions() {
         throw new Error('Failed to fetch venues');
       }
       const venues = await response.json();
+      if (!Array.isArray(venues)) {
+        console.error('Invalid venues response:', venues);
+        return { success: false, venues: [] };
+      }
       return { 
         success: true, 
-        venues: Array.isArray(venues) ? venues : [] 
+        venues 
       };
     },
     retry: 1,
     refetchOnWindowFocus: false,
+    staleTime: 30000, // Cache for 30 seconds
   });
 }
 
