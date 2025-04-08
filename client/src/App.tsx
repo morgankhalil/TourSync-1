@@ -24,6 +24,8 @@ import VenueNetworkHub from './pages/VenueNetworkHub';
 import NotFound from './pages/not-found';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
+import { ProfilePage } from './pages/ProfilePage';
+import { SettingsPage } from './pages/SettingsPage';
 
 export default function App() {
   return (
@@ -68,6 +70,10 @@ export default function App() {
                       <Route path="/artists/discovery/enhanced" component={EnhancedArtistDiscovery} />
                       <Route path="/artists/:id" component={ArtistProfile} />
                       <Route path="/collaboration-requests" component={CollaborationRequests} />
+                      
+                      {/* User account routes */}
+                      <Route path="/profile" component={ProfilePage} />
+                      <Route path="/settings" component={SettingsPage} />
 
                       {/* 404 Not Found */}
                       <Route component={NotFound} />
