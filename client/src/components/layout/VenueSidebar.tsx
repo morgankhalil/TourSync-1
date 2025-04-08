@@ -1,4 +1,4 @@
-import { Plus, Calendar, MoreVertical } from "lucide-react";
+import { Plus, Calendar, MoreVertical, Zap } from "lucide-react";
 import { useSidebar } from "@/context/SidebarContext";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import { X } from "lucide-react";
@@ -58,6 +58,13 @@ const VenueSidebar = () => {
             <Button className="w-full bg-primary text-white py-2 px-4 rounded-md font-inter font-medium flex items-center justify-center">
               <Calendar size={16} className="mr-2" />
               Manage Availability
+            </Button>
+          </Link>
+          
+          <Link href="/ai-recommendations">
+            <Button variant="outline" className="w-full mt-2 py-2 px-4 rounded-md font-inter font-medium flex items-center justify-center">
+              <Zap size={16} className="mr-2" />
+              AI Recommendations
             </Button>
           </Link>
           
