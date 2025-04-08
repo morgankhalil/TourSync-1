@@ -232,3 +232,64 @@ Required variables:
 Note: The app uses standard ports and configurations that work across environments:
 - Backend API: Port 5000
 - Frontend Dev Server: Port 3000
+
+## Database Management
+
+### Schema Migrations
+1. Migration files location: `server/scripts/migrate.ts`
+2. Version control through Drizzle ORM
+3. Migration commands:
+   - Generate: `npm run db:generate`
+   - Apply: `npm run db:migrate`
+
+### Data Versioning
+- Schema versions tracked in migrations
+- Data backups before migrations
+- Rollback procedures documented
+
+## Error Handling Strategy
+
+### Frontend
+- React Error Boundaries for component isolation
+- Toast notifications for user feedback
+- Graceful fallbacks for API failures
+
+### Backend
+- Structured error responses
+- Request validation using Zod
+- Error logging and monitoring
+- Rate limiting implementation
+
+## Performance Optimization
+
+### Frontend
+- React component memoization
+- Image lazy loading
+- Bundle size optimization
+- Route-based code splitting
+
+### Backend
+- Query optimization
+- Response caching
+- Connection pooling
+- Batch processing for large datasets
+
+## Monitoring & Logging
+
+### Application Metrics
+- Request latency tracking
+- Error rate monitoring
+- User session analytics
+- API usage statistics
+
+### System Health
+- Server resource utilization
+- Database performance metrics
+- Cache hit rates
+- API endpoint response times
+
+### Logging
+- Structured logging format
+- Log levels (ERROR, WARN, INFO)
+- Log rotation and retention
+- Error stack traces and context
