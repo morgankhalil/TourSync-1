@@ -4,6 +4,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient';
 import { ActiveVenueProvider } from './hooks/useActiveVenue';
 import { MainLayout } from './components/layout/MainLayout';
+import { SidebarProvider } from '@/components/ui/sidebar';
 
 import Dashboard from './pages/Dashboard';
 import ArtistDiscovery from './pages/ArtistDiscovery';
@@ -25,7 +26,8 @@ export default function App() {
     // Single QueryClientProvider at the root
     <QueryClientProvider client={queryClient}>
       <ActiveVenueProvider>
-        <MainLayout>
+        <SidebarProvider>
+          <MainLayout>
           <Switch>
             {/* Use VenueDashboard as the main landing page */}
             <Route path="/" component={VenueDashboard} />
@@ -59,6 +61,7 @@ export default function App() {
           </Switch>
           <Toaster />
         </MainLayout>
+        </SidebarProvider>
       </ActiveVenueProvider>
     </QueryClientProvider>
   );
