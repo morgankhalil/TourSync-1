@@ -80,6 +80,19 @@ const VenueDiscoveryPanel = ({
           </Badge>
         </div>
         
+        {/* AI Recommendations Section */}
+        {selectedBand && (
+          <div className="mb-4 p-3 bg-purple-50 rounded-md border border-purple-200">
+            <h3 className="font-semibold mb-2 flex items-center gap-2">
+              <Zap className="w-4 h-4" />
+              AI Recommendations
+            </h3>
+            <p className="text-sm text-gray-600">
+              Analyzing venues based on {selectedBand.name}'s style and requirements...
+            </p>
+          </div>
+        )}
+
         {isLoading ? (
           Array(3).fill(0).map((_, i) => (
             <div key={i} className="bg-white rounded-md p-3 mb-3 shadow-card border border-gray-200">
