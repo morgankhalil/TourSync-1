@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 
 export default function TopNav() {
-  const { activeVenue } = useActiveVenue();
+  const { venueData } = useActiveVenue();
 
   return (
     <header className="h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -44,9 +44,9 @@ export default function TopNav() {
             <Bell className="h-5 w-5" />
           </button>
 
-          {activeVenue && (
+          {venueData && (
             <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full">
-              <span className="text-sm font-medium">{activeVenue.name}</span>
+              <span className="text-sm font-medium">{venueData.name}</span>
             </div>
           )}
         </div>

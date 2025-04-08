@@ -464,3 +464,4 @@ const Dashboard: React.FC = () => {
 };
 
 export { Dashboard };
+export default Dashboard;

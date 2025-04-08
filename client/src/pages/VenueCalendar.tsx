@@ -13,7 +13,7 @@ import { CalendarDays, Music, MapPin, ArrowRight } from 'lucide-react';
 
 
 const VenueCalendar: React.FC = () => {
-  const { venue } = useActiveVenue();
+  const { venueData: venue } = useActiveVenue();
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [activeTab, setActiveTab] = useState("upcoming");
 

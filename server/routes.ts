@@ -15,6 +15,7 @@ import { registerVenueRoutes } from "./routes/venue-routes";
 import { registerVenuesDirectRoutes } from "./routes/venues-direct";
 import venuesApiRouter from "./routes/venues-api";
 import { registerVenueNetworkRoutes } from "./routes/venue-network";
+import envVarsRouter from "./routes/env-vars";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register API-specific routes
@@ -24,6 +25,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerVenuesDirectRoutes(app);
   app.use('/api/venues', venuesApiRouter);
   registerVenueNetworkRoutes(app);
+  app.use('/api/env-vars', envVarsRouter);
 
   // Artist routes
   app.get("/api/artists", async (req: Request, res: Response) => {

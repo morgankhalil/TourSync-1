@@ -2,6 +2,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useActiveVenue } from '@/hooks/useActiveVenue';
+import { Venue } from '@/hooks/useVenues';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 export function VenueSelector() {
@@ -16,7 +17,7 @@ export function VenueSelector() {
     }
   });
 
-  const { activeVenue, setActiveVenue } = useActiveVenue();
+  const { venueData, setActiveVenueId } = useActiveVenue();
 
   if (isLoading) {
     return <div>Loading venues...</div>;
@@ -28,17 +29,16 @@ export function VenueSelector() {
 
   return (
     <Select 
-      value={activeVenue?.id?.toString() || ''} 
+      value={venueData?.id?.toString() || ''} 
       onValueChange={(value) => {
-        const venue = venues.find(v => v.id.toString() === value);
-        setActiveVenue(venue);
+        setActiveVenueId(value);
       }}
     >
       <SelectTrigger className="w-[200px]">
         <SelectValue placeholder="Select a venue" />
       </SelectTrigger>
       <SelectContent>
-        {venues.map((venue) => (
+        {venues.map((venue: Venue) => (
           <SelectItem key={venue.id} value={venue.id.toString()}>
             {venue.name}
           </SelectItem>

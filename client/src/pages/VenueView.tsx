@@ -171,4 +171,4 @@ const VenueView = () => {
   );
 };
 
-export default VenueView;
+export { VenueView };

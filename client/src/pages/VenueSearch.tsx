@@ -721,4 +721,4 @@ const VenueSearch = () => {
   );
 };
 
-export default VenueSearch;
+export { VenueSearch };

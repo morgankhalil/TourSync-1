@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
 
 const EditVenue = () => {
-  const { activeVenue, isLoading } = useActiveVenue();
+  const { venueData: activeVenue, isLoading } = useActiveVenue();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();

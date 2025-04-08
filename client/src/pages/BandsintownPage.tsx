@@ -17,3 +17,5 @@ export function BandsintownPage() {
     </SidebarLayout>
   );
 }
+
+export default BandsintownPage;
