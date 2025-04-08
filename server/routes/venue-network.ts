@@ -632,61 +632,62 @@ export async function registerVenueNetworkRoutes(app: any) {
       // Create database records for valid clusters
       const createdClusters = [];
 
-      for (let i = 0; i < clusters.length; i++) {
-        const cluster = clusters[i];
-        const centerVenue = cluster.center;
+      try {
+        for (let i = 0; i < clusters.length; i++) {
+          const cluster = clusters[i];
+          const centerVenue = cluster.center;
 
-        // Insert cluster record
-        const clusterResult = await db.insert(venueClusters).values({
-          name: `${namePrefix} ${i + 1}`,
-          description: `Automatic cluster centered around ${centerVenue.name}`,
-          centerLatitude: centerVenue.latitude,
-          centerLongitude: centerVenue.longitude,
-          radiusKm: distanceThresholdKm
-          // Let the database handle timestamps
-        }).returning();
+          // Insert cluster record
+          const clusterResult = await db.insert(venueClusters).values({
+            name: `${namePrefix} ${i + 1}`,
+            description: `Automatic cluster centered around ${centerVenue.name}`,
+            centerLatitude: centerVenue.latitude,
+            centerLongitude: centerVenue.longitude,
+            radiusKm: distanceThresholdKm
+            // Let the database handle timestamps
+          }).returning();
 
-        const clusterId = clusterResult[0].id;
+          const clusterId = clusterResult[0].id;
 
-        // Add members to cluster
-        for (const member of cluster.members) {
-          await db.insert(venueClusterMembers).values({
-            clusterId,
-            venueId: member.id
-            // Let the database handle addedAt timestamp
-          });
+          // Add members to cluster
+          for (const member of cluster.members) {
+            await db.insert(venueClusterMembers).values({
+              clusterId,
+              venueId: member.id
+              // Let the database handle addedAt timestamp
+            });
+          }
+
+          // Get the complete cluster with members
+          const completeCluster = await db
+            .select()
+            .from(venueClusters)
+            .where(eq(venueClusters.id, clusterId));
+
+          const members = await db
+            .select()
+            .from(venueClusterMembers)
+            .leftJoin(venues, eq(venueClusterMembers.venueId, venues.id))
+            .where(eq(venueClusterMembers.clusterId, clusterId));
+
+          completeCluster[0].members = members.map(m => ({
+            ...m.venue_cluster_members,
+            venue: m.venues
+          }));
+
+          createdClusters.push(completeCluster[0]);
         }
 
-        // Get the complete cluster with members
-        const completeCluster = await db
-          .select()
-          .from(venueClusters)
-          .where(eq(venueClusters.id, clusterId));
-
-        const members = await db
-          .select()
-          .from(venueClusterMembers)
-          .leftJoin(venues, eq(venueClusterMembers.venueId, venues.id))
-          .where(eq(venueClusterMembers.clusterId, clusterId));
-
-        completeCluster[0].members = members.map(m => ({
-          ...m.venue_cluster_members,
-          venue: m.venues
-        }));
-
-        createdClusters.push(completeCluster[0]);
+        res.status(201).json({
+          clusters: createdClusters,
+          totalClusters: createdClusters.length,
+          totalVenuesAssigned: assignedVenues.size
+        });
+      } catch (error) {
+        console.error("Error generating automatic clusters:", error);
+        res.status(500).json({ error: "Failed to generate automatic clusters" });
       }
-
-      res.status(201).json({
-        clusters: createdClusters,
-        totalClusters: createdClusters.length,
-        totalVenuesAssigned: assignedVenues.size
-      });
-    } catch (error) {
-      console.error("Error generating automatic clusters:", error);
-      res.status(500).json({ error: "Failed to generate automatic clusters" });
-    }
-  });
+    });
 
   /**
    * Routing Patterns API
