@@ -497,6 +497,10 @@ export async function registerVenueNetworkRoutes(app: any) {
 
   app.post("/api/venue-network/auto-cluster", async (req: Request, res: Response) => {
     try {
+      // First, delete all existing clusters and their members
+      await db.delete(venueClusterMembers);
+      await db.delete(venueClusters);
+
       const {
         distanceThresholdKm = 100,
         minVenuesPerCluster = 2,
