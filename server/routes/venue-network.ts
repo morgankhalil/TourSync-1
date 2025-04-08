@@ -368,15 +368,13 @@ export async function registerVenueNetworkRoutes(app: any) {
         return res.status(400).json({ error: "Name is required" });
       }
 
-      const createdAt = new Date().toISOString();
-
       const result = await db.insert(venueClusters).values({
         name,
         description: description || null,
         centerLatitude: centerLatitude || null,
         centerLongitude: centerLongitude || null,
         radiusKm: radiusKm || null,
-        createdAt,
+        createdAt: new Date(),
         updatedAt: null
       }).returning();
 
