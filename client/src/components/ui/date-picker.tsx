@@ -34,12 +34,15 @@ export function DatePicker({ date, setDate, className }: DatePickerProps) {
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={setDate}
-            initialFocus
-          />
+          {/* Wrap calendar in div to prevent button nesting issues with the sidebar venue selector */}
+          <div className="calendar-wrapper">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={setDate}
+              initialFocus
+            />
+          </div>
         </PopoverContent>
       </Popover>
     </div>

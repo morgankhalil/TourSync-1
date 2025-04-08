@@ -22,11 +22,14 @@ const TourCalendar: React.FC<TourCalendarProps> = ({ tour, tourDates }) => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <Calendar
-            mode="multiple"
-            selected={tourDates.map(date => new Date(date.date))}
-            className="rounded-md border"
-          />
+          {/* Wrap calendar in div to prevent button nesting issues with the sidebar venue selector */}
+          <div className="calendar-wrapper">
+            <Calendar
+              mode="multiple"
+              selected={tourDates.map(date => new Date(date.date))}
+              className="rounded-md border"
+            />
+          </div>
           <Button onClick={handleExportCalendar} className="w-full">
             Export to Calendar
           </Button>

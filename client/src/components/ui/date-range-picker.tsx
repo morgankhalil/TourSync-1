@@ -50,14 +50,17 @@ export function DateRangePicker({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            initialFocus
-            mode="range"
-            defaultMonth={dateRange?.from}
-            selected={dateRange}
-            onSelect={onDateRangeChange}
-            numberOfMonths={2}
-          />
+          {/* Wrap calendar in div to prevent button nesting issues with the sidebar venue selector */}
+          <div className="calendar-wrapper">
+            <Calendar
+              initialFocus
+              mode="range"
+              defaultMonth={dateRange?.from}
+              selected={dateRange}
+              onSelect={onDateRangeChange}
+              numberOfMonths={2}
+            />
+          </div>
         </PopoverContent>
       </Popover>
     </div>

@@ -91,22 +91,25 @@ const EventCalendar = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={setDate}
-              className="rounded-md border mx-auto"
-              modifiers={{
-                event: getEventDates()
-              }}
-              modifiersStyles={{
-                event: {
-                  fontWeight: 'bold',
-                  backgroundColor: 'hsl(var(--primary) / 0.1)',
-                  color: 'hsl(var(--primary))'
-                }
-              }}
-            />
+            {/* Wrap calendar in div to prevent button nesting issues with the sidebar venue selector */}
+            <div className="calendar-wrapper">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={setDate}
+                className="rounded-md border mx-auto"
+                modifiers={{
+                  event: getEventDates()
+                }}
+                modifiersStyles={{
+                  event: {
+                    fontWeight: 'bold',
+                    backgroundColor: 'hsl(var(--primary) / 0.1)',
+                    color: 'hsl(var(--primary))'
+                  }
+                }}
+              />
+            </div>
           </CardContent>
         </Card>
 
