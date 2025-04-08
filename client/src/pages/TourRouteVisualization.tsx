@@ -128,7 +128,7 @@ const TourRouteVisualization = () => {
         // If the date has a venueId, fetch venue data
         if (date.venueId) {
           try {
-            const response = await fetch(`/api/venues/${date.venueId}`);
+            const response = await fetch(`/api/venues-direct/${date.venueId}`);
             const venue = await response.json();
             
             if (venue && venue.latitude && venue.longitude) {
