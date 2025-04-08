@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
-import { useSidebar } from "@/context/SidebarContext";
+import { useSidebar } from "@/components/ui/sidebar";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import VenueSidebar from "./VenueSidebar";
 

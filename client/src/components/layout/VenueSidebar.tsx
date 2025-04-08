@@ -1,6 +1,6 @@
 
 import { Plus, Calendar, MoreVertical, Zap, X, Menu, Users } from "lucide-react";
-import { useSidebar } from "@/context/SidebarContext";
+import { useSidebar } from "@/components/ui/sidebar";
 import VenueBookingsList from "@/components/venue/VenueBookingsList";
 import { Badge } from "@/components/ui/badge";
 import { format, addDays } from "date-fns";
