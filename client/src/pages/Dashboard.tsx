@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'wouter';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -97,7 +97,7 @@ const EventCard: React.FC<EventCardProps> = ({ id, artistName, venueName, locati
         <div className="flex justify-between items-start">
           <CardTitle className="text-lg truncate">{artistName}</CardTitle>
           {collaborationOpen && (
-            <Badge variant="success" className="text-xs">Open for Collab</Badge>
+            <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">Open for Collab</Badge>
           )}
         </div>
         <CardDescription className="truncate">{venueName}</CardDescription>
@@ -145,10 +145,10 @@ const RequestCard: React.FC<RequestCardProps> = ({ id, artistName, message, type
           <Badge 
             variant={
               status === 'pending' ? 'outline' : 
-              status === 'accepted' ? 'success' : 
+              status === 'accepted' ? 'secondary' : 
               'destructive'
             }
-            className="text-xs"
+            className={`text-xs ${status === 'accepted' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : ''}`}
           >
             {status.charAt(0).toUpperCase() + status.slice(1)}
           </Badge>
@@ -172,59 +172,21 @@ const RequestCard: React.FC<RequestCardProps> = ({ id, artistName, message, type
 };
 
 const Dashboard: React.FC = () => {
+  // Track which tab is active to only load data for visible content
+  const [activeTab, setActiveTab] = useState('artists');
+  
+  // Basic artist data - prioritize loading this first
   const { data: artists, isLoading: isLoadingArtists } = useQuery({ 
     queryKey: ['/api/artists'],
     queryFn: async () => {
       const response = await fetch('/api/artists?limit=3');
       if (!response.ok) throw new Error('Failed to fetch artists');
       return response.json();
-    }
-  });
-
-  const { data: eventData, isLoading: isLoadingEvents } = useQuery({ 
-    queryKey: ['/api/events'],
-    queryFn: async () => {
-      const today = new Date();
-      const threeMonthsFromNow = new Date();
-      threeMonthsFromNow.setMonth(today.getMonth() + 3);
-      
-      const response = await fetch(`/api/events?startDate=${today.toISOString()}&endDate=${threeMonthsFromNow.toISOString()}`);
-      if (!response.ok) throw new Error('Failed to fetch events');
-      return response.json();
-    }
-  });
-
-  const { data: compatibleArtists, isLoading: isLoadingCompatible } = useQuery({ 
-    queryKey: ['/api/artists/1/compatibility'],
-    queryFn: async () => {
-      // Using the correct numeric artist ID from the database
-      const response = await fetch('/api/artists/1/compatibility?minScore=50');
-      if (!response.ok) throw new Error('Failed to fetch compatible artists');
-      return response.json();
     },
-    enabled: !!artists // Only run this query once we have artists data
+    staleTime: 60000, // Cache data for 1 minute
   });
 
-  const { data: collaborationRequests, isLoading: isLoadingRequests } = useQuery({ 
-    queryKey: ['/api/collaboration-requests'],
-    queryFn: async () => {
-      // Using the correct numeric artist ID
-      const response = await fetch('/api/collaboration-requests?artistId=1&type=received');
-      if (!response.ok) throw new Error('Failed to fetch requests');
-      return response.json();
-    }
-  });
-
-  const { data: opportunities, isLoading: isLoadingOpportunities } = useQuery({ 
-    queryKey: ['/api/artists/1/collaboration-opportunities'],
-    queryFn: async () => {
-      // Using the correct numeric artist ID
-      const response = await fetch('/api/artists/1/collaboration-opportunities?maxDistance=100');
-      if (!response.ok) throw new Error('Failed to fetch opportunities');
-      return response.json();
-    }
-  });
-
+  // Optimization: Load statistics in a single API call instead of separate requests
   const { data: statistics, isLoading: isLoadingStats } = useQuery({ 
     queryKey: ['/api/artists/1/statistics'],
     queryFn: async () => {
@@ -232,7 +194,44 @@ const Dashboard: React.FC = () => {
       const response = await fetch('/api/artists/1/statistics');
       if (!response.ok) throw new Error('Failed to fetch statistics');
       return response.json();
-    }
+    },
+    staleTime: 60000, // Cache data for 1 minute
+  });
+
+  // Only load compatible artists when artists tab is active
+  const { data: compatibleArtists, isLoading: isLoadingCompatible } = useQuery({ 
+    queryKey: ['/api/artists/1/compatibility'],
+    queryFn: async () => {
+      const response = await fetch('/api/artists/1/compatibility?minScore=50');
+      if (!response.ok) throw new Error('Failed to fetch compatible artists');
+      return response.json();
+    },
+    enabled: activeTab === 'artists', // Only run when this tab is active
+    staleTime: 60000, // Cache data for 1 minute
+  });
+
+  // Only load opportunities when that tab is active
+  const { data: opportunities, isLoading: isLoadingOpportunities } = useQuery({ 
+    queryKey: ['/api/artists/1/collaboration-opportunities'],
+    queryFn: async () => {
+      const response = await fetch('/api/artists/1/collaboration-opportunities?maxDistance=100');
+      if (!response.ok) throw new Error('Failed to fetch opportunities');
+      return response.json();
+    },
+    enabled: activeTab === 'opportunities', // Only run when this tab is active
+    staleTime: 60000, // Cache data for 1 minute
+  });
+
+  // Only load requests when that tab is active
+  const { data: collaborationRequests, isLoading: isLoadingRequests } = useQuery({ 
+    queryKey: ['/api/collaboration-requests'],
+    queryFn: async () => {
+      const response = await fetch('/api/collaboration-requests?artistId=1&type=received');
+      if (!response.ok) throw new Error('Failed to fetch requests');
+      return response.json();
+    },
+    enabled: activeTab === 'requests', // Only run when this tab is active
+    staleTime: 60000, // Cache data for 1 minute
   });
 
   return (
@@ -300,7 +299,10 @@ const Dashboard: React.FC = () => {
       </div>
       
       {/* Main Content */}
-      <Tabs defaultValue="artists">
+      <Tabs 
+        defaultValue="artists" 
+        onValueChange={(value) => setActiveTab(value)}
+      >
         <TabsList className="mb-6">
           <TabsTrigger value="artists" className="flex items-center gap-2">
             <Users size={16} />
