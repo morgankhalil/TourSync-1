@@ -2,20 +2,54 @@
 
 ## Current Implementation Overview
 
-The platform currently has several key components spread across multiple files:
+The platform consists of several interconnected systems:
 
-1. **Discovery Services:**
-   - `server/services/bandsintown-discovery.ts`
-   - `server/services/bandsintown-api.ts`
-   - `client/src/pages/OpportunityDiscovery.tsx`
+1. **Authentication & User Management:**
+   - Supabase Authentication (`contexts/SupabaseAuthContext.tsx`)
+   - Role-based Access Control (`services/userRoleService.ts`)
+   - Protected Routes (`components/auth/ProtectedRoute.tsx`)
 
-2. **Data Integration:**
-   - `server/integrations/bandsintown.ts`
-   - `server/scripts/importEmptyBottleEvents.ts`
+2. **Discovery Services:**
+   - Bandsintown Integration (`services/bandsintown-discovery.ts`)
+   - Artist Discovery Algorithm (`services/bandsintown-discovery-enhanced.ts`)
+   - Venue Network Analysis (`services/venue-network-service.ts`)
+   - AI Recommendations (`services/ai-recommendations.ts`)
 
-3. **UI Components:**
-   - `client/src/components/venue/VenueDiscoveryPanel.tsx`
-   - `client/src/components/maps/EnhancedBandMapView.tsx`
+3. **Data Management:**
+   - PostgreSQL Database (`storage/database.ts`)
+   - Object Storage (`storage/object-storage.ts`)
+   - Data Migration Scripts (`scripts/migrate.ts`)
+   - Real-time Updates (Supabase)
+
+4. **Tour Management:**
+   - Tour Planning (`pages/TourPlanningWizard.tsx`)
+   - Route Optimization (`pages/TourRouteVisualization.tsx`)
+   - Calendar Integration (`components/tour/TourCalendar.tsx`)
+   - Availability Management (`pages/VenueAvailability.tsx`)
+
+5. **Venue Network:**
+   - Venue Discovery (`components/venue/VenueDiscoveryPanel.tsx`)
+   - Performance Analytics (`components/venue/PastPerformancesManager.tsx`)
+   - Booking Management (`components/venue/VenueBookingsList.tsx`)
+   - Geographic Analysis (`utils/geo-utils.ts`)
+
+6. **Maps & Visualization:**
+   - Google Maps Integration (`components/maps/MapView.tsx`)
+   - Tour Path Animation (`components/maps/AnimatedTourPath.tsx`)
+   - Interactive Venue Maps (`components/maps/VenueMapView.tsx`)
+   - Region Analysis (`utils/region-utils.ts`)
+
+7. **UI Framework:**
+   - React Components (`components/ui/*`)
+   - Responsive Layouts (`components/layout/*`)
+   - Theme System (`theme.json`)
+   - Toast Notifications (`components/ui/toast.tsx`)
+
+8. **API Integration:**
+   - Bandsintown API (`services/bandsintown-api.ts`)
+   - MusicBrainz API (`services/musicbrainz-api.ts`)
+   - Express Backend (`server/index.ts`)
+   - Route Handlers (`server/routes/*`)
 
 ## Potential Issues
 
