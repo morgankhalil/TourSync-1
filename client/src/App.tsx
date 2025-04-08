@@ -32,8 +32,8 @@ export default function App() {
     // Single QueryClientProvider at the root
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <SidebarProvider>
-          <ActiveVenueProvider>
+        <ActiveVenueProvider>
+          <SidebarProvider>
             <Switch>
               {/* Authentication Routes */}
               <Route path="/login" component={LoginPage} />
@@ -83,8 +83,8 @@ export default function App() {
                 </ProtectedRoute>
               </Route>
             </Switch>
-          </ActiveVenueProvider>
-        </SidebarProvider>
+          </SidebarProvider>
+        </ActiveVenueProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
