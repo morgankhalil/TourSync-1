@@ -24,7 +24,7 @@ import { Separator } from "@/components/ui/separator";
 import { getFitDescription, generateRoutingDescription, getDaysDescription, getDetourDescription } from "@/lib/routing-utils";
 import { useQueryClient } from "@tanstack/react-query";
 
-export default function EnhancedArtistDiscovery() {
+export function EnhancedArtistDiscovery() {
   // Use the venue property from context for consistency
   const { venue: activeVenue, venueId } = useActiveVenue();
   const { toast } = useToast();

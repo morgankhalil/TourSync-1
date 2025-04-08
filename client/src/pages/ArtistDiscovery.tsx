@@ -461,4 +461,4 @@ const ArtistDiscovery: React.FC = () => {
   );
 };
 
-export default ArtistDiscovery;
+export { ArtistDiscovery };
