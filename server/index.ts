@@ -71,9 +71,13 @@ app.use((req, res, next) => {
   }
 
   const port = process.env.PORT || 5000;
-  app.listen(port, '0.0.0.0', () => {
+  const server = app.listen(port, '0.0.0.0', () => {
     console.log(`Server running at http://0.0.0.0:${port}`);
-  }).on('error', (err) => {
-    console.error('Server error:', err);
   });
+
+  if (process.env.NODE_ENV === 'development') {
+    await setupVite(app, server);
+  } else {
+    serveStatic(app);
+  }
 })();

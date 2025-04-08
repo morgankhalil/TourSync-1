@@ -1,17 +1,11 @@
-
 import React, { useState } from 'react';
 import { useLocation } from 'wouter';
 import TopNav from './TopNav';
 import Sidebar from './Sidebar';
 import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet';
 import { Button } from '../ui/button';
+import { Menu, PlusCircle, Calendar, Music } from 'lucide-react';
 import { useActiveVenue } from '@/hooks/useActiveVenue';
-import { 
-  PlusCircle, 
-  Calendar, 
-  Music,
-  Menu
-} from 'lucide-react';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
