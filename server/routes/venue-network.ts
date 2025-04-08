@@ -575,7 +575,10 @@ export async function registerVenueNetworkRoutes(app: any) {
         totalClusters: createdClusters.length,
         totalVenuesAssigned: allVenues.length
       });
-        if (assignedVenues.has(venue.id)) continue;
+    } catch (error) {
+      console.error("Error generating automatic clusters:", error);
+      res.status(500).json({ error: "Failed to generate automatic clusters" });
+    }
 
         // Start a new potential cluster with this venue as the center
         const clusterMembers = [venue];
