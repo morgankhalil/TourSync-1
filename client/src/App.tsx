@@ -1,3 +1,4 @@
+
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Route, Switch } from "wouter";
 import { queryClient } from "./lib/queryClient";
@@ -20,12 +21,11 @@ import ProfilePage from './pages/ProfilePage';
 import SettingsPage from './pages/SettingsPage';
 import VenueView from './pages/VenueView';
 
-
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="system" enableSystem>
-        <AuthProvider>
+      <AuthProvider>
+        <ThemeProvider defaultTheme="system" enableSystem>
           <ActiveVenueProvider>
             <div className="min-h-screen">
               <Toaster />
@@ -51,8 +51,8 @@ export default function App() {
                 </Route>
               </Switch>
             </div>
-          </ThemeProvider>
-        </ActiveVenueProvider>
+          </ActiveVenueProvider>
+        </ThemeProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
