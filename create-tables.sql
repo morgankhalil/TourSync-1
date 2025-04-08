@@ -76,3 +76,17 @@ CREATE TABLE venue_clusters (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP
 );
+
+-- Add missing columns if they don't exist
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'venue_clusters' AND column_name = 'region_code') THEN
+    ALTER TABLE venue_clusters ADD COLUMN region_code TEXT NOT NULL DEFAULT 'UNKNOWN';
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'venue_clusters' AND column_name = 'is_static') THEN
+    ALTER TABLE venue_clusters ADD COLUMN is_static BOOLEAN DEFAULT false;
+  END IF;
+END $$;
