@@ -46,6 +46,7 @@ export const events = pgTable("events", {
   longitude: text("longitude").notNull(),
   eventDate: timestamp("event_date").notNull(),
   ticketUrl: text("ticket_url"),
+  posterUrl: text("poster_url"), // Tour poster image URL
   collaborationOpen: boolean("collaboration_open").default(false),
   createdAt: timestamp("created_at").defaultNow()
 });

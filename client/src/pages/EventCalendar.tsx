@@ -152,17 +152,24 @@ const EventCalendar = () => {
                     
                     return (
                       <div key={event.id} className="flex gap-4 p-4 border rounded-lg">
-                        {artist?.imageUrl ? (
-                          <img 
-                            src={artist.imageUrl} 
-                            alt={artist.name}
-                            className="h-16 w-16 rounded-md object-cover"
-                          />
-                        ) : (
-                          <div className="h-16 w-16 rounded-md bg-primary/10 flex items-center justify-center">
+                        {/* Tour poster - use a music-themed placeholder if no image */}
+                        <div className="h-16 w-16 rounded-md bg-primary/10 flex items-center justify-center overflow-hidden">
+                          {event.posterUrl ? (
+                            <img 
+                              src={event.posterUrl} 
+                              alt={`${artist?.name || 'Event'} tour poster`}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : artist?.imageUrl ? (
+                            <img 
+                              src={artist.imageUrl} 
+                              alt={artist.name}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
                             <Music className="h-6 w-6 text-primary/50" />
-                          </div>
-                        )}
+                          )}
+                        </div>
                         
                         <div className="flex-1">
                           <div className="flex justify-between">

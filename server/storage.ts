@@ -994,7 +994,8 @@ export class MemStorage implements IStorage {
         eventDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
         ticketUrl: "https://tickets.com/event1",
         collaborationOpen: true,
-        createdAt: new Date()
+        createdAt: new Date(),
+        posterUrl: "https://example.com/melodic_harmony_tour.jpg" // Adding tour poster
       },
       {
         id: "evt2",
@@ -1008,7 +1009,8 @@ export class MemStorage implements IStorage {
         eventDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
         ticketUrl: "https://tickets.com/event2",
         collaborationOpen: true,
-        createdAt: new Date()
+        createdAt: new Date(),
+        posterUrl: "https://example.com/electronic_dreams_tour.jpg" // Adding tour poster
       },
       {
         id: "evt3",
@@ -1022,7 +1024,8 @@ export class MemStorage implements IStorage {
         eventDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000), // 10 days from now
         ticketUrl: "https://tickets.com/event3",
         collaborationOpen: false,
-        createdAt: new Date()
+        createdAt: new Date(),
+        posterUrl: "https://example.com/rhythm_collective_tour.jpg" // Adding tour poster
       }
     ];
     
