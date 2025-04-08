@@ -1,3 +1,4 @@
+
 import { 
   Calendar, 
   Clock, 
@@ -13,7 +14,9 @@ import {
   Home,
   Building2,
   Settings,
-  Compass
+  Compass,
+  Star,
+  UserCircle
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
@@ -31,53 +34,105 @@ interface SidebarProps {
 
 const navItems = [
   {
-    title: "Home",
-    href: "/",
-    icon: Home,
+    title: "Main",
+    items: [
+      {
+        title: "Home",
+        href: "/",
+        icon: Home,
+      },
+      {
+        title: "Dashboard",
+        href: "/dashboard",
+        icon: BarChart3,
+      }
+    ]
   },
   {
-    title: "Dashboard",
-    href: "/dashboard",
-    icon: BarChart3,
-  },
-  {
-    title: "Calendar",
-    href: "/calendar",
-    icon: Calendar,
+    title: "Venue Management",
+    items: [
+      {
+        title: "Venues",
+        href: "/venues",
+        icon: Building2,
+      },
+      {
+        title: "Calendar",
+        href: "/venue-calendar",
+        icon: Calendar,
+      },
+      {
+        title: "Availability",
+        href: "/venue-availability",
+        icon: Clock,
+      }
+    ]
   },
   {
     title: "Artist Discovery",
-    href: "/discovery",
-    icon: Music,
+    items: [
+      {
+        title: "Discover Artists",
+        href: "/artist-discovery",
+        icon: Search,
+      },
+      {
+        title: "Enhanced Discovery",
+        href: "/enhanced-artist-discovery",
+        icon: Star,
+      },
+      {
+        title: "Bandsintown Import",
+        href: "/bandsintown-import",
+        icon: Music,
+      },
+      {
+        title: "Opportunities",
+        href: "/opportunity-discovery",
+        icon: Compass,
+      }
+    ]
   },
   {
-    title: "Tour Manager",
-    href: "/tours",
-    icon: Route,
+    title: "Tour Planning",
+    items: [
+      {
+        title: "Tour Dashboard",
+        href: "/tour-dashboard",
+        icon: Route,
+      },
+      {
+        title: "Create Tour",
+        href: "/create-tour",
+        icon: MapPin,
+      },
+      {
+        title: "Tour Wizard",
+        href: "/tour-planning-wizard",
+        icon: LineChart,
+      }
+    ]
   },
   {
-    title: "Venues",
-    href: "/venues",
-    icon: Building2,
-  },
-  {
-    title: "Messages",
-    href: "/messages",
-    icon: MessageSquareText,
-    badge: "4"
-  },
-  {
-    title: "Analytics",
-    href: "/analytics",
-    icon: LineChart,
-  },
+    title: "Account",
+    items: [
+      {
+        title: "Profile",
+        href: "/profile",
+        icon: UserCircle,
+      },
+      {
+        title: "Settings",
+        href: "/settings",
+        icon: Settings,
+      }
+    ]
+  }
 ];
 
 const Sidebar = ({ onNavClick }: SidebarProps) => {
   const [location] = useLocation();
   const { activeVenue } = useActiveVenue();
-  
-  console.log("Sidebar - Active Venue:", activeVenue);
 
   // Helper to check if a navigation item is active
   const isActive = (path: string) => {
@@ -85,13 +140,6 @@ const Sidebar = ({ onNavClick }: SidebarProps) => {
     if (path !== "/" && location.startsWith(path)) return true;
     return false;
   };
-
-  // Generate mock upcoming shows for the sidebar
-  const upcomingShows = [
-    { id: 1, name: "Electric Dreams", date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), status: "confirmed" },
-    { id: 2, name: "Midnight Echoes", date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), status: "confirmed" },
-    { id: 3, name: "Velvet Thunder", date: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000), status: "pending" },
-  ];
 
   return (
     <ScrollArea className="h-full py-3">
@@ -128,97 +176,37 @@ const Sidebar = ({ onNavClick }: SidebarProps) => {
           </div>
         )}
 
-        {/* Main Navigation */}
-        <div className="space-y-1 py-2">
-          <div className="text-xs font-medium text-muted-foreground px-2 mb-2">
-            Main
-          </div>
-          <TooltipProvider delayDuration={0}>
-            {navItems.map((item) => (
-              <Tooltip key={item.href}>
-                <TooltipTrigger asChild>
-                  <Link href={item.href}>
-                    <Button
-                      variant={isActive(item.href) ? "secondary" : "ghost"}
-                      className={cn(
-                        "w-full justify-start gap-3",
-                        isActive(item.href) && "bg-secondary font-medium"
-                      )}
-                      onClick={onNavClick}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                      {item.badge && (
-                        <Badge variant="default" className="ml-auto h-5 px-1.5 bg-primary">
-                          {item.badge}
-                        </Badge>
-                      )}
-                    </Button>
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent side="right">{item.title}</TooltipContent>
-              </Tooltip>
-            ))}
-          </TooltipProvider>
-        </div>
-        
-        <Separator className="my-4" />
-        
-        {/* Upcoming Shows */}
-        <div className="space-y-2">
-          <div className="text-xs font-medium text-muted-foreground px-2 pb-2">
-            Upcoming Shows
-          </div>
-          
-          {upcomingShows.length > 0 ? (
-            <div className="space-y-2 px-2">
-              {upcomingShows.map((show) => (
-                <div
-                  key={show.id}
-                  className="flex items-start justify-between rounded-md border p-2 text-sm"
-                >
-                  <div className="space-y-1">
-                    <p className="font-medium truncate pr-4">{show.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {show.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    </p>
-                  </div>
-                  <Badge variant={show.status === 'confirmed' ? 'default' : 'outline'} className="text-xs">
-                    {show.status}
-                  </Badge>
-                </div>
+        {/* Navigation Groups */}
+        {navItems.map((group, index) => (
+          <div key={group.title} className="space-y-1">
+            <div className="text-xs font-medium text-muted-foreground px-2 mb-2">
+              {group.title}
+            </div>
+            <TooltipProvider delayDuration={0}>
+              {group.items.map((item) => (
+                <Tooltip key={item.href}>
+                  <TooltipTrigger asChild>
+                    <Link href={item.href}>
+                      <Button
+                        variant={isActive(item.href) ? "secondary" : "ghost"}
+                        className={cn(
+                          "w-full justify-start gap-3",
+                          isActive(item.href) && "bg-secondary font-medium"
+                        )}
+                        onClick={onNavClick}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Button>
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">{item.title}</TooltipContent>
+                </Tooltip>
               ))}
-              
-              <Link href="/performances">
-                <Button variant="ghost" size="sm" className="w-full text-xs">
-                  View All Shows
-                </Button>
-              </Link>
-            </div>
-          ) : (
-            <div className="text-center py-3 px-2">
-              <p className="text-xs text-muted-foreground">No upcoming shows</p>
-            </div>
-          )}
-        </div>
-        
-        <Separator className="my-4" />
-        
-        {/* Settings & Help */}
-        <div className="space-y-1 py-2">
-          <Link href="/settings">
-            <Button variant="ghost" className="w-full justify-start gap-3">
-              <Settings className="h-4 w-4" />
-              <span>Settings</span>
-            </Button>
-          </Link>
-          <Link href="/help">
-            <Button variant="ghost" className="w-full justify-start gap-3">
-              <Compass className="h-4 w-4" />
-              <span>Help & Resources</span>
-            </Button>
-          </Link>
-        </div>
+            </TooltipProvider>
+            {index < navItems.length - 1 && <Separator className="my-4" />}
+          </div>
+        ))}
       </div>
     </ScrollArea>
   );
