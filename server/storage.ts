@@ -20,9 +20,9 @@ function calculateGenreSimilarity(genres1: string[], genres2: string[]): number 
   return intersection.size / (set1.size + set2.size - intersection.size);
 }
 
-// Calculate distance between two points using Haversine formula
+// Calculate distance between two points using Haversine formula (returns distance in miles)
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371; // Earth's radius in km
+  const R = 3958.8; // Earth's radius in miles (rather than 6371 km)
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
   const a = 
@@ -93,25 +93,29 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getArtists(options?: { limit?: number; genres?: string[] }): Promise<Artist[]> {
-    let query = db.select().from(artists);
-    
-    // No easy way to filter JSON arrays in drizzle yet, so we'll do basic filtering
-    const artists = await query;
-    
-    // Filter by genres if provided
-    if (options?.genres && options.genres.length > 0) {
-      return artists.filter(artist => {
-        if (!artist.genres || !artist.genres.length) return false;
-        return options.genres!.some(genre => artist.genres!.includes(genre));
-      });
+    try {
+      // First fetch all artists
+      const allArtists = await db.select().from(artists);
+      
+      // Filter by genres if provided
+      let filteredArtists = allArtists;
+      if (options?.genres && options.genres.length > 0) {
+        filteredArtists = allArtists.filter(artist => {
+          if (!artist.genres || !artist.genres.length) return false;
+          return options.genres!.some(genre => artist.genres!.includes(genre));
+        });
+      }
+      
+      // Apply limit if provided
+      if (options?.limit && options.limit > 0) {
+        return filteredArtists.slice(0, options.limit);
+      }
+      
+      return filteredArtists;
+    } catch (error) {
+      console.error("Error in getArtists:", error);
+      return [];
     }
-    
-    // Apply limit if provided
-    if (options?.limit && options.limit > 0) {
-      return artists.slice(0, options.limit);
-    }
-    
-    return artists;
   }
 
   async createArtist(artist: InsertArtist): Promise<Artist> {
