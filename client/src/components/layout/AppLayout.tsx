@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { Link, useLocation } from 'wouter';
-import { Music, Users, Calendar, MessageSquare, Search, Home } from 'lucide-react';
+import { Music, Users, Calendar, MessageSquare, Search, Home, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -73,6 +73,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
             isActive={location === "/collaborations"}
           >
             Collaboration Requests
+          </NavItem>
+          <NavItem 
+            href="/ai-recommendations" 
+            icon={<Zap size={18} />} 
+            isActive={location === "/ai-recommendations"}
+          >
+            AI Recommendations
           </NavItem>
         </nav>
         

@@ -1,4 +1,4 @@
-import { Plus, Edit, Calendar, Clock, Music, Users, MapPin, Star, Mail, Settings, BarChart3, BarChart2 } from "lucide-react";
+import { Plus, Edit, Calendar, Clock, Music, Users, MapPin, Star, Mail, Settings, BarChart3, BarChart2, Zap } from "lucide-react";
 import { useSidebar } from "@/context/SidebarContext";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import { X } from "lucide-react";
@@ -96,6 +96,13 @@ const Sidebar = () => {
               <span className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${isActive("/artist-discovery") || isActive("/opportunities") || isActive("/bands") ? "bg-primary text-white" : "text-gray-700 hover:bg-gray-100"}`}>
                 <Music className="mr-2 h-4 w-4" />
                 <span>Artist Discovery</span>
+              </span>
+            </Link>
+
+            <Link href="/ai-recommendations"> {/* Added AI Recommendations link */}
+              <span className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${isActive("/ai-recommendations") ? "bg-primary text-white" : "text-gray-700 hover:bg-gray-100"}`}>
+                <Zap className="mr-2 h-4 w-4" /> {/* Added Zap icon */}
+                <span>AI Recommendations</span>
               </span>
             </Link>
 
