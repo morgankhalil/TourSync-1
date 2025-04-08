@@ -60,7 +60,7 @@ export class BandsintownIntegration {
     private artistCache: NodeCache = new NodeCache({ stdTTL: 3600 }); // 1-hour default TTL
     private pollingIntervals: Map<string, NodeJS.Timeout> = new Map();
     private priorityArtists: Set<string> = new Set();
-    
+
     constructor(apiKey: string) {
         this.apiKey = apiKey;
         this.initializeWebSocketServer();
@@ -81,7 +81,7 @@ export class BandsintownIntegration {
                     const now = new Date();
                     const lastFetched = new Date(cacheEntry.lastFetched);
                     const ageInSeconds = (now.getTime() - lastFetched.getTime()) / 1000;
-                    
+
                     // Only use cache entries less than 24 hours old
                     if (ageInSeconds < 24 * 60 * 60) {
                         this.artistCache.set(
@@ -104,14 +104,14 @@ export class BandsintownIntegration {
     private async saveCacheToStorage() {
         try {
             const cacheData: Record<string, ArtistCache> = {};
-            
+
             this.artistCache.keys().forEach(key => {
                 const value = this.artistCache.get<ArtistCache>(key);
                 if (value) {
                     cacheData[key] = value;
                 }
             });
-            
+
             await uploadFile(
                 'bandsintown-cache.json', 
                 JSON.stringify(cacheData)
@@ -142,7 +142,7 @@ export class BandsintownIntegration {
                 this.removeWebSocketClient(ws);
             });
         });
-        
+
         // Set up regular cache saving
         setInterval(() => this.saveCacheToStorage(), 15 * 60 * 1000); // Save cache every 15 minutes
     }
@@ -153,7 +153,7 @@ export class BandsintownIntegration {
             this.startArtistPolling(artistName);
         }
         this.websocketClients.get(artistName)?.push(ws);
-        
+
         // Mark as priority if there are multiple subscribers
         if ((this.websocketClients.get(artistName)?.length || 0) > 3) {
             this.priorityArtists.add(artistName);
@@ -173,7 +173,7 @@ export class BandsintownIntegration {
                         clearInterval(interval);
                         this.pollingIntervals.delete(artistName);
                     }
-                    
+
                     // Remove from priority if needed
                     if (this.priorityArtists.has(artistName)) {
                         this.priorityArtists.delete(artistName);
@@ -225,7 +225,7 @@ export class BandsintownIntegration {
      */
     async getArtist(artistName: string, forceRefresh = false) {
         const cacheKey = `artist:${artistName}`;
-        
+
         // Try to get from cache first
         if (!forceRefresh) {
             const cachedData = this.artistCache.get<ArtistCache>(cacheKey);
@@ -233,13 +233,13 @@ export class BandsintownIntegration {
                 return cachedData.artist;
             }
         }
-        
+
         try {
             const response = await axios.get(
                 `${this.baseUrl}/artists/${encodeURIComponent(artistName)}`,
                 { params: { app_id: this.apiKey } }
             );
-            
+
             // Update cache
             const existingCache = this.artistCache.get<ArtistCache>(cacheKey);
             this.artistCache.set(cacheKey, {
@@ -247,7 +247,7 @@ export class BandsintownIntegration {
                 events: existingCache?.events || [],
                 lastFetched: new Date()
             }, 24 * 60 * 60); // 24-hour TTL
-            
+
             return response.data;
         } catch (error) {
             console.error(`Error fetching artist data for ${artistName}:`, error);
@@ -260,7 +260,7 @@ export class BandsintownIntegration {
      */
     async getArtistEvents(artistName: string, forceRefresh = false) {
         const cacheKey = `artist:${artistName}`;
-        
+
         // Try to get from cache first
         if (!forceRefresh) {
             const cachedData = this.artistCache.get<ArtistCache>(cacheKey);
@@ -268,13 +268,13 @@ export class BandsintownIntegration {
                 return cachedData.events;
             }
         }
-        
+
         try {
             const response = await axios.get(
                 `${this.baseUrl}/artists/${encodeURIComponent(artistName)}/events`,
                 { params: { app_id: this.apiKey } }
             );
-            
+
             // Update cache
             const existingCache = this.artistCache.get<ArtistCache>(cacheKey);
             this.artistCache.set(cacheKey, {
@@ -282,7 +282,7 @@ export class BandsintownIntegration {
                 events: response.data,
                 lastFetched: new Date()
             }, 24 * 60 * 60); // 24-hour TTL
-            
+
             return response.data;
         } catch (error) {
             console.error(`Error fetching events for ${artistName}:`, error);
@@ -307,7 +307,7 @@ export class BandsintownIntegration {
             }
 
             const events = await this.getArtistEvents(artistName, true);
-            
+
             if (!events || events.length === 0) {
                 return {
                     band: null,
@@ -317,19 +317,19 @@ export class BandsintownIntegration {
                     message: `No events found for artist ${artistName}`
                 };
             }
-            
+
             // Create or update band
             let band = await this.findOrCreateBand(artist);
-            
+
             // Create tour
             let tour = await this.createTourFromEvents(band, events);
-            
+
             // Create tour dates
             let tourDates: TourDate[] = [];
             if (tour) {
                 tourDates = await this.createTourDates(tour, events);
             }
-            
+
             return {
                 band,
                 tour,
@@ -348,51 +348,51 @@ export class BandsintownIntegration {
             };
         }
     }
-    
+
     /**
      * Batch imports multiple artists
      */
     async batchImportArtists(artistNames: string[]): Promise<ImportResult[]> {
         const results: ImportResult[] = [];
-        
+
         for (const artistName of artistNames) {
             const result = await this.importArtistWithTourData(artistName);
             results.push(result);
         }
-        
+
         return results;
     }
-    
+
     /**
      * Extracts venues from artist events
      */
     async extractVenuesFromEvents(artistNames: string[]): Promise<EventWithVenue[]> {
         const uniqueVenues: Map<string, EventWithVenue> = new Map();
-        
+
         for (const artistName of artistNames) {
             const events = await this.getArtistEvents(artistName);
-            
+
             for (const event of events) {
                 if (event.venue) {
                     const venueKey = `${event.venue.name}:${event.venue.city}:${event.venue.region}`;
-                    
+
                     if (!uniqueVenues.has(venueKey)) {
                         uniqueVenues.set(venueKey, { event, venue: event.venue });
                     }
                 }
             }
         }
-        
+
         return Array.from(uniqueVenues.values());
     }
-    
+
     /**
      * Imports venues from extracted events
      */
     async importExtractedVenues(artistNames: string[]): Promise<VenueImportResult[]> {
         const extractedVenues = await this.extractVenuesFromEvents(artistNames);
         const results: VenueImportResult[] = [];
-        
+
         for (const { venue: extractedVenue } of extractedVenues) {
             try {
                 // Look for existing venue with same name and location
@@ -402,7 +402,7 @@ export class BandsintownIntegration {
                     v.city === extractedVenue.city &&
                     v.state === extractedVenue.region
                 );
-                
+
                 if (existingVenue) {
                     results.push({
                         venue: existingVenue,
@@ -410,7 +410,7 @@ export class BandsintownIntegration {
                     });
                     continue;
                 }
-                
+
                 // Create new venue
                 const venueData: InsertVenue = {
                     name: extractedVenue.name,
@@ -433,21 +433,21 @@ export class BandsintownIntegration {
                     curfew: '',
                     loadIn: ''
                 };
-                
+
                 const newVenue = await storage.createVenue(venueData);
                 results.push({
                     venue: newVenue,
                     isNew: true
                 });
-                
+
             } catch (error) {
                 console.error(`Error importing venue ${extractedVenue.name}:`, error);
             }
         }
-        
+
         return results;
     }
-    
+
     /**
      * Finds bands passing near a specific venue on a given date range
      */
@@ -457,45 +457,45 @@ export class BandsintownIntegration {
         if (!venue || !venue.latitude || !venue.longitude) {
             throw new Error('Venue not found or missing location data');
         }
-        
+
         const venueLat = parseFloat(venue.latitude);
         const venueLng = parseFloat(venue.longitude);
-        
+
         // Get all current bands and tours
         const bands = await storage.getBands();
         const results: {band: Band, route: RouteAnalysis}[] = [];
-        
+
         for (const band of bands) {
             try {
                 // Get tour dates for this band
                 const tours = await storage.getTours(band.id);
-                
+
                 for (const tour of tours) {
                     const tourDates = await storage.getTourDates(tour.id);
-                    
+
                     // Skip if no tour dates or if tour is over
                     if (tourDates.length === 0 || 
                         (tour.endDate && isBefore(new Date(tour.endDate), new Date()))) {
                         continue;
                     }
-                    
+
                     // Find tour dates within the requested date range
                     const filteredDates = tourDates.filter(td => {
                         const tourDate = new Date(td.date);
                         return isAfter(tourDate, startDate) && isBefore(tourDate, endDate);
                     });
-                    
+
                     if (filteredDates.length > 0) {
                         // Sort by date
                         filteredDates.sort((a, b) => 
                             new Date(a.date).getTime() - new Date(b.date).getTime()
                         );
-                        
+
                         // Analyze route to find if there's a gap where this venue could fit
                         const routeAnalysis = this.analyzeRouteForVenueFit(
                             filteredDates, venueLat, venueLng, radius
                         );
-                        
+
                         if (routeAnalysis) {
                             results.push({
                                 band,
@@ -508,20 +508,20 @@ export class BandsintownIntegration {
                 console.error(`Error analyzing band ${band.name}:`, error);
             }
         }
-        
+
         // Sort by best fits (closest to route with most available days)
         results.sort((a, b) => {
             // Prioritize by detour distance (lower is better)
             const detourDiff = a.route.detourDistance - b.route.detourDistance;
-            
+
             // If detour distances are close, prioritize by days available
             if (Math.abs(detourDiff) < 10) {
                 return b.route.daysAvailable - a.route.daysAvailable;
             }
-            
+
             return detourDiff;
         });
-        
+
         return results;
     }
 
@@ -540,29 +540,29 @@ export class BandsintownIntegration {
         const processed: Set<number> = new Set();
         let updated = 0;
         let failed = 0;
-        
+
         // Process bands in batches to avoid overwhelming the API
         const batchSize = 5;
         for (let i = 0; i < bands.length && processed.size < minArtistCount; i += batchSize) {
             const batch = bands.slice(i, i + batchSize);
-            
+
             await Promise.all(batch.map(async (band) => {
                 try {
                     // Check if we have enough artist data already
                     if (processed.size >= minArtistCount) {
                         return;
                     }
-                    
+
                     // Get latest tour info from Bandsintown
                     const artistName = band.name;
                     const events = await this.getArtistEvents(artistName, true);
-                    
+
                     // Filter to only relevant dates
                     const relevantEvents = events.filter(event => {
                         const eventDate = parseISO(event.datetime);
                         return isAfter(eventDate, fromDate) && isBefore(eventDate, toDate);
                     });
-                    
+
                     if (relevantEvents.length > 0) {
                         // Create or update tour
                         const tour = await this.createTourFromEvents(band, relevantEvents);
@@ -571,27 +571,27 @@ export class BandsintownIntegration {
                             updated++;
                         }
                     }
-                    
+
                     processed.add(band.id);
                 } catch (error) {
                     console.error(`Error refreshing tour data for ${band.name}:`, error);
                     failed++;
                 }
             }));
-            
+
             // Add a small delay between batches to be gentle with the API
             if (i + batchSize < bands.length && processed.size < minArtistCount) {
                 await new Promise(resolve => setTimeout(resolve, 1000));
             }
         }
-        
+
         return {
             processed: processed.size,
             updated,
             failed
         };
     }
-    
+
     /**
      * Finds or creates a band from Bandsintown artist data
      */
@@ -601,7 +601,7 @@ export class BandsintownIntegration {
         const existingBand = existingBands.find(b => 
             b.name.toLowerCase() === artist.name.toLowerCase()
         );
-        
+
         if (existingBand) {
             return existingBand;
         }
@@ -616,7 +616,7 @@ export class BandsintownIntegration {
         } catch (error) {
             console.error('Error fetching MusicBrainz data:', error);
         }
-        
+
         // Create new band
         const bandData: InsertBand = {
             name: artist.name,
@@ -637,10 +637,10 @@ export class BandsintownIntegration {
             photo: artist.image_url || '',
             pressKit: ''
         };
-        
+
         return await storage.createBand(bandData);
     }
-    
+
     /**
      * Creates a tour from events data
      */
@@ -648,18 +648,18 @@ export class BandsintownIntegration {
         if (events.length === 0) {
             return null;
         }
-        
+
         // Sort events by date
         events.sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime());
-        
+
         const firstEvent = events[0];
         const lastEvent = events[events.length - 1];
-        
+
         // Generate a descriptive name based on date range and region
         const regions = new Set(events.map(e => e.venue.region));
         const regionStr = Array.from(regions).slice(0, 3).join('/');
         const tourName = `${band.name} - ${format(new Date(firstEvent.datetime), 'MMM yyyy')} ${regionStr} Tour`;
-        
+
         // Create tour
         const tourData: InsertTour = {
             bandId: band.id,
@@ -670,18 +670,18 @@ export class BandsintownIntegration {
             budget: null,
             status: 'planned'
         };
-        
+
         // Check if a similar tour already exists
         const existingTours = await storage.getTours(band.id);
         const similarTour = existingTours.find(t => {
             // Consider tours similar if they have same band and similar date range
             if (t.bandId !== band.id) return false;
-            
+
             const existingStart = new Date(t.startDate);
             const existingEnd = new Date(t.endDate);
             const newStart = new Date(tourData.startDate);
             const newEnd = new Date(tourData.endDate);
-            
+
             // Tours overlap significantly
             return (
                 (isAfter(existingStart, newStart) && isBefore(existingStart, newEnd)) ||
@@ -689,44 +689,44 @@ export class BandsintownIntegration {
                 (isBefore(existingStart, newStart) && isAfter(existingEnd, newEnd))
             );
         });
-        
+
         if (similarTour) {
             // Update existing tour with new date range if needed
             const startDate = isBefore(new Date(firstEvent.datetime), new Date(similarTour.startDate))
                 ? new Date(firstEvent.datetime)
                 : new Date(similarTour.startDate);
-                
+
             const endDate = isAfter(new Date(lastEvent.datetime), new Date(similarTour.endDate))
                 ? new Date(lastEvent.datetime)
                 : new Date(similarTour.endDate);
-                
+
             await storage.updateTour(similarTour.id, {
                 startDate,
                 endDate,
                 description: `Updated from Bandsintown on ${new Date().toLocaleDateString()}`
             });
-            
+
             return await storage.getTour(similarTour.id) || null;
         }
-        
+
         // Create new tour
         return await storage.createTour(tourData);
     }
-    
+
     /**
      * Creates tour dates from events data
      */
     private async createTourDates(tour: Tour, events: any[]): Promise<TourDate[]> {
         const results: TourDate[] = [];
-        
+
         // Get existing tour dates to avoid duplicates
         const existingDates = await storage.getTourDates(tour.id);
-        
+
         for (const event of events) {
             try {
                 const eventDate = new Date(event.datetime);
                 const venue = event.venue;
-                
+
                 // Check if we already have this date
                 const existingDate = existingDates.find(d => 
                     d.tourId === tour.id &&
@@ -734,12 +734,12 @@ export class BandsintownIntegration {
                     d.state === venue.region &&
                     Math.abs(new Date(d.date).getTime() - eventDate.getTime()) < 24 * 60 * 60 * 1000 // Within 24 hours
                 );
-                
+
                 if (existingDate) {
                     results.push(existingDate);
                     continue;
                 }
-                
+
                 // Create tour date
                 const tourDateData: InsertTourDate = {
                     tourId: tour.id,
@@ -755,17 +755,17 @@ export class BandsintownIntegration {
                     ticketPrice: null,
                     expectedDraw: null
                 };
-                
+
                 const newTourDate = await storage.createTourDate(tourDateData);
                 results.push(newTourDate);
             } catch (error) {
                 console.error(`Error creating tour date:`, error);
             }
         }
-        
+
         return results;
     }
-    
+
     /**
      * Analyzes a tour route to see if a venue fits within the route
      */
@@ -778,57 +778,57 @@ export class BandsintownIntegration {
         if (tourDates.length < 2) {
             return null;
         }
-        
+
         let bestFit: RouteAnalysis | null = null;
         let minDetour = Infinity;
-        
+
         // Check each pair of consecutive dates
         for (let i = 0; i < tourDates.length - 1; i++) {
             const dateA = tourDates[i];
             const dateB = tourDates[i + 1];
-            
+
             // Skip if we don't have location data
             if (!dateA.city || !dateA.state || !dateB.city || !dateB.state) {
                 continue;
             }
-            
+
             // Use mock coordinates since we don't currently have real lat/lng
             // In a real implementation, we would use geocoding or real venue coordinates
             const mockLocationA = this.getMockCoordinates(dateA.city, dateA.state);
             const mockLocationB = this.getMockCoordinates(dateB.city, dateB.state);
-            
+
             // Check if enough days between shows
             const daysBetween = differenceInDays(
                 new Date(dateB.date),
                 new Date(dateA.date)
             );
-            
+
             if (daysBetween < 2) {
                 continue; // Need at least 2 days between shows
             }
-            
+
             // Calculate distances
             const distAToVenue = this.calculateDistance(
                 mockLocationA.lat, mockLocationA.lng,
                 venueLat, venueLng
             );
-            
+
             const distVenueToB = this.calculateDistance(
                 venueLat, venueLng,
                 mockLocationB.lat, mockLocationB.lng
             );
-            
+
             const distAToB = this.calculateDistance(
                 mockLocationA.lat, mockLocationA.lng,
                 mockLocationB.lat, mockLocationB.lng
             );
-            
+
             // Calculate detour distance (how much extra driving to go through the venue)
             const detourDistance = (distAToVenue + distVenueToB) - distAToB;
-            
+
             // Check if detour is reasonable and venue is within radius of route
             const isNearRoute = distAToVenue <= radius || distVenueToB <= radius;
-            
+
             if (isNearRoute && detourDistance < minDetour) {
                 minDetour = detourDistance;
                 bestFit = {
@@ -852,10 +852,10 @@ export class BandsintownIntegration {
                 };
             }
         }
-        
+
         return bestFit;
     }
-    
+
     /**
      * Gets mock coordinates for a city/state
      * In a real implementation, we would use a geocoding service
@@ -869,7 +869,7 @@ export class BandsintownIntegration {
             'TX': { lat: 29.7604, lng: -95.3698 }, // Houston
             'FL': { lat: 25.7617, lng: -80.1918 }, // Miami
         };
-        
+
         // If we have the state, use its coordinates
         if (baseCoordinates[state]) {
             // Add slight randomness to differentiate cities in the same state
@@ -878,11 +878,11 @@ export class BandsintownIntegration {
                 lng: baseCoordinates[state].lng + (Math.random() - 0.5) * 0.5
             };
         }
-        
+
         // Default to center of US
         return { lat: 39.8283, lng: -98.5795 };
     }
-    
+
     /**
      * Calculates distance between two points in km using Haversine formula
      */
@@ -898,7 +898,7 @@ export class BandsintownIntegration {
         const distance = R * c; // Distance in km
         return distance;
     }
-    
+
     private deg2rad(deg: number): number {
         return deg * (Math.PI/180);
     }
