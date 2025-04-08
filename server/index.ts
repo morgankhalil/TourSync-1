@@ -1,12 +1,15 @@
 import express, { type Request, Response, NextFunction } from "express";
 import cache from "express-cache-controller";
 import dotenv from "dotenv";
+import session from "express-session";
+import passport from "passport";
 import { registerRoutes } from "./routes";
 import calendarRoutes from "./routes/calendar";
 import venuesApiRoutes from "./routes/venues-api";
 import venueRoutes from "./routes/venue-routes";
 import { registerTourRoutes } from "./routes/tours";
 import { registerConfigRoutes } from "./routes/config";
+import authRouter from "./routes/auth";
 import { setupVite, serveStatic, log } from "./vite";
 
 // Load environment variables
@@ -24,6 +27,33 @@ app.use(express.json());
 app.use(cache({
   maxAge: 60 // Cache responses for 60 seconds by default
 }));
+
+// Import PostgreSQL session store
+import connectPgSimple from "connect-pg-simple";
+const PgSession = connectPgSimple(session);
+
+// Session configuration with PostgreSQL store
+app.use(session({
+  store: new PgSession({
+    conString: process.env.DATABASE_URL,
+    tableName: 'session', // Optional. Default is 'session'
+    createTableIfMissing: true // Create the table if it doesn't exist
+  }),
+  secret: process.env.SESSION_SECRET || 'venue-network-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+
+// Initialize Passport and session
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Register auth routes
+app.use('/api/auth', authRouter);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/venues-direct', venuesApiRoutes);
 app.use(express.urlencoded({ extended: false }));

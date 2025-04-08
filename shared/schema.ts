@@ -2,6 +2,34 @@ import { pgTable, text, serial, integer, date, boolean, jsonb, varchar, timestam
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// User schema
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  role: text("role").default("user"),
+  venueId: integer("venue_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+  lastLogin: timestamp("last_login")
+});
+
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  passwordHash: true,
+  createdAt: true,
+  lastLogin: true
+}).extend({
+  password: z.string().min(8),
+  confirmPassword: z.string()
+}).refine(data => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
+
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+
 // Artist profile schema
 export const artists = pgTable("artists", {
   id: text("id").primaryKey(),
