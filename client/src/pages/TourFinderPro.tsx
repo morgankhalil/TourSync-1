@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EnhancedBandsintownDiscoveryClient, DiscoveryResult, DiscoveryStats } from "@/services/bandsintown-discovery-v2";
 import { EnhancedBandMapView } from "../components/maps/EnhancedBandMapView";
 import { SimpleMapView } from "../components/maps/SimpleMapView";
+import TourRouteVisualization from "./TourRouteVisualization";
 import { 
   AlertCircle,
   PlusCircle, 
@@ -498,6 +499,10 @@ export default function TourFinderPro() {
           <TabsTrigger value="map" className="flex items-center gap-2" disabled={searchResults.length === 0}>
             <Route className="h-4 w-4" />
             Tour Routes
+          </TabsTrigger>
+          <TabsTrigger value="tourvisualization" className="flex items-center gap-2">
+            <Truck className="h-4 w-4" />
+            Tour Visualization
           </TabsTrigger>
         </TabsList>
         
@@ -1336,6 +1341,23 @@ export default function TourFinderPro() {
               </Button>
             </Card>
           )}
+        </TabsContent>
+        
+        {/* Tour Visualization Tab */}
+        <TabsContent value="tourvisualization">
+          <div className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Tour Route Visualization</CardTitle>
+                <CardDescription>
+                  Visualize tour routes and see how bands are traveling between venues
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <TourRouteVisualization />
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
