@@ -20,7 +20,8 @@ import {
   Building,
   Route,
   CheckCircle2,
-  MapPin
+  MapPin,
+  Network
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -101,6 +102,11 @@ export function Sidebar({ className }: SidebarProps) {
       name: 'Venues',
       icon: Building,
       path: '/venues',
+    },
+    {
+      name: 'Venue Network Hub',
+      icon: Network,
+      path: '/venue-network',
     },
     {
       name: 'Collaboration',
