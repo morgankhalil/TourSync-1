@@ -170,7 +170,7 @@ const NetworkActivityCard = ({ type, title, subtitle, date }: ActivityCardProps)
 };
 
 // Main Dashboard Component
-const VenueDashboard: React.FC = () => {
+export default function VenueDashboard() {
   const { toast } = useToast();
   const { activeVenueId, activeVenue, isLoadingVenue, venueData } = useActiveVenue();
   
