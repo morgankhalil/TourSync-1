@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation } from "wouter";
 import { Building2, BarChart3, Network, Calendar, ExternalLink, Mail, Phone, Menu, MapPin } from "lucide-react";
@@ -111,17 +110,17 @@ export default function UnifiedSidebar() {
                   <Building2 className="h-5 w-5 text-primary" />
                   <span className="font-medium truncate">{activeVenue.name}</span>
                 </div>
-                
+
                 <div className="text-sm text-muted-foreground">
                   {activeVenue.address}
                 </div>
-                
+
                 <div className="flex gap-2">
                   <Badge variant="secondary" className="w-full justify-center">
                     Capacity {activeVenue.capacity}
                   </Badge>
                 </div>
-                
+
                 <div className="space-y-2">
                   <a href={`mailto:${activeVenue.email}`} className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary">
                     <Mail className="h-4 w-4" />
@@ -132,7 +131,7 @@ export default function UnifiedSidebar() {
                     <span className="truncate">{activeVenue.phone}</span>
                   </a>
                 </div>
-                
+
                 <div className="flex gap-2 pt-2">
                   <Button variant="outline" size="sm" className="flex-1 h-9">
                     <Calendar className="h-4 w-4 mr-2" />
