@@ -1,64 +1,82 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-import { format } from "date-fns";
+import { type ClassValue, clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
 
+/**
+ * Combines multiple class names into a single string using clsx and tailwind-merge
+ */
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+  return twMerge(clsx(inputs))
 }
 
-export function formatDate(date: string | Date): string {
-  if (!date) return '';
-  const parsedDate = typeof date === 'string' ? new Date(date) : date;
-  return format(parsedDate, 'MMM d, yyyy');
+/**
+ * Formats a number as currency
+ */
+export function formatCurrency(amount: number, currency: string = 'USD'): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency,
+  }).format(amount);
 }
 
-export function formatDateMedium(date: string | Date): string {
-  if (!date) return '';
-  const parsedDate = typeof date === 'string' ? new Date(date) : date;
-  return format(parsedDate, 'MMM d, yyyy');
+/**
+ * Truncates text to a specified length with an ellipsis
+ */
+export function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength) + '…';
 }
 
-export function getLocationLabel(city: string, state: string): string {
-  if (!city && !state) return 'Unknown location';
-  if (!city) return state;
-  if (!state) return city;
-  return `${city}, ${state}`;
+/**
+ * Generates a random string of specified length
+ */
+export function randomString(length: number = 10): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
 }
 
+/**
+ * Debounces a function call
+ */
+export function debounce<T extends (...args: any[]) => void>(
+  fn: T,
+  ms: number
+): (...args: Parameters<T>) => void {
+  let timeoutId: ReturnType<typeof setTimeout>;
+  
+  return function(...args: Parameters<T>) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn(...args), ms);
+  };
+}
+
+/**
+ * Calculates distance between two points using the Haversine formula
+ */
 export function calculateDistance(
-  lat1: number, 
-  lon1: number, 
-  lat2: number, 
+  lat1: number,
+  lon1: number,
+  lat2: number,
   lon2: number
 ): number {
-  if (lat1 === lat2 && lon1 === lon2) {
-    return 0;
-  }
-  
-  const radlat1 = (Math.PI * lat1) / 180;
-  const radlat2 = (Math.PI * lat2) / 180;
-  const theta = lon1 - lon2;
-  const radtheta = (Math.PI * theta) / 180;
-  let dist =
-    Math.sin(radlat1) * Math.sin(radlat2) +
-    Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
-  if (dist > 1) {
-    dist = 1;
-  }
-  dist = Math.acos(dist);
-  dist = (dist * 180) / Math.PI;
-  dist = dist * 60 * 1.1515; // Distance in miles
-  return Math.round(dist);
+  const R = 6371; // Radius of the earth in km
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const d = R * c; // Distance in km
+  return d;
 }
 
-export function getFitDescription(score: number): string {
-  if (score >= 90) return "Perfect fit";
-  if (score >= 80) return "Excellent match";
-  if (score >= 70) return "Great opportunity";
-  if (score >= 60) return "Good fit";
-  if (score >= 50) return "Potential match";
-  if (score >= 40) return "Possible option";
-  if (score >= 30) return "Consider carefully";
-  if (score >= 20) return "Low match";
-  return "Poor fit";
+/**
+ * Converts degrees to radians
+ */
+function deg2rad(deg: number): number {
+  return deg * (Math.PI / 180);
 }

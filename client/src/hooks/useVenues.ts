@@ -1,20 +1,93 @@
-import { useQuery } from "@tanstack/react-query";
-import { Venue } from "@shared/schema";
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 
-export const useVenues = () => {
-  // For demo purposes, we're loading all venues
-  const { data: venues, isLoading, error } = useQuery<Venue[]>({
+export interface Venue {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  country: string;
+  capacity: number;
+  imageUrl?: string;
+  website?: string;
+  email?: string;
+  phone?: string;
+  description?: string;
+  latitude?: number;
+  longitude?: number;
+  createdAt: Date;
+}
+
+export function useVenues() {
+  return useQuery({
     queryKey: ['/api/venues'],
+    queryFn: () => apiRequest<Venue[]>('/api/venues')
   });
+}
 
-  // For nearby venues, we would typically filter by location
-  // In a real app, this would use coordinates based on the current map view
-  const nearbyVenues = venues?.slice(0, 5);
+export function useVenue(id: string) {
+  return useQuery({
+    queryKey: ['/api/venues', id],
+    queryFn: () => apiRequest<Venue>(`/api/venues/${id}`),
+    enabled: !!id
+  });
+}
 
-  return {
-    venues,
-    nearbyVenues,
-    isLoading,
-    error
-  };
-};
+export function useCreateVenue() {
+  return useMutation({
+    mutationFn: (venue: Partial<Venue>) => 
+      apiRequest<Venue>('/api/venues', { 
+        method: 'POST', 
+        body: venue 
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/venues'] });
+    }
+  });
+}
+
+export function useUpdateVenue() {
+  return useMutation({
+    mutationFn: ({ id, ...venue }: Partial<Venue> & { id: string }) => 
+      apiRequest<Venue>(`/api/venues/${id}`, { 
+        method: 'PATCH', 
+        body: venue 
+      }),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/venues', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['/api/venues'] });
+    }
+  });
+}
+
+export function useDeleteVenue() {
+  return useMutation({
+    mutationFn: (id: string) => 
+      apiRequest(`/api/venues/${id}`, { 
+        method: 'DELETE' 
+      }),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/venues', id] });
+      queryClient.invalidateQueries({ queryKey: ['/api/venues'] });
+    }
+  });
+}
+
+export function useVenueAvailability(venueId: string, startDate?: Date, endDate?: Date) {
+  return useQuery({
+    queryKey: ['/api/venues/availability', venueId, startDate?.toISOString(), endDate?.toISOString()],
+    queryFn: () => {
+      const queryParams: Record<string, string> = {};
+      if (startDate) queryParams.startDate = startDate.toISOString();
+      if (endDate) queryParams.endDate = endDate.toISOString();
+      
+      return apiRequest<{
+        dates: { date: string; available: boolean; eventId?: string }[]
+      }>(`/api/venues/${venueId}/availability`, { 
+        queryParams 
+      });
+    },
+    enabled: !!venueId && !!startDate && !!endDate
+  });
+}

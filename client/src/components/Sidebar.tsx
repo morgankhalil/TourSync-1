@@ -1,92 +1,171 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { useActiveVenue } from '@/hooks/useActiveVenue';
-import { getLocationLabel } from '@/lib/utils';
+import { useSidebar } from '@/context/SidebarContext';
+import { cn } from '@/lib/utils';
+import { useMobile } from '@/hooks/use-mobile';
 import { 
-  Home, 
-  CalendarDays, 
-  Compass, 
+  LayoutDashboard, 
+  Music, 
+  Calendar, 
   Users, 
+  Map, 
   Settings, 
+  ChevronLeft, 
   ChevronRight,
-  Building
+  Handshake,
+  Search,
+  MessageSquare,
+  Building,
+  Route
 } from 'lucide-react';
-import {BarChart2} from 'lucide-react'; // Added import for BarChart2
-import VenueSelector from './venue/VenueSelector';
 
-const Sidebar: React.FC = () => {
-  // Use 'as any' to bypass TypeScript errors while the context is being refactored
-  const { activeVenue } = useActiveVenue() as any;
+interface SidebarProps {
+  className?: string;
+}
+
+export function Sidebar({ className }: SidebarProps) {
   const [location] = useLocation();
+  const { activeVenueId, venueData } = useActiveVenue();
+  const { isOpen, toggle } = useSidebar();
+  const isMobile = useMobile();
+
+  const isActive = (path: string) => {
+    return location === path;
+  };
 
   const navItems = [
-    { name: 'Dashboard', path: '/', icon: <Home className="w-5 h-5 mr-3" /> },
-    { name: 'Artist Discovery', path: '/discovery', icon: <Compass className="w-5 h-5 mr-3" /> },
-    { name: 'Enhanced Discovery', path: '/discovery-v2', icon: <Compass className="w-5 h-5 mr-3 text-purple-600" /> },
-    { name: 'Calendar', path: '/calendar', icon: <CalendarDays className="w-5 h-5 mr-3" /> },
-    { name: 'Tour Planning', path: '/tour-planning', icon: <Building className="w-5 h-5 mr-3" /> }, //Replaced Map with Building as Map is not defined.
-    { name: 'Tour Dashboard', path: '/tour-dashboard', icon: <BarChart2 className="w-5 h-5 mr-3" /> }, // Changed BarChart3 to BarChart2
-    { name: 'Bands', path: '/bands', icon: <Users className="w-5 h-5 mr-3" /> },
-    { name: 'Settings', path: '/settings', icon: <Settings className="w-5 h-5 mr-3" /> },
+    {
+      name: 'Dashboard',
+      icon: LayoutDashboard,
+      path: '/',
+    },
+    {
+      name: 'Artist Discovery',
+      icon: Search,
+      path: '/artist-discovery',
+    },
+    {
+      name: 'Artist Profile',
+      icon: Music,
+      path: '/artist-profile',
+    },
+    {
+      name: 'Event Calendar',
+      icon: Calendar,
+      path: '/event-calendar',
+    },
+    {
+      name: 'Tour Planning',
+      icon: Route,
+      path: '/create-tour',
+    },
+    {
+      name: 'Venues',
+      icon: Building,
+      path: '/venues',
+    },
+    {
+      name: 'Collaboration',
+      icon: Handshake,
+      path: '/collaboration-requests',
+    },
+    {
+      name: 'Messages',
+      icon: MessageSquare,
+      path: '/messages',
+    },
+    {
+      name: 'Settings',
+      icon: Settings,
+      path: '/settings',
+    },
   ];
 
   return (
-    <div className="min-h-screen w-64 bg-gray-50 border-r flex flex-col">
-      <div className="p-4 border-b">
-        <h1 className="text-2xl font-bold">VenueBuddy</h1>
-        <div className="mt-3">
-          <VenueSelector />
-        </div>
-        {activeVenue && (
-          <div className="mt-2">
-            <p className="text-xs text-muted-foreground">
-              {getLocationLabel(activeVenue.city, activeVenue.state)}
-            </p>
-          </div>
-        )}
+    <div
+      className={cn(
+        'h-full bg-background border-r flex flex-col transition-all duration-300 overflow-hidden',
+        isOpen ? 'w-64' : 'w-16',
+        className
+      )}
+    >
+      <div className="flex items-center justify-between p-4 h-16 border-b">
+        <h1 
+          className={cn(
+            "font-bold transition-opacity duration-300", 
+            isOpen ? "opacity-100" : "opacity-0 hidden"
+          )}
+        >
+          BandConnect
+        </h1>
+        <button
+          onClick={toggle}
+          className="p-1 rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-primary"
+          aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
+        >
+          {isOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
+        </button>
       </div>
 
-      <nav className="flex-1 p-4">
-        <ul className="space-y-1">
-          {navItems.map((item) => {
-            const isActive = location === item.path || 
-              (item.path !== '/' && location.startsWith(item.path));
-
-            return (
-              <li key={item.path}>
-                <Link
-                  href={item.path}
-                  className={`flex items-center px-3 py-2 rounded-md text-sm group hover:bg-gray-100 ${
-                    isActive 
-                      ? 'bg-gray-100 text-primary font-medium' 
-                      : 'text-gray-700'
-                  }`}
+      {activeVenueId && venueData && (
+        <div className={cn(
+          "flex items-center p-4 border-b",
+          !isOpen && "justify-center"
+        )}>
+          <div className="w-8 h-8 bg-primary/20 rounded-md flex items-center justify-center text-primary font-semibold">
+            {venueData.name.charAt(0)}
+          </div>
+          {isOpen && (
+            <div className="ml-3 overflow-hidden">
+              <p className="font-medium truncate">{venueData.name}</p>
+              <p className="text-xs text-muted-foreground truncate">{venueData.city}, {venueData.state}</p>
+            </div>
+          )}
+        </div>
+      )}
+      
+      <nav className="flex-1 py-4 overflow-y-auto">
+        <ul className="space-y-1 px-2">
+          {navItems.map((item) => (
+            <li key={item.path}>
+              <Link href={item.path}>
+                <a
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm",
+                    isActive(item.path)
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-accent hover:text-accent-foreground",
+                    !isOpen && "justify-center"
+                  )}
                 >
-                  {item.icon}
-                  {item.name}
-                  <ChevronRight className={`w-4 h-4 ml-auto transition-transform ${
-                    isActive ? 'text-primary' : 'opacity-0 group-hover:opacity-100'
-                  }`} />
-                </Link>
-              </li>
-            );
-          })}
+                  <item.icon size={18} />
+                  {isOpen && <span>{item.name}</span>}
+                </a>
+              </Link>
+            </li>
+          ))}
         </ul>
       </nav>
-
+      
       <div className="p-4 border-t">
-        <div className="flex items-center">
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
-            VB
+        <div 
+          className={cn(
+            "flex items-center gap-3",
+            !isOpen && "justify-center"
+          )}
+        >
+          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold">
+            U
           </div>
-          <div className="ml-3">
-            <p className="text-sm font-medium">Venue Staff</p>
-            <p className="text-xs text-muted-foreground">staff@venue.com</p>
-          </div>
+          {isOpen && (
+            <div className="overflow-hidden">
+              <p className="font-medium text-sm truncate">User Name</p>
+              <p className="text-xs text-muted-foreground truncate">user@example.com</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
-};
-
-export default Sidebar;
+}

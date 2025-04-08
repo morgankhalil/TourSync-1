@@ -1,137 +1,29 @@
-import { pgTable, text, serial, integer, date, boolean, jsonb, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, date, boolean, jsonb, varchar, timestamp, primaryKey } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Band profile schema
-export const bands = pgTable("bands", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description"),
-  contactEmail: text("contact_email").notNull(),
-  contactPhone: text("contact_phone"),
-  genre: text("genre"),
-  social: jsonb("social"),
-  drawSize: integer("draw_size"), // Estimated audience size
-  pastVenues: jsonb("past_venues"), // History of past venues
-  technicalRequirements: jsonb("technical_requirements"), // Audio/staging needs
-  mediaLinks: jsonb("media_links"), // Photos, videos, audio
-  lastTourDate: date("last_tour_date"), // Last date they toured
-  avgTicketPrice: integer("avg_ticket_price"), // Average ticket price in cents
-  pressKit: text("press_kit"), // Link to press kit
-  preferredVenueTypes: jsonb("preferred_venue_types") // Types of venues they prefer
-});
-
-export const insertBandSchema = createInsertSchema(bands).omit({
-  id: true
-});
-
-// Venue schema
-export const venues = pgTable("venues", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  address: text("address").notNull(),
-  city: text("city").notNull(),
-  state: text("state").notNull(),
-  zipCode: text("zip_code").notNull(),
-  capacity: integer("capacity"),
-  contactName: text("contact_name"),
-  contactEmail: text("contact_email"),
-  contactPhone: text("contact_phone"),
-  website: text("website"), // Venue website URL
-  description: text("description"),
-  genre: text("genre"), // Preferred genres
-  dealType: text("deal_type"),
-  latitude: text("latitude").notNull(),
-  longitude: text("longitude").notNull(),
-  technicalSpecs: jsonb("technical_specs"), // Sound system, stage dimensions, etc.
-  venueType: text("venue_type"), // Club, theater, arena, etc.
-  amenities: jsonb("amenities"), // Green room, parking, etc.
-  pastPerformers: jsonb("past_performers").$type<any[]>(), // List of notable past performers
-  photoGallery: jsonb("photo_gallery"), // Venue photos
-  loadingInfo: text("loading_info"), // Loading dock details
-  accommodations: text("accommodations"), // Nearby hotels, etc.
-  preferredGenres: jsonb("preferred_genres"), // Genres the venue prefers to book
-  priceRange: jsonb("price_range") // Typical price range for shows
-});
-
-export const insertVenueSchema = createInsertSchema(venues).omit({
-  id: true
-});
-
-// Tour schema
-export const tours = pgTable("tours", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  startDate: date("start_date").notNull(),
-  endDate: date("end_date").notNull(),
-  bandId: integer("band_id").notNull(),
-  notes: text("notes"),
-  isActive: boolean("is_active").default(true)
-});
-
-export const insertTourSchema = createInsertSchema(tours).omit({
-  id: true
-});
-
-// Tour date schema (represents a stop on the tour)
-export const tourDates = pgTable("tour_dates", {
-  id: serial("id").primaryKey(),
-  tourId: integer("tour_id").notNull(),
-  venueId: integer("venue_id"),
-  date: date("date").notNull(),
-  city: text("city").notNull(),
-  state: text("state").notNull(),
-  status: text("status").default("open"), // open, pending, confirmed
-  notes: text("notes"),
-  venueName: text("venue_name"),
-  isOpenDate: boolean("is_open_date").default(false)
-});
-
-export const insertTourDateSchema = createInsertSchema(tourDates).omit({
-  id: true
-});
-
-// Venue availability schema (dates a venue is available for booking)
-export const venueAvailability = pgTable("venue_availability", {
-  id: serial("id").primaryKey(),
-  venueId: integer("venue_id").notNull(),
-  date: date("date").notNull(),
-  isAvailable: boolean("is_available").default(true)
-});
-
-export const insertVenueAvailabilitySchema = createInsertSchema(venueAvailability).omit({
-  id: true
-});
-
-// Types for the schemas
-export type Band = typeof bands.$inferSelect;
-export type InsertBand = z.infer<typeof insertBandSchema>;
-
-export type Venue = typeof venues.$inferSelect;
-export type InsertVenue = z.infer<typeof insertVenueSchema>;
-
-export type Tour = typeof tours.$inferSelect;
-export type InsertTour = z.infer<typeof insertTourSchema>;
-
-export type TourDate = typeof tourDates.$inferSelect;
-export type InsertTourDate = z.infer<typeof insertTourDateSchema>;
-
-export type VenueAvailability = typeof venueAvailability.$inferSelect;
-export type InsertVenueAvailability = z.infer<typeof insertVenueAvailabilitySchema>;
-
-// Artists table
+// Artist profile schema
 export const artists = pgTable("artists", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
-  genres: jsonb("genres").$type<string[]>(),
+  genres: jsonb("genres").$type<string[]>().default([]),
   imageUrl: text("image_url"),
   url: text("url"),
   website: text("website"),
-  drawSize: integer("draw_size")
+  description: text("description"),
+  location: text("location"),
+  country: text("country"),
+  drawSize: integer("draw_size"),
+  lookingToCollaborate: boolean("looking_to_collaborate").default(true),
+  collaborationTypes: jsonb("collaboration_types").$type<string[]>().default([]),
+  socialMedia: jsonb("social_media"),
+  createdAt: timestamp("created_at").defaultNow()
 });
 
-export const insertArtistSchema = createInsertSchema(artists);
-export type InsertArtist = z.infer<typeof insertArtistSchema>;
+export const insertArtistSchema = createInsertSchema(artists).omit({
+  id: true,
+  createdAt: true
+});
 
 // Artist discovery tracking
 export const artistDiscovery = pgTable("artist_discovery", {
@@ -142,24 +34,81 @@ export const artistDiscovery = pgTable("artist_discovery", {
 
 export const insertArtistDiscoverySchema = createInsertSchema(artistDiscovery);
 
+// Events schema
+export const events = pgTable("events", {
+  id: text("id").primaryKey(),
+  artistId: text("artist_id").notNull(),
+  venueName: text("venue_name").notNull(),
+  venueCity: text("venue_city").notNull(),
+  venueState: text("venue_state"),
+  venueCountry: text("venue_country").notNull(),
+  latitude: text("latitude").notNull(),
+  longitude: text("longitude").notNull(),
+  eventDate: timestamp("event_date").notNull(),
+  ticketUrl: text("ticket_url"),
+  collaborationOpen: boolean("collaboration_open").default(false),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+export const insertEventSchema = createInsertSchema(events).omit({
+  id: true,
+  createdAt: true
+});
+
+// Collaboration requests
+export const collaborationRequests = pgTable("collaboration_requests", {
+  id: serial("id").primaryKey(),
+  requestingArtistId: text("requesting_artist_id").notNull(),
+  receivingArtistId: text("receiving_artist_id").notNull(),
+  eventId: text("event_id"),
+  message: text("message"),
+  status: text("status").default("pending"),
+  requestDate: timestamp("request_date").defaultNow(),
+  responseDate: timestamp("response_date")
+});
+
+export const insertCollaborationRequestSchema = createInsertSchema(collaborationRequests).omit({
+  id: true,
+  requestDate: true,
+  responseDate: true
+});
+
+// Artist compatibility scores
+export const artistCompatibility = pgTable("artist_compatibility", {
+  artistId1: text("artist_id1").notNull(),
+  artistId2: text("artist_id2").notNull(),
+  compatibilityScore: integer("compatibility_score").notNull(),
+  genreOverlap: integer("genre_overlap"),
+  audienceMatch: integer("audience_match"),
+  updatedAt: timestamp("updated_at").defaultNow()
+}, (table) => {
+  return {
+    pk: primaryKey({ columns: [table.artistId1, table.artistId2] })
+  };
+});
+
+export const insertArtistCompatibilitySchema = createInsertSchema(artistCompatibility).omit({
+  updatedAt: true
+});
+
+// Export types
+export type Artist = typeof artists.$inferSelect;
+export type InsertArtist = z.infer<typeof insertArtistSchema>;
+
 export type ArtistDiscovery = typeof artistDiscovery.$inferSelect;
 export type InsertArtistDiscovery = z.infer<typeof insertArtistDiscoverySchema>;
-export interface Venue {
-  id: number;
-  name: string;
-  address: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  latitude: string;
-  longitude: string;
-  capacity?: number;
-  website?: string;
-  phone?: string;
-  email?: string;
-}
 
-export interface Artist {
+export type Event = typeof events.$inferSelect;
+export type InsertEvent = z.infer<typeof insertEventSchema>;
+
+export type CollaborationRequest = typeof collaborationRequests.$inferSelect;
+export type InsertCollaborationRequest = z.infer<typeof insertCollaborationRequestSchema>;
+
+export type ArtistCompatibility = typeof artistCompatibility.$inferSelect;
+export type InsertArtistCompatibility = z.infer<typeof insertArtistCompatibilitySchema>;
+
+// Interface definitions for external API types
+export interface ExternalArtist {
   id: string;
   name: string;
   genres?: string[];
@@ -169,13 +118,7 @@ export interface Artist {
   draw_size?: number;
 }
 
-export interface ArtistDiscoveryRecord {
-  artistId: string;
-  lastChecked: string;
-  timesChecked: number;
-}
-
-export interface Event {
+export interface ExternalEvent {
   id: string;
   datetime: string;
   venue: {

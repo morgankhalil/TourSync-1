@@ -1,56 +1,24 @@
+import { useState, useEffect } from 'react';
 
-import * as React from "react"
+export function useMobile() {
+  const [isMobile, setIsMobile] = useState(false);
 
-const MOBILE_BREAKPOINT = 768
-
-export function useIsMobile() {
-  // Adding a small buffer to ensure consistent mobile detection
-  const isMobile = useMediaQuery(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
-  return isMobile;
-}
-
-export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = React.useState<boolean>(() => {
-    // For SSR or initial render, check if window exists
-    if (typeof window !== 'undefined') {
-      return window.matchMedia(query).matches;
+  useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth < 1024);
     }
-    // Default to false if we're in SSR
-    return false;
-  });
+    
+    // Set initial value
+    handleResize();
 
-  React.useEffect(() => {
-    // Handle SSR case where window might not be available
-    if (typeof window === 'undefined') return;
+    // Add event listener for window resize
+    window.addEventListener('resize', handleResize);
     
-    const media = window.matchMedia(query);
-    
-    // Initial check
-    setMatches(media.matches);
-    
-    // Set up event listener
-    const listener = (e: MediaQueryListEvent) => {
-      setMatches(e.matches);
+    // Clean up
+    return () => {
+      window.removeEventListener('resize', handleResize);
     };
-    
-    // Use the appropriate event listener method based on browser support
-    if (media.addEventListener) {
-      media.addEventListener("change", listener);
-      return () => media.removeEventListener("change", listener);
-    } else {
-      // For older browsers
-      media.addListener(listener);
-      return () => media.removeListener(listener);
-    }
-  }, [query]);
+  }, []);
 
-  return matches;
-}
-
-// Hook to detect orientation
-export function useOrientation() {
-  const isPortrait = useMediaQuery('(orientation: portrait)');
-  const isLandscape = useMediaQuery('(orientation: landscape)');
-  
-  return { isPortrait, isLandscape };
+  return isMobile;
 }
