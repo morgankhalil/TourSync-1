@@ -8,7 +8,8 @@ import { Spinner } from '../ui/spinner';
 interface VenueBookingsListProps {
   venueId: number;
   onTourClick: (tour: Tour) => void;
-  onDateSelect?: (date: Date | undefined) => void; // Added onDateSelect prop
+  onDateSelect?: (date: Date | undefined) => void;
+  compact?: boolean;
 }
 
 // Availability data type for calendar
@@ -108,7 +109,7 @@ const AvailabilityCard = ({ availability, tour, onClick }: {
   );
 };
 
-const VenueBookingsList = ({ venueId, onTourClick, onDateSelect }: VenueBookingsListProps) => {
+const VenueBookingsList = ({ venueId, onTourClick, onDateSelect, compact }: VenueBookingsListProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [availabilityData, setAvailabilityData] = useState<AvailabilityData[]>([]);
   const [tourDates, setTourDates] = useState<TourDate[]>([]);
@@ -283,7 +284,7 @@ const VenueBookingsList = ({ venueId, onTourClick, onDateSelect }: VenueBookings
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-[350px_1fr] gap-6">
+      <div className={`grid grid-cols-1 md:grid-cols-[350px_1fr] gap-6 ${compact ? 'md:grid-cols-1' : ''}`}> {/* Added conditional class */}
         <div className="bg-card rounded-lg p-4 border">
           <h3 className="text-lg font-semibold mb-4">Calendar</h3>
           <Calendar
