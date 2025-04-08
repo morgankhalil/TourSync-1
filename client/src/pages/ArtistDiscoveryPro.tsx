@@ -444,7 +444,7 @@ export default function ArtistDiscoveryPro() {
       <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold flex items-center">
-            Artist Discovery
+            Tour Finder
             <Badge variant="outline" className="ml-3 bg-purple-100">
               PRO
             </Badge>
