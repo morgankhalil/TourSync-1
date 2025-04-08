@@ -364,4 +364,4 @@ const TourDashboard = () => {
   );
 };
 
-export default TourDashboard;
+export { TourDashboard };d;

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Header } from './Header';
 import { SidebarLayout } from './SidebarLayout';
@@ -6,6 +5,8 @@ import { SidebarLayout } from './SidebarLayout';
 interface MainLayoutProps {
   children: React.ReactNode;
 }
+
+export { MainLayout };
 
 export default function MainLayout({ children }: MainLayoutProps) {
   return (

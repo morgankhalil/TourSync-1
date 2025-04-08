@@ -94,4 +94,4 @@ const RegisterPage = () => {
   );
 };
 
-export default RegisterPage;
+export { RegisterPage };
