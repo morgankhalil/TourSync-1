@@ -181,3 +181,68 @@ export interface DiscoveryStats {
     misses: number;
   };
 }
+
+// Tours schema
+export const tours = pgTable("tours", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date").notNull(),
+  bandId: integer("band_id").notNull(),
+  notes: text("notes"),
+  isActive: boolean("is_active").default(true)
+});
+
+export const insertTourSchema = createInsertSchema(tours).omit({
+  id: true
+});
+
+// Tour dates schema
+export const tourDates = pgTable("tour_dates", {
+  id: serial("id").primaryKey(),
+  tourId: integer("tour_id").notNull(),
+  venueId: integer("venue_id"),
+  date: date("date").notNull(),
+  city: text("city").notNull(),
+  state: text("state").notNull(),
+  venueName: text("venue_name"),
+  status: text("status").default("open"),
+  notes: text("notes"),
+  isOpenDate: boolean("is_open_date").default(false),
+  poster: text("poster")
+});
+
+export const insertTourDateSchema = createInsertSchema(tourDates).omit({
+  id: true
+});
+
+// Bands schema (if not already defined elsewhere)
+export const bands = pgTable("bands", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  genreId: integer("genre_id"),
+  contactName: text("contact_name"),
+  contactEmail: text("contact_email"),
+  contactPhone: text("contact_phone"),
+  website: text("website"),
+  bio: text("bio"),
+  formationYear: integer("formation_year"),
+  disbandYear: integer("disband_year"),
+  isActive: boolean("is_active").default(true),
+  logoUrl: text("logo_url"),
+  photoUrl: text("photo_url")
+});
+
+export const insertBandSchema = createInsertSchema(bands).omit({
+  id: true
+});
+
+// Export types
+export type Tour = typeof tours.$inferSelect;
+export type InsertTour = z.infer<typeof insertTourSchema>;
+
+export type TourDate = typeof tourDates.$inferSelect;
+export type InsertTourDate = z.infer<typeof insertTourDateSchema>;
+
+export type Band = typeof bands.$inferSelect;
+export type InsertBand = z.infer<typeof insertBandSchema>;

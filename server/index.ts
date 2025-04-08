@@ -5,6 +5,8 @@ import { registerRoutes } from "./routes";
 import calendarRoutes from "./routes/calendar";
 import venuesApiRoutes from "./routes/venues-api";
 import venueRoutes from "./routes/venue-routes";
+import { registerTourRoutes } from "./routes/tours";
+import { registerConfigRoutes } from "./routes/config";
 import { setupVite, serveStatic, log } from "./vite";
 
 // Load environment variables
@@ -67,6 +69,12 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Register tour routes
+  registerTourRoutes(app);
+  
+  // Register config routes for API keys
+  registerConfigRoutes(app);
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
