@@ -1,10 +1,10 @@
-import React, { ReactNode, useEffect } from 'react';
-import Sidebar from './Sidebar';
-import MobileNavigation from './MobileNavigation';
-import { useSidebar } from '@/context/SidebarContext';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { Menu } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+
+import { ReactNode, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Menu } from "lucide-react";
+import { useSidebar } from "@/context/SidebarContext";
+import { useMediaQuery } from "@/hooks/use-mobile";
+import { VenueSidebar } from "./VenueSidebar";
 
 interface SidebarLayoutProps {
   children: ReactNode;
@@ -12,9 +12,8 @@ interface SidebarLayoutProps {
 
 export function SidebarLayout({ children }: SidebarLayoutProps) {
   const { isSidebarOpen, closeSidebar, toggleSidebar } = useSidebar();
-  const isMobile = useIsMobile();
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
-  // Close sidebar when switching to mobile view
   useEffect(() => {
     if (isMobile) {
       closeSidebar();
@@ -23,7 +22,6 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
 
   return (
     <div className="flex h-full w-full overflow-hidden">
-      {/* Mobile menu button */}
       {isMobile && (
         <Button
           variant="ghost"
@@ -35,7 +33,6 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
         </Button>
       )}
 
-      {/* Sidebar with mobile overlay */}
       {isMobile && isSidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40"
@@ -44,7 +41,6 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
         />
       )}
 
-      {/* Sidebar */}
       <div
         className={`
           ${isMobile ? 'fixed' : 'relative'} 
@@ -55,16 +51,12 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
           ${isMobile && !isSidebarOpen ? '-translate-x-full' : 'translate-x-0'}
         `}
       >
-        <Sidebar />
+        <VenueSidebar />
       </div>
 
-      {/* Main content */}
       <main className="flex-1 overflow-auto relative">
         {children}
       </main>
-
-      {/* Mobile navigation */}
-      {isMobile && <MobileNavigation />}
     </div>
   );
 }
