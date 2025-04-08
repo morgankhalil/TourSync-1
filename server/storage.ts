@@ -929,6 +929,12 @@ export class MemStorage implements IStorage {
 
   // Initialize with sample data for testing
   private initializeSampleData() {
+    // Check if we already have imported artists
+    if (this.artistsData.size > 0) {
+      console.log(`Using existing ${this.artistsData.size} artists and ${this.eventsData.size} events`);
+      return; // Skip initialization if we already have data
+    }
+    
     // Sample artists
     const artists: Artist[] = [
       {
@@ -936,6 +942,7 @@ export class MemStorage implements IStorage {
         name: "The Melodic Harmony",
         genres: ["indie rock", "alternative", "folk"],
         imageUrl: "https://example.com/artist1.jpg",
+        url: "https://bandsintown.com/artist1",
         website: "https://melodicharmony.com",
         description: "An indie rock band known for their haunting melodies and introspective lyrics",
         location: "Portland, OR",
@@ -951,6 +958,7 @@ export class MemStorage implements IStorage {
         name: "Electronic Dreams",
         genres: ["electronic", "synth-pop", "ambient"],
         imageUrl: "https://example.com/artist2.jpg",
+        url: "https://bandsintown.com/artist2",
         website: "https://electronicdreams.io",
         description: "Creating atmospheric electronic soundscapes that transport listeners to other dimensions",
         location: "Seattle, WA",
@@ -966,6 +974,7 @@ export class MemStorage implements IStorage {
         name: "Rhythm Collective",
         genres: ["hip-hop", "jazz", "funk"],
         imageUrl: "https://example.com/artist3.jpg",
+        url: "https://bandsintown.com/artist3", 
         website: "https://rhythmcollective.net",
         description: "A collaborative group fusing hip-hop beats with jazz instrumentation and funk grooves",
         location: "Chicago, IL",
@@ -1047,7 +1056,7 @@ export class MemStorage implements IStorage {
         message: "We love your music and would be interested in opening for you at the Digital Dreams Club show!",
         status: "pending",
         requestDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-        responseDate: undefined
+        responseDate: null
       },
       {
         id: 2,

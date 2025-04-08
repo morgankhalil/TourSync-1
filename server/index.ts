@@ -10,9 +10,11 @@ import { setupVite, serveStatic, log } from "./vite";
 dotenv.config();
 
 // Make sure SKIP_SAMPLE_DATA is available globally
-// Explicitly set to 'true' for our database import
-process.env.SKIP_SAMPLE_DATA = 'true';
-console.log('Explicitly setting SKIP_SAMPLE_DATA=true for the server');
+if (process.env.SKIP_SAMPLE_DATA !== 'true') {
+  console.log('Sample data will be initialized if no existing data is found');
+} else {
+  console.log('SKIP_SAMPLE_DATA=true, will not initialize sample data');
+}
 
 const app = express();
 app.use(express.json());
