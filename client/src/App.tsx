@@ -15,18 +15,18 @@ import { ActiveVenueProvider } from "./hooks/useActiveVenue";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { MainLayout } from "./components/layout/MainLayout";
 import { Toaster } from "./components/ui/toaster";
-import { SidebarProvider } from '@/components/ui/sidebar'; //Added from original code
-import ProfilePage from './pages/ProfilePage'; //Added from original code
-import SettingsPage from './pages/SettingsPage'; //Added from original code
-import VenueView from './pages/VenueView'; //Added from original code
+import { SidebarProvider } from '@/components/ui/sidebar';
+import ProfilePage from './pages/ProfilePage';
+import SettingsPage from './pages/SettingsPage';
+import VenueView from './pages/VenueView';
 
 
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="system" enableSystem>
-        <AuthProvider>
-          <ActiveVenueProvider>
+      <AuthProvider>
+        <ActiveVenueProvider>
+          <ThemeProvider defaultTheme="system" enableSystem>
             <div className="min-h-screen">
               <Toaster />
               <Switch>
@@ -39,21 +39,21 @@ export default function App() {
                         <Route path="/" component={Dashboard} />
                         <Route path="/venues" component={VenueDashboard} />
                         <Route path="/venues/search" component={VenueSearch} />
-                        <Route path="/venues/:id" component={VenueView} /> {/* Restored from original */}
+                        <Route path="/venues/:id" component={VenueView} />
                         <Route path="/tours/finder" component={TourFinderPro} />
                         <Route path="/artists/discovery" component={EnhancedArtistDiscovery} />
                         <Route path="/bandsintown" component={BandsintownPage} />
-                        <Route path="/profile" component={ProfilePage} /> {/* Restored from original */}
-                        <Route path="/settings" component={SettingsPage} /> {/* Restored from original */}
+                        <Route path="/profile" component={ProfilePage} />
+                        <Route path="/settings" component={SettingsPage} />
                       </Switch>
                     </MainLayout>
                   </ProtectedRoute>
                 </Route>
               </Switch>
             </div>
-          </ActiveVenueProvider>
-        </AuthProvider>
-      </ThemeProvider>
+          </ThemeProvider>
+        </ActiveVenueProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
