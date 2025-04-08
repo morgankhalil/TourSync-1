@@ -64,16 +64,16 @@ export async function registerVenueNetworkRoutes(app: any) {
   app.post("/api/venue-network/relationship-types", async (req: Request, res: Response) => {
     try {
       const { name, description } = req.body;
-      
+
       if (!name) {
         return res.status(400).json({ error: "Name is required" });
       }
-      
+
       const result = await db.insert(venueRelationshipTypes).values({
         name,
         description
       }).returning();
-      
+
       res.status(201).json(result[0]);
     } catch (error) {
       console.error("Error creating venue relationship type:", error);
@@ -87,11 +87,11 @@ export async function registerVenueNetworkRoutes(app: any) {
   app.get("/api/venue-network/relationships/:venueId", async (req: Request, res: Response) => {
     try {
       const venueId = parseInt(req.params.venueId);
-      
+
       if (isNaN(venueId)) {
         return res.status(400).json({ error: "Invalid venue ID" });
       }
-      
+
       // Find all relationships where the venue is either venueId1 or venueId2
       const relationshipsAsVenue1 = await db
         .select()
@@ -99,14 +99,14 @@ export async function registerVenueNetworkRoutes(app: any) {
         .leftJoin(venues, eq(venueRelationships.venueId2, venues.id))
         .leftJoin(venueRelationshipTypes, eq(venueRelationships.relationshipTypeId, venueRelationshipTypes.id))
         .where(eq(venueRelationships.venueId1, venueId));
-      
+
       const relationshipsAsVenue2 = await db
         .select()
         .from(venueRelationships)
         .leftJoin(venues, eq(venueRelationships.venueId1, venues.id))
         .leftJoin(venueRelationshipTypes, eq(venueRelationships.relationshipTypeId, venueRelationshipTypes.id))
         .where(eq(venueRelationships.venueId2, venueId));
-      
+
       // Transform the results to have consistent format
       const relationships = [
         ...relationshipsAsVenue1.map(r => ({
@@ -123,7 +123,7 @@ export async function registerVenueNetworkRoutes(app: any) {
           relationshipType: r.venue_relationship_types
         }))
       ];
-      
+
       res.json(relationships);
     } catch (error) {
       console.error("Error fetching venue relationships:", error);
@@ -134,15 +134,15 @@ export async function registerVenueNetworkRoutes(app: any) {
   app.post("/api/venue-network/relationships", async (req: Request, res: Response) => {
     try {
       const { venueId1, venueId2, relationshipTypeId, strength, notes } = req.body;
-      
+
       if (!venueId1 || !venueId2) {
         return res.status(400).json({ error: "Both venue IDs are required" });
       }
-      
+
       if (venueId1 === venueId2) {
         return res.status(400).json({ error: "Cannot create a relationship with the same venue" });
       }
-      
+
       // Check if relationship already exists
       const existingRelationship = await db
         .select()
@@ -151,24 +151,24 @@ export async function registerVenueNetworkRoutes(app: any) {
           sql`(${eq(venueRelationships.venueId1, venueId1)} AND ${eq(venueRelationships.venueId2, venueId2)}) OR 
               (${eq(venueRelationships.venueId1, venueId2)} AND ${eq(venueRelationships.venueId2, venueId1)})`
         );
-      
+
       if (existingRelationship.length > 0) {
         return res.status(409).json({ 
           error: "A relationship between these venues already exists",
           existingRelationship: existingRelationship[0]
         });
       }
-      
+
       // Get venue details for response
       const venue2Details = await db
         .select()
         .from(venues)
         .where(eq(venues.id, venueId2));
-      
+
       if (venue2Details.length === 0) {
         return res.status(404).json({ error: "Venue 2 not found" });
       }
-      
+
       // Get relationship type details for response
       let relationshipTypeDetails = null;
       if (relationshipTypeId) {
@@ -176,12 +176,12 @@ export async function registerVenueNetworkRoutes(app: any) {
           .select()
           .from(venueRelationshipTypes)
           .where(eq(venueRelationshipTypes.id, relationshipTypeId));
-        
+
         if (typeResult.length > 0) {
           relationshipTypeDetails = typeResult[0];
         }
       }
-      
+
       // Create the relationship
       const result = await db.insert(venueRelationships).values({
         venueId1: venueId1,
@@ -191,7 +191,7 @@ export async function registerVenueNetworkRoutes(app: any) {
         status: 'active',
         notes: notes || null
       }).returning();
-      
+
       // Return the created relationship with the other venue and relationship type details
       res.status(201).json({
         ...result[0],
@@ -208,21 +208,21 @@ export async function registerVenueNetworkRoutes(app: any) {
     try {
       const id = parseInt(req.params.id);
       const { relationshipTypeId, strength, status, notes } = req.body;
-      
+
       if (isNaN(id)) {
         return res.status(400).json({ error: "Invalid relationship ID" });
       }
-      
+
       // Check if relationship exists
       const existingRelationship = await db
         .select()
         .from(venueRelationships)
         .where(eq(venueRelationships.id, id));
-      
+
       if (existingRelationship.length === 0) {
         return res.status(404).json({ error: "Relationship not found" });
       }
-      
+
       // Update the relationship
       const result = await db
         .update(venueRelationships)
@@ -234,25 +234,25 @@ export async function registerVenueNetworkRoutes(app: any) {
         })
         .where(eq(venueRelationships.id, id))
         .returning();
-      
+
       // Get venue and relationship type details for response
       const venue2Details = await db
         .select()
         .from(venues)
         .where(eq(venues.id, result[0].venueId2));
-      
+
       let relationshipTypeDetails = null;
       if (result[0].relationshipTypeId) {
         const typeResult = await db
           .select()
           .from(venueRelationshipTypes)
           .where(eq(venueRelationshipTypes.id, result[0].relationshipTypeId));
-        
+
         if (typeResult.length > 0) {
           relationshipTypeDetails = typeResult[0];
         }
       }
-      
+
       res.json({
         ...result[0],
         otherVenue: venue2Details[0],
@@ -267,26 +267,26 @@ export async function registerVenueNetworkRoutes(app: any) {
   app.delete("/api/venue-network/relationships/:id", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
-      
+
       if (isNaN(id)) {
         return res.status(400).json({ error: "Invalid relationship ID" });
       }
-      
+
       // Check if relationship exists
       const existingRelationship = await db
         .select()
         .from(venueRelationships)
         .where(eq(venueRelationships.id, id));
-      
+
       if (existingRelationship.length === 0) {
         return res.status(404).json({ error: "Relationship not found" });
       }
-      
+
       // Delete the relationship
       await db
         .delete(venueRelationships)
         .where(eq(venueRelationships.id, id));
-      
+
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting venue relationship:", error);
@@ -300,7 +300,7 @@ export async function registerVenueNetworkRoutes(app: any) {
   app.get("/api/venue-network/clusters", async (req: Request, res: Response) => {
     try {
       const clusters = await db.select().from(venueClusters);
-      
+
       // For each cluster, get its members
       for (const cluster of clusters) {
         const members = await db
@@ -308,13 +308,13 @@ export async function registerVenueNetworkRoutes(app: any) {
           .from(venueClusterMembers)
           .leftJoin(venues, eq(venueClusterMembers.venueId, venues.id))
           .where(eq(venueClusterMembers.clusterId, cluster.id));
-        
+
         cluster.members = members.map(m => ({
           ...m.venue_cluster_members,
           venue: m.venues
         }));
       }
-      
+
       res.json(clusters);
     } catch (error) {
       console.error("Error fetching venue clusters:", error);
@@ -325,34 +325,34 @@ export async function registerVenueNetworkRoutes(app: any) {
   app.get("/api/venue-network/clusters/:id", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
-      
+
       if (isNaN(id)) {
         return res.status(400).json({ error: "Invalid cluster ID" });
       }
-      
+
       const clusters = await db
         .select()
         .from(venueClusters)
         .where(eq(venueClusters.id, id));
-      
+
       if (clusters.length === 0) {
         return res.status(404).json({ error: "Cluster not found" });
       }
-      
+
       const cluster = clusters[0];
-      
+
       // Get the cluster members
       const members = await db
         .select()
         .from(venueClusterMembers)
         .leftJoin(venues, eq(venueClusterMembers.venueId, venues.id))
         .where(eq(venueClusterMembers.clusterId, id));
-      
+
       cluster.members = members.map(m => ({
         ...m.venue_cluster_members,
         venue: m.venues
       }));
-      
+
       res.json(cluster);
     } catch (error) {
       console.error("Error fetching venue cluster:", error);
@@ -363,13 +363,13 @@ export async function registerVenueNetworkRoutes(app: any) {
   app.post("/api/venue-network/clusters", async (req: Request, res: Response) => {
     try {
       const { name, description, centerLatitude, centerLongitude, radiusKm } = req.body;
-      
+
       if (!name) {
         return res.status(400).json({ error: "Name is required" });
       }
-      
+
       const createdAt = new Date().toISOString();
-      
+
       const result = await db.insert(venueClusters).values({
         name,
         description: description || null,
@@ -379,7 +379,7 @@ export async function registerVenueNetworkRoutes(app: any) {
         createdAt,
         updatedAt: null
       }).returning();
-      
+
       res.status(201).json({
         ...result[0],
         members: []
@@ -394,31 +394,31 @@ export async function registerVenueNetworkRoutes(app: any) {
     try {
       const clusterId = parseInt(req.params.clusterId);
       const { venueId } = req.body;
-      
+
       if (isNaN(clusterId) || !venueId) {
         return res.status(400).json({ error: "Valid cluster ID and venue ID are required" });
       }
-      
+
       // Check if cluster exists
       const clusters = await db
         .select()
         .from(venueClusters)
         .where(eq(venueClusters.id, clusterId));
-      
+
       if (clusters.length === 0) {
         return res.status(404).json({ error: "Cluster not found" });
       }
-      
+
       // Check if venue exists
       const venueResult = await db
         .select()
         .from(venues)
         .where(eq(venues.id, venueId));
-      
+
       if (venueResult.length === 0) {
         return res.status(404).json({ error: "Venue not found" });
       }
-      
+
       // Check if venue is already a member
       const existingMember = await db
         .select()
@@ -429,23 +429,23 @@ export async function registerVenueNetworkRoutes(app: any) {
             eq(venueClusterMembers.venueId, venueId)
           )
         );
-      
+
       if (existingMember.length > 0) {
         return res.status(409).json({ 
           error: "Venue is already a member of this cluster",
           existingMember: existingMember[0]
         });
       }
-      
+
       const addedAt = new Date().toISOString();
-      
+
       // Add venue to cluster
       const result = await db.insert(venueClusterMembers).values({
         clusterId,
         venueId,
         addedAt
       }).returning();
-      
+
       res.status(201).json({
         ...result[0],
         venue: venueResult[0]
@@ -460,11 +460,11 @@ export async function registerVenueNetworkRoutes(app: any) {
     try {
       const clusterId = parseInt(req.params.clusterId);
       const venueId = parseInt(req.params.venueId);
-      
+
       if (isNaN(clusterId) || isNaN(venueId)) {
         return res.status(400).json({ error: "Valid cluster ID and venue ID are required" });
       }
-      
+
       // Check if membership exists
       const existingMember = await db
         .select()
@@ -475,11 +475,11 @@ export async function registerVenueNetworkRoutes(app: any) {
             eq(venueClusterMembers.venueId, venueId)
           )
         );
-      
+
       if (existingMember.length === 0) {
         return res.status(404).json({ error: "Venue is not a member of this cluster" });
       }
-      
+
       // Remove venue from cluster
       await db
         .delete(venueClusterMembers)
@@ -489,7 +489,7 @@ export async function registerVenueNetworkRoutes(app: any) {
             eq(venueClusterMembers.venueId, venueId)
           )
         );
-      
+
       res.status(204).send();
     } catch (error) {
       console.error("Error removing venue from cluster:", error);
@@ -505,7 +505,7 @@ export async function registerVenueNetworkRoutes(app: any) {
         maxVenuesPerCluster = 10,
         namePrefix = "Venue Cluster"
       } = req.body;
-      
+
       // Fetch all venues with coordinates
       const allVenues = await db
         .select()
@@ -516,40 +516,40 @@ export async function registerVenueNetworkRoutes(app: any) {
             sql`${venues.longitude} IS NOT NULL`
           )
         );
-      
+
       if (allVenues.length === 0) {
         return res.status(404).json({ error: "No venues with valid coordinates found" });
       }
-      
+
       // Group venues by proximity
       const clusters: { center: typeof allVenues[0]; members: typeof allVenues }[] = [];
       const assignedVenues = new Set<number>();
-      
+
       // For each venue not yet assigned to a cluster
       for (const venue of allVenues) {
         if (assignedVenues.has(venue.id)) continue;
-        
+
         // Start a new potential cluster with this venue as the center
         const clusterMembers = [venue];
         assignedVenues.add(venue.id);
-        
+
         // Find all venues within the distance threshold
         for (const otherVenue of allVenues) {
           if (otherVenue.id === venue.id || assignedVenues.has(otherVenue.id)) continue;
-          
+
           const distance = calculateDistance(
             parseFloat(venue.latitude),
             parseFloat(venue.longitude),
             parseFloat(otherVenue.latitude),
             parseFloat(otherVenue.longitude)
           );
-          
+
           if (distance <= distanceThresholdKm && clusterMembers.length < maxVenuesPerCluster) {
             clusterMembers.push(otherVenue);
             assignedVenues.add(otherVenue.id);
           }
         }
-        
+
         // Only keep clusters with minimum number of venues
         if (clusterMembers.length >= minVenuesPerCluster) {
           clusters.push({
@@ -561,57 +561,55 @@ export async function registerVenueNetworkRoutes(app: any) {
           assignedVenues.delete(venue.id);
         }
       }
-      
+
       // Create database records for valid clusters
       const createdClusters = [];
-      const createdAt = new Date().toISOString();
-      
+
       for (let i = 0; i < clusters.length; i++) {
         const cluster = clusters[i];
         const centerVenue = cluster.center;
-        
+
         // Insert cluster record
         const clusterResult = await db.insert(venueClusters).values({
           name: `${namePrefix} ${i + 1}`,
           description: `Automatic cluster centered around ${centerVenue.name}`,
           centerLatitude: centerVenue.latitude,
           centerLongitude: centerVenue.longitude,
-          radiusKm: distanceThresholdKm,
-          createdAt,
-          updatedAt: null
+          radiusKm: distanceThresholdKm
+          // Let the database handle timestamps
         }).returning();
-        
+
         const clusterId = clusterResult[0].id;
-        
+
         // Add members to cluster
         for (const member of cluster.members) {
           await db.insert(venueClusterMembers).values({
             clusterId,
-            venueId: member.id,
-            addedAt: createdAt
+            venueId: member.id
+            // Let the database handle addedAt timestamp
           });
         }
-        
+
         // Get the complete cluster with members
         const completeCluster = await db
           .select()
           .from(venueClusters)
           .where(eq(venueClusters.id, clusterId));
-        
+
         const members = await db
           .select()
           .from(venueClusterMembers)
           .leftJoin(venues, eq(venueClusterMembers.venueId, venues.id))
           .where(eq(venueClusterMembers.clusterId, clusterId));
-        
+
         completeCluster[0].members = members.map(m => ({
           ...m.venue_cluster_members,
           venue: m.venues
         }));
-        
+
         createdClusters.push(completeCluster[0]);
       }
-      
+
       res.status(201).json({
         clusters: createdClusters,
         totalClusters: createdClusters.length,
@@ -639,25 +637,25 @@ export async function registerVenueNetworkRoutes(app: any) {
   app.get("/api/venue-network/routing-patterns/venue/:venueId", async (req: Request, res: Response) => {
     try {
       const venueId = parseInt(req.params.venueId);
-      
+
       if (isNaN(venueId)) {
         return res.status(400).json({ error: "Invalid venue ID" });
       }
-      
+
       // Find patterns where the venue is the source
       const sourcePatterns = await db
         .select()
         .from(routingPatterns)
         .leftJoin(venues, eq(routingPatterns.destinationVenueId, venues.id))
         .where(eq(routingPatterns.sourceVenueId, venueId));
-      
+
       // Find patterns where the venue is the destination
       const destinationPatterns = await db
         .select()
         .from(routingPatterns)
         .leftJoin(venues, eq(routingPatterns.sourceVenueId, venues.id))
         .where(eq(routingPatterns.destinationVenueId, venueId));
-      
+
       // Transform the results to have consistent format
       const patterns = [
         ...sourcePatterns.map(p => ({
@@ -671,7 +669,7 @@ export async function registerVenueNetworkRoutes(app: any) {
           isSource: false
         }))
       ];
-      
+
       res.json(patterns);
     } catch (error) {
       console.error("Error fetching venue routing patterns:", error);
@@ -685,40 +683,40 @@ export async function registerVenueNetworkRoutes(app: any) {
   app.get("/api/venue-network/routing-gaps", async (req: Request, res: Response) => {
     try {
       const { status, startDate, endDate } = req.query;
-      
+
       let query = db.select().from(routingGaps);
-      
+
       // Apply filters
       if (status) {
         query = query.where(eq(routingGaps.status, status as string));
       }
-      
+
       if (startDate) {
         query = query.where(gte(routingGaps.gapStartDate, startDate as string));
       }
-      
+
       if (endDate) {
         query = query.where(lte(routingGaps.gapEndDate, endDate as string));
       }
-      
+
       const gaps = await query;
-      
+
       // Get venue details for prior and next venues
       for (const gap of gaps) {
         const priorVenue = await db
           .select()
           .from(venues)
           .where(eq(venues.id, gap.priorVenueId));
-        
+
         const nextVenue = await db
           .select()
           .from(venues)
           .where(eq(venues.id, gap.nextVenueId));
-        
+
         gap.priorVenue = priorVenue.length > 0 ? priorVenue[0] : null;
         gap.nextVenue = nextVenue.length > 0 ? nextVenue[0] : null;
       }
-      
+
       res.json(gaps);
     } catch (error) {
       console.error("Error fetching routing gaps:", error);
@@ -729,11 +727,11 @@ export async function registerVenueNetworkRoutes(app: any) {
   app.get("/api/venue-network/routing-gaps/venue/:venueId", async (req: Request, res: Response) => {
     try {
       const venueId = parseInt(req.params.venueId);
-      
+
       if (isNaN(venueId)) {
         return res.status(400).json({ error: "Invalid venue ID" });
       }
-      
+
       // Find gaps where the venue is eligible
       const gaps = await db
         .select()
@@ -743,26 +741,26 @@ export async function registerVenueNetworkRoutes(app: any) {
               ${routingGaps.priorVenueId} = ${venueId} OR 
               ${routingGaps.nextVenueId} = ${venueId}`
         );
-      
+
       // Get venue details and mark if venue is eligible
       for (const gap of gaps) {
         const priorVenue = await db
           .select()
           .from(venues)
           .where(eq(venues.id, gap.priorVenueId));
-        
+
         const nextVenue = await db
           .select()
           .from(venues)
           .where(eq(venues.id, gap.nextVenueId));
-        
+
         gap.priorVenue = priorVenue.length > 0 ? priorVenue[0] : null;
         gap.nextVenue = nextVenue.length > 0 ? nextVenue[0] : null;
-        
+
         // Mark if venue is in the eligible venues array
         gap.isEligible = gap.eligibleVenues?.includes(venueId) || false;
       }
-      
+
       res.json(gaps);
     } catch (error) {
       console.error("Error fetching venue routing gaps:", error);
@@ -782,15 +780,15 @@ export async function registerVenueNetworkRoutes(app: any) {
         eligibleVenues = null,
         status = 'open'
       } = req.body;
-      
+
       if (!priorVenueId || !nextVenueId || !bandName || !gapStartDate || !gapEndDate) {
         return res.status(400).json({ 
           error: "Prior venue ID, next venue ID, band name, and gap dates are required" 
         });
       }
-      
+
       const createdAt = new Date().toISOString();
-      
+
       const result = await db.insert(routingGaps).values({
         priorVenueId,
         nextVenueId,
@@ -804,18 +802,18 @@ export async function registerVenueNetworkRoutes(app: any) {
         createdAt,
         resolvedAt: null
       }).returning();
-      
+
       // Get venue details for response
       const priorVenue = await db
         .select()
         .from(venues)
         .where(eq(venues.id, priorVenueId));
-      
+
       const nextVenue = await db
         .select()
         .from(venues)
         .where(eq(venues.id, nextVenueId));
-      
+
       res.status(201).json({
         ...result[0],
         priorVenue: priorVenue.length > 0 ? priorVenue[0] : null,
@@ -833,38 +831,38 @@ export async function registerVenueNetworkRoutes(app: any) {
   app.get("/api/venue-network/shared-bookings", async (req: Request, res: Response) => {
     try {
       const { venueId, startDate, endDate, sharingLevel } = req.query;
-      
+
       let query = db.select().from(sharedBookings);
-      
+
       // Apply filters
       if (venueId) {
         query = query.where(eq(sharedBookings.sourceVenueId, parseInt(venueId as string)));
       }
-      
+
       if (startDate) {
         query = query.where(gte(sharedBookings.bookingDate, startDate as string));
       }
-      
+
       if (endDate) {
         query = query.where(lte(sharedBookings.bookingDate, endDate as string));
       }
-      
+
       if (sharingLevel) {
         query = query.where(eq(sharedBookings.sharingLevel, sharingLevel as string));
       }
-      
+
       const bookings = await query;
-      
+
       // Get source venue details
       for (const booking of bookings) {
         const sourceVenue = await db
           .select()
           .from(venues)
           .where(eq(venues.id, booking.sourceVenueId));
-        
+
         booking.sourceVenue = sourceVenue.length > 0 ? sourceVenue[0] : null;
       }
-      
+
       res.json(bookings);
     } catch (error) {
       console.error("Error fetching shared bookings:", error);
@@ -885,15 +883,15 @@ export async function registerVenueNetworkRoutes(app: any) {
         routeEligible = true,
         contactInfo = null
       } = req.body;
-      
+
       if (!sourceVenueId || !bandName || !bookingDate) {
         return res.status(400).json({ 
           error: "Source venue ID, band name, and booking date are required" 
         });
       }
-      
+
       const createdAt = new Date().toISOString();
-      
+
       const result = await db.insert(sharedBookings).values({
         sourceVenueId,
         bandId,
@@ -906,13 +904,13 @@ export async function registerVenueNetworkRoutes(app: any) {
         createdAt,
         contactInfo
       }).returning();
-      
+
       // Get source venue details for response
       const sourceVenue = await db
         .select()
         .from(venues)
         .where(eq(venues.id, sourceVenueId));
-      
+
       res.status(201).json({
         ...result[0],
         sourceVenue: sourceVenue.length > 0 ? sourceVenue[0] : null
@@ -929,19 +927,19 @@ export async function registerVenueNetworkRoutes(app: any) {
   app.get("/api/venue-network/collaborative-offers", async (req: Request, res: Response) => {
     try {
       const { venueId, status } = req.query;
-      
+
       let query = db.select().from(collaborativeOffers);
-      
+
       // Apply filters
       if (venueId) {
         const venueIdInt = parseInt(venueId as string);
-        
+
         // Find offers where the venue is the initiator or a participant
         const participantOfferIds = await db
           .select({ offerId: collaborativeOfferParticipants.offerId })
           .from(collaborativeOfferParticipants)
           .where(eq(collaborativeOfferParticipants.venueId, venueIdInt));
-        
+
         if (participantOfferIds.length > 0) {
           const offerIds = participantOfferIds.map(p => p.offerId);
           query = query.where(
@@ -951,34 +949,34 @@ export async function registerVenueNetworkRoutes(app: any) {
           query = query.where(eq(collaborativeOffers.initiatingVenueId, venueIdInt));
         }
       }
-      
+
       if (status) {
         query = query.where(eq(collaborativeOffers.status, status as string));
       }
-      
+
       const offers = await query;
-      
+
       // Get initiating venue details and participants
       for (const offer of offers) {
         const initiatingVenue = await db
           .select()
           .from(venues)
           .where(eq(venues.id, offer.initiatingVenueId));
-        
+
         offer.initiatingVenue = initiatingVenue.length > 0 ? initiatingVenue[0] : null;
-        
+
         const participants = await db
           .select()
           .from(collaborativeOfferParticipants)
           .leftJoin(venues, eq(collaborativeOfferParticipants.venueId, venues.id))
           .where(eq(collaborativeOfferParticipants.offerId, offer.id));
-        
+
         offer.participants = participants.map(p => ({
           ...p.collaborative_offer_participants,
           venue: p.venues
         }));
       }
-      
+
       res.json(offers);
     } catch (error) {
       console.error("Error fetching collaborative offers:", error);
@@ -998,15 +996,15 @@ export async function registerVenueNetworkRoutes(app: any) {
         offerDetails = null,
         expiresAt = null
       } = req.body;
-      
+
       if (!name || !bandName || !initiatingVenueId || !dateRange || !dateRange.start || !dateRange.end) {
         return res.status(400).json({ 
           error: "Name, band name, initiating venue ID, and date range are required" 
         });
       }
-      
+
       const createdAt = new Date().toISOString();
-      
+
       const result = await db.insert(collaborativeOffers).values({
         name,
         bandId,
@@ -1018,13 +1016,13 @@ export async function registerVenueNetworkRoutes(app: any) {
         createdAt,
         expiresAt
       }).returning();
-      
+
       // Get initiating venue details for response
       const initiatingVenue = await db
         .select()
         .from(venues)
         .where(eq(venues.id, initiatingVenueId));
-      
+
       res.status(201).json({
         ...result[0],
         initiatingVenue: initiatingVenue.length > 0 ? initiatingVenue[0] : null,
@@ -1046,31 +1044,31 @@ export async function registerVenueNetworkRoutes(app: any) {
         venueNotes = null,
         venueOffer = null
       } = req.body;
-      
+
       if (isNaN(offerId) || !venueId) {
         return res.status(400).json({ error: "Valid offer ID and venue ID are required" });
       }
-      
+
       // Check if offer exists
       const offers = await db
         .select()
         .from(collaborativeOffers)
         .where(eq(collaborativeOffers.id, offerId));
-      
+
       if (offers.length === 0) {
         return res.status(404).json({ error: "Offer not found" });
       }
-      
+
       // Check if venue exists
       const venueResult = await db
         .select()
         .from(venues)
         .where(eq(venues.id, venueId));
-      
+
       if (venueResult.length === 0) {
         return res.status(404).json({ error: "Venue not found" });
       }
-      
+
       // Check if venue is already a participant
       const existingParticipant = await db
         .select()
@@ -1081,16 +1079,16 @@ export async function registerVenueNetworkRoutes(app: any) {
             eq(collaborativeOfferParticipants.venueId, venueId)
           )
         );
-      
+
       if (existingParticipant.length > 0) {
         return res.status(409).json({ 
           error: "Venue is already a participant in this offer",
           existingParticipant: existingParticipant[0]
         });
       }
-      
+
       const addedAt = new Date().toISOString();
-      
+
       // Add venue to offer participants
       const result = await db.insert(collaborativeOfferParticipants).values({
         offerId,
@@ -1101,7 +1099,7 @@ export async function registerVenueNetworkRoutes(app: any) {
         venueOffer,
         addedAt
       }).returning();
-      
+
       res.status(201).json({
         ...result[0],
         venue: venueResult[0]
@@ -1116,21 +1114,21 @@ export async function registerVenueNetworkRoutes(app: any) {
     try {
       const id = parseInt(req.params.id);
       const { name, status, offerDetails, expiresAt } = req.body;
-      
+
       if (isNaN(id)) {
         return res.status(400).json({ error: "Invalid offer ID" });
       }
-      
+
       // Check if offer exists
       const existingOffer = await db
         .select()
         .from(collaborativeOffers)
         .where(eq(collaborativeOffers.id, id));
-      
+
       if (existingOffer.length === 0) {
         return res.status(404).json({ error: "Offer not found" });
       }
-      
+
       // Update the offer
       const result = await db
         .update(collaborativeOffers)
@@ -1142,20 +1140,20 @@ export async function registerVenueNetworkRoutes(app: any) {
         })
         .where(eq(collaborativeOffers.id, id))
         .returning();
-      
+
       // Get initiating venue details for response
       const initiatingVenue = await db
         .select()
         .from(venues)
         .where(eq(venues.id, result[0].initiatingVenueId));
-      
+
       // Get participants
       const participants = await db
         .select()
         .from(collaborativeOfferParticipants)
         .leftJoin(venues, eq(collaborativeOfferParticipants.venueId, venues.id))
         .where(eq(collaborativeOfferParticipants.offerId, id));
-      
+
       res.json({
         ...result[0],
         initiatingVenue: initiatingVenue.length > 0 ? initiatingVenue[0] : null,
