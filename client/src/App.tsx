@@ -19,15 +19,9 @@ import TourRouteVisualization from './pages/TourRouteVisualization';
 import VenueNetworkHub from './pages/VenueNetworkHub';
 import NotFound from './pages/not-found';
 
-// Wrap a component with the MainLayout
-const withMainLayout = (Component: React.ComponentType<any>) => (props: any) => (
-  <MainLayout>
-    <Component {...props} />
-  </MainLayout>
-);
-
 export default function App() {
   return (
+    // Single QueryClientProvider at the root
     <QueryClientProvider client={queryClient}>
       <ActiveVenueProvider>
         <MainLayout>

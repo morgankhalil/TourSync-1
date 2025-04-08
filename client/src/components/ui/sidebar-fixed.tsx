@@ -179,7 +179,7 @@ export function Sidebar({ children }: SidebarProps) {
               <nav className="flex flex-col gap-2 mt-4">
                 {navigationItems.map((item) => (
                   <Link key={item.href} href={item.href}>
-                    <a 
+                    <div 
                       className={cn(
                         "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                         location === item.href || location.startsWith(item.href + '/') 
@@ -189,7 +189,7 @@ export function Sidebar({ children }: SidebarProps) {
                     >
                       {item.icon}
                       <span>{item.label}</span>
-                    </a>
+                    </div>
                   </Link>
                 ))}
               </nav>
@@ -240,7 +240,7 @@ export function Sidebar({ children }: SidebarProps) {
           <nav className="flex flex-col gap-1">
             {navigationItems.map((item) => (
               <Link key={item.href} href={item.href}>
-                <a 
+                <div 
                   className={cn(
                     "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                     (location === item.href || location.startsWith(item.href + '/'))
@@ -251,7 +251,7 @@ export function Sidebar({ children }: SidebarProps) {
                 >
                   {item.icon}
                   {!collapsed && <span>{item.label}</span>}
-                </a>
+                </div>
               </Link>
             ))}
           </nav>

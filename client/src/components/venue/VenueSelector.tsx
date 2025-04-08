@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Check, ChevronsUpDown, Building, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -17,71 +17,45 @@ import {
 } from '@/components/ui/popover';
 import { useActiveVenue } from '@/hooks/useActiveVenue';
 import { useToast } from '@/hooks/use-toast';
-import { Venue } from '@/types';
-import { EnhancedBandsintownDiscoveryClient } from '@/services/bandsintown-discovery-v2';
+import { useVenues } from '@/hooks/useVenues';
 
 const VenueSelector: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const { toast } = useToast();
-  const { activeVenue, setActiveVenue, venueId, setVenueId, refreshVenue } = useActiveVenue();
+  const { activeVenueId, setActiveVenueId, venueData } = useActiveVenue();
   
-  // Fetch venues
-  const { data: venues, isLoading, refetch } = useQuery({
-    queryKey: ['/api/venues'],
-    queryFn: async () => {
-      console.log('Fetching venues...');
-      const response = await fetch('/api/venues');
-      if (!response.ok) {
-        throw new Error('Failed to fetch venues');
-      }
-      const venueData = await response.json() as Venue[];
-      console.log('Fetched venues:', venueData);
-      return venueData;
-    },
-  });
+  // Use the venues hook from useVenues
+  const { data: venues, isLoading, refetch } = useVenues();
 
-  // Debug logging for venue changes
-  useEffect(() => {
-    console.log("Current active venue ID:", venueId);
-    console.log("Current active venue object:", activeVenue);
-  }, [venueId, activeVenue]);
-
-  // Handle venue selection with more thorough approach
-  const handleVenueSelect = (venue: Venue) => {
-    console.log(`Selecting venue: ${venue.name} (ID: ${venue.id})`);
-    
-    if (venueId === venue.id) {
-      console.log("Venue already selected, no change needed");
+  // Handle venue selection
+  const handleVenueSelect = (venueId: string) => {
+    if (activeVenueId === venueId) {
       setOpen(false);
       return;
     }
     
-    // Set active venue - this will handle ID updates and cache clearing internally
-    setActiveVenue(venue);
+    // Set active venue ID
+    setActiveVenueId(venueId);
     
     // Close the popover
     setOpen(false);
     
     // Show a toast to confirm venue change
-    toast({
-      title: "Venue Changed",
-      description: `Selected venue is now ${venue.name}`,
-      duration: 3000
-    });
+    const selectedVenue = venues?.find(v => v.id.toString() === venueId);
+    if (selectedVenue) {
+      toast({
+        title: "Venue Changed",
+        description: `Selected venue is now ${selectedVenue.name}`,
+        duration: 3000
+      });
+    }
   };
   
-  // Handle manual refresh with enhanced client
+  // Handle manual refresh
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      // Clear API cache using the enhanced client
-      const cacheResult = await EnhancedBandsintownDiscoveryClient.clearCache();
-      console.log("Cache cleared:", cacheResult);
-      
-      // Refresh venue data
-      refreshVenue();
-      
       // Refresh venues list
       await refetch();
       
@@ -118,8 +92,8 @@ const VenueSelector: React.FC = () => {
           >
             {isLoading ? (
               'Loading venues...'
-            ) : activeVenue ? (
-              activeVenue.name
+            ) : venueData ? (
+              venueData.name
             ) : (
               'Select a venue'
             )}
@@ -147,12 +121,12 @@ const VenueSelector: React.FC = () => {
                 <CommandItem
                   key={venue.id}
                   value={venue.name}
-                  onSelect={() => handleVenueSelect(venue)}
+                  onSelect={() => handleVenueSelect(venue.id.toString())}
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      venueId === venue.id ? "opacity-100" : "opacity-0"
+                      activeVenueId === venue.id.toString() ? "opacity-100" : "opacity-0"
                     )}
                   />
                   <span>{venue.name}</span>
