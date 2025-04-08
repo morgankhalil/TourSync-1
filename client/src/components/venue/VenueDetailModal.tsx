@@ -37,13 +37,13 @@ const VenueDetailModal = ({ venue, isOpen, onClose }: VenueDetailModalProps) => 
             <DialogTitle className="font-inter font-semibold text-lg">Venue Details</DialogTitle>
           </div>
         </DialogHeader>
-        
+
         <div>
           <div className="mb-4">
             <h3 className="font-inter font-bold text-xl">{venue.name}</h3>
             <p>{venue.city}, {venue.state}</p>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div className="flex items-center">
               <Users className="text-gray-500 mr-2" size={20} />
@@ -74,12 +74,12 @@ const VenueDetailModal = ({ venue, isOpen, onClose }: VenueDetailModalProps) => 
               </div>
             </div>
           </div>
-          
+
           <div className="mb-4">
             <h4 className="font-inter font-medium mb-2">About</h4>
             <p className="text-sm">{venue.description || "No description available."}</p>
           </div>
-          
+
           <div className="mb-4">
             <h4 className="font-inter font-medium mb-2">Available Dates</h4>
             {availableDates && availableDates.length > 0 ? (
@@ -94,11 +94,11 @@ const VenueDetailModal = ({ venue, isOpen, onClose }: VenueDetailModalProps) => 
               <p className="text-sm text-gray-500">No available dates to show</p>
             )}
           </div>
-          
+
           <div className="mb-4">
             <h4 className="font-inter font-medium mb-2">Contact</h4>
             <p className="text-sm mb-1">{venue.contactName || "Booking Manager"}</p>
-            
+
             {venue.contactEmail && (
               <div className="flex items-center text-sm mb-1">
                 <Mail className="h-4 w-4 mr-1 text-gray-500" />
@@ -107,7 +107,7 @@ const VenueDetailModal = ({ venue, isOpen, onClose }: VenueDetailModalProps) => 
                 </a>
               </div>
             )}
-            
+
             {venue.contactPhone && (
               <div className="flex items-center text-sm mb-1">
                 <Phone className="h-4 w-4 mr-1 text-gray-500" />
@@ -116,7 +116,7 @@ const VenueDetailModal = ({ venue, isOpen, onClose }: VenueDetailModalProps) => 
                 </a>
               </div>
             )}
-            
+
             {venue.website && (
               <div className="flex items-center text-sm">
                 <LinkIcon className="h-4 w-4 mr-1 text-gray-500" />
@@ -131,7 +131,7 @@ const VenueDetailModal = ({ venue, isOpen, onClose }: VenueDetailModalProps) => 
               </div>
             )}
           </div>
-          
+
           <div className="flex space-x-3 mt-6">
             <Button className="flex-1 bg-primary text-white">
               Request Booking

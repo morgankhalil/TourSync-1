@@ -12,7 +12,7 @@ import {
 import { Music, CheckCircle } from 'lucide-react';
 import { Link } from 'wouter';
 
-export function RegisterPage() {
+const RegisterPage = () => {
   const { isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
 
@@ -92,4 +92,6 @@ export function RegisterPage() {
       </div>
     </div>
   );
-}
+};
+
+export default RegisterPage;
