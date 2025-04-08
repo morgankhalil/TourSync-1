@@ -8,18 +8,32 @@ import {
   Route,
   Search,
   Building,
-  Handshake
+  Handshake,
+  Menu
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useActiveVenue } from '@/hooks/useActiveVenue';
+import { Button } from '@/components/ui/button';
+import { useSidebar } from '@/components/ui/sidebar-fixed';
 
 export function Header() {
   const [location] = useLocation();
   const { activeVenueId, venueData } = useActiveVenue();
+  const { toggleSidebar } = useSidebar();
 
   return (
-    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
+    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-20">
       <div className="flex h-16 items-center px-6">
+        {/* Mobile Menu Button */}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={toggleSidebar}
+          className="md:hidden mr-2"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+        
         <div className="flex items-center gap-2 font-semibold">
           <Music className="h-6 w-6 text-primary" />
           <span>BandConnect</span>
@@ -46,9 +60,9 @@ export function Header() {
               Artist Discovery
           </Link>
           
-          <Link href="/artists/discovery/pro" className={cn(
+          <Link href="/venues/tour-finder" className={cn(
               "text-sm font-medium transition-colors flex items-center gap-1",
-              location === "/artists/discovery/pro" 
+              location === "/venues/tour-finder" 
                 ? "text-primary" 
                 : "text-muted-foreground hover:text-foreground"
             )}>
@@ -76,14 +90,14 @@ export function Header() {
               Venues
           </Link>
           
-          <Link href="/collaboration-requests" className={cn(
+          <Link href="/venue-network" className={cn(
               "text-sm font-medium transition-colors flex items-center gap-1",
-              location === "/collaboration-requests" 
+              location === "/venue-network" 
                 ? "text-primary" 
                 : "text-muted-foreground hover:text-foreground"
             )}>
-              <Handshake className="h-4 w-4" />
-              Collaboration
+              <Users className="h-4 w-4" />
+              Venue Network
           </Link>
         </nav>
         
@@ -91,7 +105,7 @@ export function Header() {
           {activeVenueId && venueData && (
             <div className="flex items-center gap-2 text-sm">
               <Building className="h-4 w-4 text-muted-foreground" />
-              <span>{venueData.name}</span>
+              <span className="hidden sm:inline">{venueData.name}</span>
             </div>
           )}
           
