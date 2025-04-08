@@ -101,10 +101,10 @@ app.use((req, res, next) => {
 (async () => {
   // Register tour routes
   registerTourRoutes(app);
-  
+
   // Register config routes for API keys
   registerConfigRoutes(app);
-  
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
