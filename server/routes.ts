@@ -14,7 +14,7 @@ import { registerBandsintownDiscoveryRoutes } from "./routes/bandsintown-discove
 import { registerVenueRoutes } from "./routes/venue-routes";
 import { registerVenuesDirectRoutes } from "./routes/venues-direct";
 import venuesApiRouter from "./routes/venues-api";
-import { venueNetworkRouter } from "./routes/venue-network";
+import { registerVenueNetworkRoutes } from "./routes/venue-network";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register API-specific routes
@@ -23,7 +23,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerVenueRoutes(app);
   registerVenuesDirectRoutes(app);
   app.use('/api/venues-search', venuesApiRouter);
-  app.use('/api/venue-network', venueNetworkRouter);
+  registerVenueNetworkRoutes(app);
 
   // Artist routes
   app.get("/api/artists", async (req: Request, res: Response) => {

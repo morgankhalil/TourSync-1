@@ -3,8 +3,8 @@ import { apiRequest } from "../lib/queryClient";
 // Types
 type VenueRelationship = {
   id: number;
-  venue1: number;
-  venue2: number;
+  venueId1: number;
+  venueId2: number;
   relationshipTypeId: number | null;
   strength: number;
   status: string;
