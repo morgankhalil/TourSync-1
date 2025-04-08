@@ -76,6 +76,11 @@ export interface DiscoveryResponse {
     longitude: string;
   };
   stats: DiscoveryStats;
+  // Added for error handling
+  error?: {
+    message: string;
+    details?: string;
+  };
 }
 
 /**
@@ -96,10 +101,24 @@ export class EnhancedBandsintownDiscoveryClient {
       const response = await fetch('/api/bandsintown-discovery-v2/status');
 
       if (!response.ok) {
-        throw new Error('API status check failed');
+        throw new Error(`API status check failed with status ${response.status}`);
       }
 
-      return await response.json();
+      // Check content type to avoid JSON parsing errors
+      const contentType = response.headers.get('content-type');
+      
+      if (contentType && contentType.includes('application/json')) {
+        return await response.json();
+      } else {
+        // If the response is not JSON, create a meaningful error message
+        const textResponse = await response.text();
+        console.error('Non-JSON response from status endpoint:', textResponse.substring(0, 150) + '...');
+        return { 
+          status: 'error',
+          message: 'Invalid response format from Bandsintown API service',
+          apiKey: false
+        };
+      }
     } catch (error) {
       console.error('Failed to check Bandsintown API status', error);
       return { 
@@ -560,12 +579,76 @@ export class EnhancedBandsintownDiscoveryClient {
         };
       }
 
-      // For non-streaming requests, just return the JSON response
-      console.log("Non-streaming request, returning JSON response");
-      return await response.json();
+      // For non-streaming requests, check content type and return response
+      console.log("Non-streaming request, checking content type before parsing");
+      
+      // Check content type to avoid JSON parsing errors
+      const contentType = response.headers.get('content-type');
+      
+      if (contentType && contentType.includes('application/json')) {
+        console.log("Processing JSON response");
+        return await response.json();
+      } else {
+        // If response is not JSON, handle it gracefully
+        const textResponse = await response.text();
+        console.error('Non-JSON response received:', textResponse.substring(0, 150) + '...');
+        
+        // Create a fallback response with error info
+        return {
+          data: [],
+          venue: {
+            id: options.venueId,
+            name: 'Unknown Venue',
+            address: '',
+            city: '',
+            state: '',
+            zipCode: '',
+            latitude: '0',
+            longitude: '0'
+          },
+          stats: {
+            artistsQueried: 0,
+            artistsWithEvents: 0,
+            artistsPassingNear: 0,
+            totalEventsFound: 0,
+            elapsedTimeMs: 0,
+            apiCacheStats: { keys: 0, hits: 0, misses: 0 }
+          },
+          error: {
+            message: 'Invalid response format from discovery API',
+            details: textResponse.substring(0, 150) + '...'
+          }
+        };
+      }
     } catch (error) {
       console.error('Failed to perform band discovery:', error);
-      throw error;
+      
+      // Return a structured error response instead of throwing
+      return {
+        data: [],
+        venue: {
+          id: options.venueId,
+          name: 'Unknown Venue',
+          address: '',
+          city: '',
+          state: '',
+          zipCode: '',
+          latitude: '0',
+          longitude: '0'
+        },
+        stats: {
+          artistsQueried: 0,
+          artistsWithEvents: 0,
+          artistsPassingNear: 0, 
+          totalEventsFound: 0,
+          elapsedTimeMs: 0,
+          apiCacheStats: { keys: 0, hits: 0, misses: 0 }
+        },
+        error: {
+          message: `Error in discovery API: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          details: error instanceof Error ? error.stack : String(error)
+        }
+      };
     }
   }
 
