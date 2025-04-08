@@ -19,7 +19,8 @@ import {
   MessageSquare,
   Building,
   Route,
-  CheckCircle2
+  CheckCircle2,
+  MapPin
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -80,6 +81,11 @@ export function Sidebar({ className }: SidebarProps) {
       name: 'Tour Finder Pro',
       icon: Route,
       path: '/venues/tour-finder',
+    },
+    {
+      name: 'Venue Search',
+      icon: MapPin,
+      path: '/venues/search',
     },
     {
       name: 'Artist Profile',
